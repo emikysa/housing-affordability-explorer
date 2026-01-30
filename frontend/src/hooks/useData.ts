@@ -143,13 +143,14 @@ export function useBarriersByCro(croId: string | null) {
       return
     }
 
+    const currentCroId = croId // Capture for closure
     async function fetchBarriers() {
       setState((prev) => ({ ...prev, loading: true }))
       try {
         const { data, error } = await supabase
           .from('v_barriers')
           .select('*')
-          .eq('cro_id', croId)
+          .eq('cro_id', currentCroId)
         if (error) throw error
         setState({ data: data || [], loading: false, error: null })
       } catch (err) {
@@ -180,13 +181,14 @@ export function useCrosForCostElement(ceId: string | null) {
       return
     }
 
+    const currentCeId = ceId // Capture for closure
     async function fetchCros() {
       setState((prev) => ({ ...prev, loading: true }))
       try {
         const { data, error } = await supabase
           .from('v_cro_cost_element_impact')
           .select('*')
-          .eq('ce_id', ceId)
+          .eq('ce_id', currentCeId)
         if (error) throw error
         setState({ data: data || [], loading: false, error: null })
       } catch (err) {

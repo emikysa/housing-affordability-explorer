@@ -8,7 +8,6 @@ import {
   useBarrierTypes,
   useBarrierScopes,
   useFeasibilityHorizons,
-  useLeverTypes,
 } from '../hooks/useData'
 import type { Barrier } from '../types/database'
 
@@ -17,7 +16,6 @@ export default function Barriers() {
   const { data: barrierTypes } = useBarrierTypes()
   const { data: barrierScopes } = useBarrierScopes()
   const { data: horizons } = useFeasibilityHorizons()
-  const { data: leverTypes } = useLeverTypes()
 
   const [searchText, setSearchText] = useState('')
   const [typeFilter, setTypeFilter] = useState('')

@@ -4,7 +4,7 @@ import DataGrid, { currencyFormatter, BadgeRenderer } from '../components/DataGr
 import FilterBar from '../components/FilterBar'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
 import { useActors, useActorControls } from '../hooks/useData'
-import type { Actor, ActorControl } from '../types/database'
+import type { Actor } from '../types/database'
 
 export default function Actors() {
   const { data: actors, loading: actorsLoading } = useActors()

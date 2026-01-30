@@ -1,6 +1,6 @@
 import { useMemo, useCallback, useRef } from 'react'
 import { AgGridReact } from 'ag-grid-react'
-import type { ColDef, GridReadyEvent, GridApi } from 'ag-grid-community'
+import type { ColDef, GridReadyEvent, RowClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 
@@ -40,7 +40,7 @@ export default function DataGrid<T>({
   }, [])
 
   const onRowClicked = useCallback(
-    (event: { data: T }) => {
+    (event: RowClickedEvent<T>) => {
       if (onRowClick && event.data) {
         onRowClick(event.data)
       }
@@ -49,7 +49,12 @@ export default function DataGrid<T>({
   )
 
   return (
-    <div className="ag-theme-alpine" style={{ height, width: '100%' }}>
+    <div className="ag-theme-alpine relative" style={{ height, width: '100%' }}>
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
+          <span className="text-gray-500">Loading data...</span>
+        </div>
+      )}
       <AgGridReact<T>
         ref={gridRef}
         rowData={rowData}
@@ -64,8 +69,6 @@ export default function DataGrid<T>({
         paginationPageSizeSelector={[10, 25, 50, 100]}
         rowSelection="single"
         suppressCellFocus={true}
-        loading={loading}
-        overlayLoadingTemplate='<span class="ag-overlay-loading-center">Loading data...</span>'
         overlayNoRowsTemplate='<span class="ag-overlay-no-rows-center">No data available</span>'
       />
     </div>
