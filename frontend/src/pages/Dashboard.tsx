@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   BarChart,
@@ -17,6 +17,14 @@ import StatCard from '../components/StatCard'
 import { useSummaryStats, useCostElements, useBarriers } from '../hooks/useData'
 
 const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6366f1']
+
+// Extended color palette for stacked bars
+const STACKED_COLORS = [
+  '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6366f1',
+  '#14b8a6', '#f97316', '#ec4899', '#84cc16', '#06b6d4', '#a855f7',
+  '#22c55e', '#eab308', '#0ea5e9', '#d946ef', '#64748b', '#fb7185',
+  '#4ade80', '#facc15', '#38bdf8', '#c084fc', '#94a3b8', '#f472b6',
+]
 
 export default function Dashboard() {
   const { data: stats, loading: statsLoading } = useSummaryStats()
@@ -84,6 +92,91 @@ export default function Dashboard() {
 
     return Object.entries(grouped).map(([name, value]) => ({ name, value }))
   }, [barriers])
+
+  // Build cost elements (one-time) - sorted by value descending
+  const buildCostElements = useMemo(() => {
+    return costElements
+      .filter((ce) => ce.stage_id === 'Build' && (ce.estimate || 0) > 0)
+      .map((ce) => ({
+        name: ce.ce_id,
+        value: ce.estimate || 0,
+        description: ce.description,
+      }))
+      .sort((a, b) => b.value - a.value)
+  }, [costElements])
+
+  // Stacked bar data for Build costs
+  const buildStackedData = useMemo(() => {
+    const data: Record<string, number | string> = { category: 'Build Costs' }
+    buildCostElements.forEach((ce) => {
+      data[ce.name] = ce.value
+    })
+    return [data]
+  }, [buildCostElements])
+
+  // Operate + Finance cost elements (monthly)
+  const operateFinanceCostElements = useMemo(() => {
+    return costElements
+      .filter(
+        (ce) =>
+          (ce.stage_id === 'Operate' || ce.stage_id === 'Finance') &&
+          (ce.annual_estimate || ce.estimate || 0) > 0
+      )
+      .map((ce) => {
+        // Convert annual to monthly, or use estimate if it's a monthly figure
+        const monthlyValue = ce.annual_estimate
+          ? ce.annual_estimate / 12
+          : (ce.estimate || 0) / 12
+        return {
+          name: ce.ce_id,
+          value: monthlyValue,
+          description: ce.description,
+          stage: ce.stage_id,
+        }
+      })
+      .sort((a, b) => b.value - a.value)
+  }, [costElements])
+
+  // Stacked bar data for Operate + Finance costs
+  const operateFinanceStackedData = useMemo(() => {
+    const data: Record<string, number | string> = { category: 'Monthly Costs' }
+    operateFinanceCostElements.forEach((ce) => {
+      data[ce.name] = ce.value
+    })
+    return [data]
+  }, [operateFinanceCostElements])
+
+  // Monthly payment breakdown for the table
+  const monthlyPaymentData = useMemo(() => {
+    // Find principal payment (usually "Mortgage principal payment" or similar)
+    const principalElement = costElements.find(
+      (ce) =>
+        ce.ce_id.toLowerCase().includes('principal') ||
+        ce.description?.toLowerCase().includes('principal')
+    )
+    const principalMonthly = principalElement
+      ? (principalElement.annual_estimate || principalElement.estimate || 0) / 12
+      : 0
+
+    // Calculate total monthly from Operate + Finance
+    const totalMonthly = operateFinanceCostElements.reduce((sum, ce) => sum + ce.value, 0)
+
+    // Non-principal = total - principal
+    const nonPrincipalMonthly = totalMonthly - principalMonthly
+
+    return {
+      principal: principalMonthly,
+      nonPrincipal: nonPrincipalMonthly,
+      total: totalMonthly,
+    }
+  }, [costElements, operateFinanceCostElements])
+
+  // State for notes (editable in future, static for now)
+  const [paymentNotes] = useState({
+    principal: 'Builds equity in the home',
+    nonPrincipal: 'Interest, taxes, insurance, maintenance, utilities',
+    total: 'Total monthly housing cost',
+  })
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('en-US', {
@@ -165,6 +258,117 @@ export default function Dashboard() {
           </p>
           <p className="text-sm text-gray-500 mt-1">Per home per year (Operate)</p>
         </div>
+      </div>
+
+      {/* Build Cost Element Breakdown (Stacked Bar) */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Build Cost Element Breakdown (One-Time)
+        </h3>
+        <ResponsiveContainer width="100%" height={80}>
+          <BarChart data={buildStackedData} layout="vertical" barSize={40}>
+            <XAxis type="number" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+            <YAxis dataKey="category" type="category" width={100} hide />
+            <Tooltip
+              formatter={(value: number, name: string) => [formatCurrency(value), name]}
+              labelStyle={{ fontWeight: 'bold' }}
+            />
+            {buildCostElements.map((ce, index) => (
+              <Bar
+                key={ce.name}
+                dataKey={ce.name}
+                stackId="build"
+                fill={STACKED_COLORS[index % STACKED_COLORS.length]}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {buildCostElements.map((ce, index) => (
+            <div key={ce.name} className="flex items-center text-xs">
+              <div
+                className="w-3 h-3 rounded mr-1"
+                style={{ backgroundColor: STACKED_COLORS[index % STACKED_COLORS.length] }}
+              />
+              <span className="text-gray-600">{ce.name}</span>
+              <span className="ml-1 text-gray-400">({formatCurrency(ce.value)})</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Operate + Finance Cost Element Breakdown (Stacked Bar) */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Operate + Finance Cost Element Breakdown (Monthly)
+        </h3>
+        <ResponsiveContainer width="100%" height={80}>
+          <BarChart data={operateFinanceStackedData} layout="vertical" barSize={40}>
+            <XAxis type="number" tickFormatter={(v) => `$${v.toFixed(0)}`} />
+            <YAxis dataKey="category" type="category" width={100} hide />
+            <Tooltip
+              formatter={(value: number, name: string) => [formatCurrency(value), name]}
+              labelStyle={{ fontWeight: 'bold' }}
+            />
+            {operateFinanceCostElements.map((ce, index) => (
+              <Bar
+                key={ce.name}
+                dataKey={ce.name}
+                stackId="monthly"
+                fill={STACKED_COLORS[index % STACKED_COLORS.length]}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {operateFinanceCostElements.map((ce, index) => (
+            <div key={ce.name} className="flex items-center text-xs">
+              <div
+                className="w-3 h-3 rounded mr-1"
+                style={{ backgroundColor: STACKED_COLORS[index % STACKED_COLORS.length] }}
+              />
+              <span className="text-gray-600">{ce.name}</span>
+              <span className="ml-1 text-gray-400">({formatCurrency(ce.value)}/mo)</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Monthly Payment Summary Table */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Payment Summary</h3>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Label</th>
+              <th className="text-right py-3 px-4 font-semibold text-gray-700">Amount</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-gray-100">
+              <td className="py-3 px-4 text-gray-900">Monthly Principal Payment</td>
+              <td className="py-3 px-4 text-right font-medium text-blue-600">
+                {formatCurrency(monthlyPaymentData.principal)}
+              </td>
+              <td className="py-3 px-4 text-gray-500 text-sm">{paymentNotes.principal}</td>
+            </tr>
+            <tr className="border-b border-gray-100">
+              <td className="py-3 px-4 text-gray-900">Monthly Payment Excluding Principal</td>
+              <td className="py-3 px-4 text-right font-medium text-orange-600">
+                {formatCurrency(monthlyPaymentData.nonPrincipal)}
+              </td>
+              <td className="py-3 px-4 text-gray-500 text-sm">{paymentNotes.nonPrincipal}</td>
+            </tr>
+            <tr className="bg-gray-50">
+              <td className="py-3 px-4 font-semibold text-gray-900">Total Monthly Payment</td>
+              <td className="py-3 px-4 text-right font-bold text-green-600">
+                {formatCurrency(monthlyPaymentData.total)}
+              </td>
+              <td className="py-3 px-4 text-gray-500 text-sm">{paymentNotes.total}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       {/* Charts Row 1 */}
