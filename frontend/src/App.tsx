@@ -7,6 +7,7 @@ import Barriers from './pages/Barriers'
 import Actors from './pages/Actors'
 import Relationships from './pages/Relationships'
 import Explorer from './pages/Explorer'
+import Scenarios from './pages/Scenarios'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/actors" element={<Actors />} />
         <Route path="/relationships" element={<Relationships />} />
         <Route path="/explorer" element={<Explorer />} />
+        <Route path="/scenarios" element={<Scenarios />} />
       </Routes>
     </Layout>
   )
