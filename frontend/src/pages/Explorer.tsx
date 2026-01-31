@@ -16,13 +16,15 @@ import type {
   ActorControl,
 } from '../types/database'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
-import { BadgeRenderer } from '../components/DataGrid'
 
 type SelectionType = 'ce' | 'cro' | 'barrier' | 'actor' | null
 type SelectedItem = {
   type: SelectionType
   id: string
 }
+
+// Semantic color types for Explorer columns
+type ColumnColorType = 'ce' | 'cro' | 'barrier' | 'actor'
 
 export default function Explorer() {
   const { data: costElements, loading: ceLoading } = useCostElements()
@@ -250,14 +252,14 @@ export default function Explorer() {
 
       {/* Selection indicator */}
       {selected && (
-        <div className="bg-primary-50 border border-primary-200 rounded-lg px-4 py-2 flex items-center justify-between">
-          <span className="text-primary-800">
+        <div className="bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 flex items-center justify-between">
+          <span className="text-gray-800">
             Filtering by <span className="font-semibold">{selected.type?.toUpperCase()}</span>:{' '}
             <span className="font-mono">{selected.id}</span>
           </span>
           <button
             onClick={() => setSelected(null)}
-            className="text-primary-600 hover:text-primary-800 font-medium text-sm"
+            className="text-gray-600 hover:text-gray-800 font-medium text-sm"
           >
             Clear filter
           </button>
@@ -272,12 +274,12 @@ export default function Explorer() {
       {/* Multi-column layout */}
       {!loading && (
         <div className="grid grid-cols-4 gap-4" style={{ height: 'calc(100vh - 280px)' }}>
-          {/* Cost Elements Column */}
+          {/* Cost Elements Column - Gray (Neutral) */}
           <ExplorerColumn
             title="Cost Elements"
             count={filteredData.ces.length}
             totalCount={costElements.length}
-            color="blue"
+            colorType="ce"
           >
             {filteredData.ces.map((ce) => (
               <ExplorerCard
@@ -289,17 +291,17 @@ export default function Explorer() {
                 isSelected={isSelected('ce', ce.ce_id)}
                 onClick={() => handleItemClick('ce', ce.ce_id)}
                 onDetailClick={() => handleDetailClick('ce', ce)}
-                color="blue"
+                colorType="ce"
               />
             ))}
           </ExplorerColumn>
 
-          {/* CROs Column */}
+          {/* CROs Column - Green (Opportunity) */}
           <ExplorerColumn
             title="Reduction Opportunities"
             count={filteredData.cros.length}
             totalCount={cros.length}
-            color="green"
+            colorType="cro"
           >
             {filteredData.cros.map((cro) => (
               <ExplorerCard
@@ -311,17 +313,17 @@ export default function Explorer() {
                 isSelected={isSelected('cro', cro.cro_id)}
                 onClick={() => handleItemClick('cro', cro.cro_id)}
                 onDetailClick={() => handleDetailClick('cro', cro)}
-                color="green"
+                colorType="cro"
               />
             ))}
           </ExplorerColumn>
 
-          {/* Barriers Column */}
+          {/* Barriers Column - Amber (Friction) */}
           <ExplorerColumn
             title="Barriers & Levers"
             count={filteredData.barriers.length}
             totalCount={barriers.length}
-            color="amber"
+            colorType="barrier"
           >
             {filteredData.barriers.map((barrier) => (
               <ExplorerCard
@@ -332,17 +334,18 @@ export default function Explorer() {
                 isSelected={isSelected('barrier', barrier.barrier_id)}
                 onClick={() => handleItemClick('barrier', barrier.barrier_id)}
                 onDetailClick={() => handleDetailClick('barrier', barrier)}
-                color="amber"
+                colorType="barrier"
+                barrierType={barrier.barrier_type || undefined}
               />
             ))}
           </ExplorerColumn>
 
-          {/* Actors Column */}
+          {/* Actors Column - Blue (Agency) */}
           <ExplorerColumn
             title="Actors"
             count={filteredData.actors.length}
             totalCount={actors.length}
-            color="purple"
+            colorType="actor"
           >
             {filteredData.actors.map((actor) => (
               <ExplorerCard
@@ -353,7 +356,7 @@ export default function Explorer() {
                 isSelected={isSelected('actor', actor.actor_id)}
                 onClick={() => handleItemClick('actor', actor.actor_id)}
                 onDetailClick={() => handleDetailClick('actor', actor)}
-                color="purple"
+                colorType="actor"
               />
             ))}
           </ExplorerColumn>
@@ -413,42 +416,118 @@ export default function Explorer() {
   )
 }
 
+// Semantic color configuration
+const columnColors = {
+  // Cost Elements - Gray (Neutral, unavoidable baseline costs)
+  ce: {
+    header: { bg: '#E5E7EB', text: '#111827', border: '#9CA3AF' },
+    card: { bg: '#F3F4F6', border: '#9CA3AF', primaryText: '#1F2937', secondaryText: '#4B5563' },
+    badge: { bg: '#E5E7EB', text: '#374151', border: '#9CA3AF' },
+    selected: { border: '#9CA3AF' },
+  },
+  // CROs - Green (Constructive opportunity, efficiency)
+  cro: {
+    header: { bg: '#D1FAE5', text: '#064E3B', border: '#34D399' },
+    card: { bg: '#ECFDF5', border: '#34D399', primaryText: '#065F46', secondaryText: '#047857' },
+    badge: { bg: '#A7F3D0', text: '#064E3B', border: '#34D399' },
+    selected: { border: '#34D399' },
+  },
+  // Barriers - Amber (Friction, constraint, caution)
+  barrier: {
+    header: { bg: '#FEF3C7', text: '#78350F', border: '#F59E0B' },
+    card: { bg: '#FFFBEB', border: '#F59E0B', primaryText: '#92400E', secondaryText: '#B45309' },
+    badge: { bg: '#FDE68A', text: '#78350F', border: '#F59E0B' },
+    selected: { border: '#F59E0B' },
+  },
+  // Actors - Blue (Agency, authority, responsibility)
+  actor: {
+    header: { bg: '#DBEAFE', text: '#1E3A8A', border: '#60A5FA' },
+    card: { bg: '#EFF6FF', border: '#60A5FA', primaryText: '#1E40AF', secondaryText: '#1D4ED8' },
+    badge: { bg: '#BFDBFE', text: '#1E3A8A', border: '#60A5FA' },
+    selected: { border: '#60A5FA' },
+  },
+}
+
+// Barrier type specific badge colors
+const barrierTypeBadgeColors: Record<string, { bg: string; text: string }> = {
+  RULE: { bg: '#FDE68A', text: '#78350F' },
+  POLITICAL: { bg: '#FCD34D', text: '#78350F' },
+  MARKET: { bg: '#FEF08A', text: '#854D0E' },
+}
+
 // Column component
 interface ExplorerColumnProps {
   title: string
   count: number
   totalCount: number
-  color: 'blue' | 'green' | 'amber' | 'purple'
+  colorType: ColumnColorType
   children: React.ReactNode
 }
 
-function ExplorerColumn({ title, count, totalCount, color, children }: ExplorerColumnProps) {
-  const colorClasses = {
-    blue: 'border-blue-200 bg-blue-50',
-    green: 'border-green-200 bg-green-50',
-    amber: 'border-amber-200 bg-amber-50',
-    purple: 'border-purple-200 bg-purple-50',
-  }
-
-  const headerColors = {
-    blue: 'text-blue-900 bg-blue-100',
-    green: 'text-green-900 bg-green-100',
-    amber: 'text-amber-900 bg-amber-100',
-    purple: 'text-purple-900 bg-purple-100',
-  }
+function ExplorerColumn({ title, count, totalCount, colorType, children }: ExplorerColumnProps) {
+  const colors = columnColors[colorType]
 
   return (
-    <div className={`rounded-lg border ${colorClasses[color]} flex flex-col overflow-hidden`}>
-      <div className={`px-3 py-2 ${headerColors[color]} border-b border-opacity-50`}>
+    <div
+      className="rounded-lg flex flex-col overflow-hidden"
+      style={{
+        backgroundColor: colors.card.bg,
+        borderWidth: '1px',
+        borderColor: colors.header.border,
+      }}
+    >
+      <div
+        className="px-3 py-2"
+        style={{
+          backgroundColor: colors.header.bg,
+          borderBottomWidth: '1px',
+          borderBottomColor: colors.header.border,
+        }}
+      >
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm">{title}</h3>
-          <span className="text-xs font-medium">
+          <h3 className="font-semibold text-sm" style={{ color: colors.header.text }}>
+            {title}
+          </h3>
+          <span className="text-xs font-medium" style={{ color: colors.header.text }}>
             {count === totalCount ? count : `${count} / ${totalCount}`}
           </span>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-2">{children}</div>
     </div>
+  )
+}
+
+// Badge component for Explorer
+function ExplorerBadge({
+  value,
+  colorType,
+  barrierType,
+}: {
+  value: string | null | undefined
+  colorType: ColumnColorType
+  barrierType?: string
+}) {
+  if (!value) return null
+
+  // Use barrier-type specific colors for barrier badges
+  let badgeColors = columnColors[colorType].badge
+  if (colorType === 'barrier' && barrierType && barrierTypeBadgeColors[barrierType]) {
+    badgeColors = { ...badgeColors, ...barrierTypeBadgeColors[barrierType] }
+  }
+
+  return (
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+      style={{
+        backgroundColor: badgeColors.bg,
+        color: badgeColors.text,
+        borderWidth: '1px',
+        borderColor: badgeColors.border,
+      }}
+    >
+      {value}
+    </span>
   )
 }
 
@@ -461,7 +540,8 @@ interface ExplorerCardProps {
   isSelected: boolean
   onClick: () => void
   onDetailClick: () => void
-  color: 'blue' | 'green' | 'amber' | 'purple'
+  colorType: ColumnColorType
+  barrierType?: string
 }
 
 function ExplorerCard({
@@ -472,47 +552,57 @@ function ExplorerCard({
   isSelected,
   onClick,
   onDetailClick,
-  color,
+  colorType,
+  barrierType,
 }: ExplorerCardProps) {
-  const selectedClasses = {
-    blue: 'ring-2 ring-blue-500 bg-blue-100',
-    green: 'ring-2 ring-green-500 bg-green-100',
-    amber: 'ring-2 ring-amber-500 bg-amber-100',
-    purple: 'ring-2 ring-purple-500 bg-purple-100',
-  }
-
-  const hoverClasses = {
-    blue: 'hover:bg-blue-100',
-    green: 'hover:bg-green-100',
-    amber: 'hover:bg-amber-100',
-    purple: 'hover:bg-purple-100',
-  }
+  const colors = columnColors[colorType]
 
   return (
     <div
-      className={`bg-white rounded-lg p-2 cursor-pointer transition-all ${
-        isSelected ? selectedClasses[color] : `${hoverClasses[color]} shadow-sm`
-      }`}
+      className="rounded-lg p-2 cursor-pointer transition-all"
+      style={{
+        backgroundColor: '#FFFFFF',
+        borderLeftWidth: '3px',
+        borderLeftColor: colors.card.border,
+        boxShadow: isSelected
+          ? `0 0 0 2px ${colors.selected.border}`
+          : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      }}
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-mono text-gray-500 truncate">{id}</div>
-          <div className="text-sm font-medium text-gray-900 line-clamp-2">{title}</div>
+          <div
+            className="text-xs font-mono truncate"
+            style={{ color: colors.card.secondaryText }}
+          >
+            {id}
+          </div>
+          <div
+            className="text-sm font-medium line-clamp-2"
+            style={{ color: colors.card.primaryText }}
+          >
+            {title}
+          </div>
           {subtitle && (
             <div className="mt-1">
-              <BadgeRenderer value={subtitle} />
+              <ExplorerBadge value={subtitle} colorType={colorType} barrierType={barrierType} />
             </div>
           )}
         </div>
         <div className="flex flex-col items-end gap-1">
-          {value && <span className="text-xs font-medium text-gray-600">{value}</span>}
+          {value && (
+            <span className="text-xs font-medium" style={{ color: colors.card.secondaryText }}>
+              {value}
+            </span>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation()
               onDetailClick()
             }}
-            className="text-xs text-primary-600 hover:text-primary-800 font-medium"
+            className="text-xs font-medium hover:underline"
+            style={{ color: colors.card.secondaryText }}
           >
             Details
           </button>
@@ -538,7 +628,10 @@ function CostElementDetail({
     <>
       <DetailSection title="Basic Information">
         <DetailItem label="Description" value={ce.description} />
-        <DetailItem label="Stage" value={<BadgeRenderer value={ce.stage_id} />} />
+        <DetailItem
+          label="Stage"
+          value={<ExplorerBadge value={ce.stage_id} colorType="ce" />}
+        />
         <DetailItem label="Estimate" value={formatCurrency(ce.estimate)} />
         <DetailItem label="Annual Estimate" value={formatCurrency(ce.annual_estimate)} />
         <DetailItem label="Unit" value={ce.unit} />
@@ -555,12 +648,26 @@ function CostElementDetail({
         <DetailSection title={`Related CROs (${relatedCros.length})`}>
           <div className="space-y-2">
             {relatedCros.map((cro) => (
-              <div key={`${cro.cro_id}-${cro.relationship}`} className="p-2 bg-green-50 rounded">
+              <div
+                key={`${cro.cro_id}-${cro.relationship}`}
+                className="p-2 rounded"
+                style={{ backgroundColor: columnColors.cro.card.bg }}
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-gray-600">{cro.cro_id}</span>
-                  <BadgeRenderer value={cro.relationship} />
+                  <span
+                    className="font-mono text-xs"
+                    style={{ color: columnColors.cro.card.secondaryText }}
+                  >
+                    {cro.cro_id}
+                  </span>
+                  <ExplorerBadge value={cro.relationship} colorType="cro" />
                 </div>
-                <p className="text-sm text-gray-800 mt-1">{cro.cro_description}</p>
+                <p
+                  className="text-sm mt-1"
+                  style={{ color: columnColors.cro.card.primaryText }}
+                >
+                  {cro.cro_description}
+                </p>
               </div>
             ))}
           </div>
@@ -571,13 +678,27 @@ function CostElementDetail({
         <DetailSection title={`Related Actors (${relatedActors.length})`}>
           <div className="space-y-2">
             {relatedActors.map((ac) => (
-              <div key={`${ac.actor_id}-${ac.role}`} className="p-2 bg-purple-50 rounded">
+              <div
+                key={`${ac.actor_id}-${ac.role}`}
+                className="p-2 rounded"
+                style={{ backgroundColor: columnColors.actor.card.bg }}
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm">{ac.actor_id}</span>
-                  <BadgeRenderer value={ac.role} />
+                  <span
+                    className="font-medium text-sm"
+                    style={{ color: columnColors.actor.card.primaryText }}
+                  >
+                    {ac.actor_id}
+                  </span>
+                  <ExplorerBadge value={ac.role} colorType="actor" />
                 </div>
                 {ac.policy_lever && (
-                  <p className="text-xs text-gray-600 mt-1">{ac.policy_lever}</p>
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: columnColors.actor.card.secondaryText }}
+                  >
+                    {ac.policy_lever}
+                  </p>
                 )}
               </div>
             ))}
@@ -603,7 +724,10 @@ function CroDetail({
     <>
       <DetailSection title="Basic Information">
         <DetailItem label="Description" value={cro.description} />
-        <DetailItem label="Stage" value={<BadgeRenderer value={cro.stage_id} />} />
+        <DetailItem
+          label="Stage"
+          value={<ExplorerBadge value={cro.stage_id} colorType="cro" />}
+        />
         <DetailItem label="Estimate" value={formatCurrency(cro.estimate)} />
         <DetailItem label="Unit" value={cro.unit} />
         <DetailItem
@@ -628,12 +752,26 @@ function CroDetail({
         <DetailSection title={`Affected Cost Elements (${relatedCes.length})`}>
           <div className="space-y-2">
             {relatedCes.map((ce) => (
-              <div key={`${ce.ce_id}-${ce.relationship}`} className="p-2 bg-blue-50 rounded">
+              <div
+                key={`${ce.ce_id}-${ce.relationship}`}
+                className="p-2 rounded"
+                style={{ backgroundColor: columnColors.ce.card.bg }}
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-gray-600">{ce.ce_id}</span>
-                  <BadgeRenderer value={ce.relationship} />
+                  <span
+                    className="font-mono text-xs"
+                    style={{ color: columnColors.ce.card.secondaryText }}
+                  >
+                    {ce.ce_id}
+                  </span>
+                  <ExplorerBadge value={ce.relationship} colorType="ce" />
                 </div>
-                <p className="text-sm text-gray-800 mt-1">{ce.ce_description}</p>
+                <p
+                  className="text-sm mt-1"
+                  style={{ color: columnColors.ce.card.primaryText }}
+                >
+                  {ce.ce_description}
+                </p>
               </div>
             ))}
           </div>
@@ -644,12 +782,32 @@ function CroDetail({
         <DetailSection title={`Barriers (${relatedBarriers.length})`}>
           <div className="space-y-2">
             {relatedBarriers.map((b) => (
-              <div key={b.barrier_id} className="p-2 bg-amber-50 rounded">
+              <div
+                key={b.barrier_id}
+                className="p-2 rounded"
+                style={{ backgroundColor: columnColors.barrier.card.bg }}
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-gray-600">{b.barrier_id}</span>
-                  {b.barrier_type && <BadgeRenderer value={b.barrier_type} />}
+                  <span
+                    className="font-mono text-xs"
+                    style={{ color: columnColors.barrier.card.secondaryText }}
+                  >
+                    {b.barrier_id}
+                  </span>
+                  {b.barrier_type && (
+                    <ExplorerBadge
+                      value={b.barrier_type}
+                      colorType="barrier"
+                      barrierType={b.barrier_type}
+                    />
+                  )}
                 </div>
-                <p className="text-sm text-gray-800 mt-1">{b.short_name || b.description}</p>
+                <p
+                  className="text-sm mt-1"
+                  style={{ color: columnColors.barrier.card.primaryText }}
+                >
+                  {b.short_name || b.description}
+                </p>
               </div>
             ))}
           </div>
@@ -669,13 +827,28 @@ function BarrierDetail({ barrier }: { barrier: Barrier }) {
       </DetailSection>
 
       <DetailSection title="Classification">
-        <DetailItem label="Type" value={<BadgeRenderer value={barrier.barrier_type} />} />
-        <DetailItem label="Scope" value={<BadgeRenderer value={barrier.barrier_scope} />} />
+        <DetailItem
+          label="Type"
+          value={
+            <ExplorerBadge
+              value={barrier.barrier_type}
+              colorType="barrier"
+              barrierType={barrier.barrier_type || undefined}
+            />
+          }
+        />
+        <DetailItem
+          label="Scope"
+          value={<ExplorerBadge value={barrier.barrier_scope} colorType="barrier" />}
+        />
         <DetailItem
           label="Feasibility Horizon"
-          value={<BadgeRenderer value={barrier.feasibility_horizon} />}
+          value={<ExplorerBadge value={barrier.feasibility_horizon} colorType="barrier" />}
         />
-        <DetailItem label="Lever Type" value={<BadgeRenderer value={barrier.lever_type} />} />
+        <DetailItem
+          label="Lever Type"
+          value={<ExplorerBadge value={barrier.lever_type} colorType="barrier" />}
+        />
       </DetailSection>
 
       {(barrier.effect_mechanism || barrier.authority || barrier.actor_scope) && (
@@ -721,19 +894,41 @@ function ActorDetail({
         <DetailSection title={`Controlled Cost Elements (${relatedCes.length})`}>
           <div className="space-y-2">
             {relatedCes.map((ce) => (
-              <div key={`${ce.ce_id}-${ce.role}`} className="p-2 bg-blue-50 rounded">
+              <div
+                key={`${ce.ce_id}-${ce.role}`}
+                className="p-2 rounded"
+                style={{ backgroundColor: columnColors.ce.card.bg }}
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-gray-600">{ce.ce_id}</span>
+                  <span
+                    className="font-mono text-xs"
+                    style={{ color: columnColors.ce.card.secondaryText }}
+                  >
+                    {ce.ce_id}
+                  </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-600">
+                    <span
+                      className="text-xs"
+                      style={{ color: columnColors.ce.card.secondaryText }}
+                    >
                       {formatCurrency(ce.ce_estimate)}
                     </span>
-                    <BadgeRenderer value={ce.role} />
+                    <ExplorerBadge value={ce.role} colorType="ce" />
                   </div>
                 </div>
-                <p className="text-sm text-gray-800 mt-1">{ce.ce_description}</p>
+                <p
+                  className="text-sm mt-1"
+                  style={{ color: columnColors.ce.card.primaryText }}
+                >
+                  {ce.ce_description}
+                </p>
                 {ce.policy_lever && (
-                  <p className="text-xs text-gray-500 mt-1">Lever: {ce.policy_lever}</p>
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: columnColors.ce.card.secondaryText }}
+                  >
+                    Lever: {ce.policy_lever}
+                  </p>
                 )}
               </div>
             ))}
