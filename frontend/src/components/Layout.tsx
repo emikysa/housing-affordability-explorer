@@ -7,6 +7,7 @@ interface LayoutProps {
 
 const navItems = [
   { path: '/', label: 'Dashboard' },
+  { path: '/explorer', label: 'Explorer' },
   { path: '/cost-elements', label: 'Cost Elements' },
   { path: '/opportunities', label: 'Reduction Opportunities' },
   { path: '/barriers', label: 'Barriers & Levers' },

@@ -6,6 +6,7 @@ import Opportunities from './pages/Opportunities'
 import Barriers from './pages/Barriers'
 import Actors from './pages/Actors'
 import Relationships from './pages/Relationships'
+import Explorer from './pages/Explorer'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/barriers" element={<Barriers />} />
         <Route path="/actors" element={<Actors />} />
         <Route path="/relationships" element={<Relationships />} />
+        <Route path="/explorer" element={<Explorer />} />
       </Routes>
     </Layout>
   )
