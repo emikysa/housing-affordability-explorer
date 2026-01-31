@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useScenario } from '../contexts/ScenarioContext'
+import ScenarioSelector from './ScenarioSelector'
 
 interface LayoutProps {
   children: ReactNode
@@ -17,10 +17,14 @@ const navItems = [
   { path: '/relationships', label: 'Relationships' },
 ]
 
+// Pages where we don't show the header scenario selector
+// (Dashboard has its own, Scenarios page doesn't need one)
+const pagesWithoutHeaderSelector = ['/', '/scenarios']
+
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
-  const { scenarios, selectedScenarioId, setSelectedScenarioId, selectedScenario, loading } =
-    useScenario()
+
+  const showHeaderSelector = !pagesWithoutHeaderSelector.includes(location.pathname)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,36 +43,14 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
 
-            {/* Scenario Selector */}
-            <div className="flex items-center space-x-3">
-              <label htmlFor="scenario-select" className="text-sm font-medium text-gray-700">
-                Scenario:
-              </label>
-              {loading ? (
-                <div className="text-sm text-gray-500">Loading...</div>
-              ) : (
-                <select
-                  id="scenario-select"
-                  value={selectedScenarioId}
-                  onChange={(e) => setSelectedScenarioId(e.target.value)}
-                  className="block w-64 rounded-lg border-gray-300 bg-white py-2 pl-3 pr-10 text-sm font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-500"
-                >
-                  {scenarios.map((scenario) => (
-                    <option key={scenario.scenario_id} value={scenario.scenario_id}>
-                      {scenario.name}
-                      {scenario.parent_scenario_name ? ` (from ${scenario.parent_scenario_name})` : ''}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {selectedScenario?.description && (
-                <div className="hidden lg:block max-w-xs">
-                  <p className="text-xs text-gray-500 truncate" title={selectedScenario.description}>
-                    {selectedScenario.description}
-                  </p>
+            {/* Scenario Selector - shown on relevant pages with prominent styling */}
+            {showHeaderSelector && (
+              <div className="flex items-center">
+                <div className="bg-gray-100 rounded-lg px-4 py-2 border border-gray-200">
+                  <ScenarioSelector variant="prominent" label="Scenario" />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 

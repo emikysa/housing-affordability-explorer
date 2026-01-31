@@ -166,6 +166,62 @@ export function useSummaryStats() {
 }
 
 // ============================================
+// MASTER COUNTS (Framework totals - not scenario-dependent)
+// ============================================
+
+interface MasterCounts {
+  costElements: number
+  cros: number
+  barriers: number
+  actors: number
+  loading: boolean
+  error: string | null
+}
+
+export function useMasterCounts(): MasterCounts {
+  const [state, setState] = useState<MasterCounts>({
+    costElements: 0,
+    cros: 0,
+    barriers: 0,
+    actors: 0,
+    loading: true,
+    error: null,
+  })
+
+  useEffect(() => {
+    async function fetchCounts() {
+      try {
+        // Fetch all counts in parallel
+        const [ceResult, croResult, barrierResult, actorResult] = await Promise.all([
+          supabase.from('cost_elements').select('*', { count: 'exact', head: true }),
+          supabase.from('cost_reduction_opportunities').select('*', { count: 'exact', head: true }),
+          supabase.from('barriers').select('*', { count: 'exact', head: true }),
+          supabase.from('actors').select('*', { count: 'exact', head: true }),
+        ])
+
+        setState({
+          costElements: ceResult.count || 0,
+          cros: croResult.count || 0,
+          barriers: barrierResult.count || 0,
+          actors: actorResult.count || 0,
+          loading: false,
+          error: null,
+        })
+      } catch (err) {
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: err instanceof Error ? err.message : 'Unknown error',
+        }))
+      }
+    }
+    fetchCounts()
+  }, [])
+
+  return state
+}
+
+// ============================================
 // NON-SCENARIO HOOKS (data that doesn't vary by scenario)
 // ============================================
 

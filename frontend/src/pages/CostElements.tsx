@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import type { ColDef } from 'ag-grid-community'
 import DataGrid, { currencyFormatter, BadgeRenderer } from '../components/DataGrid'
 import FilterBar from '../components/FilterBar'
+import FilterToggle from '../components/FilterToggle'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
 import { useCostElements, useStages, useCrosForCostElement } from '../hooks/useData'
 import type { CostElement } from '../types/database'
@@ -11,6 +12,7 @@ export default function CostElements() {
   const { data: stages } = useStages()
   const [searchText, setSearchText] = useState('')
   const [stageFilter, setStageFilter] = useState('')
+  const [showAll, setShowAll] = useState(false) // Default: show populated only
   const [selectedElement, setSelectedElement] = useState<CostElement | null>(null)
 
   // Get CROs for selected cost element
@@ -68,12 +70,17 @@ export default function CostElements() {
   const filteredData = useMemo(() => {
     let data = costElements
 
+    // Filter to show only populated items (with estimate or annual_estimate)
+    if (!showAll) {
+      data = data.filter((ce) => ce.estimate != null || ce.annual_estimate != null)
+    }
+
     if (stageFilter) {
       data = data.filter((ce) => ce.stage_id === stageFilter)
     }
 
     return data
-  }, [costElements, stageFilter])
+  }, [costElements, stageFilter, showAll])
 
   const stageOptions = useMemo(
     () =>
@@ -106,20 +113,23 @@ export default function CostElements() {
       </div>
 
       {/* Filters */}
-      <FilterBar
-        searchValue={searchText}
-        onSearchChange={setSearchText}
-        placeholder="Search cost elements..."
-        filters={[
-          {
-            id: 'stage',
-            label: 'Stage',
-            value: stageFilter,
-            options: stageOptions,
-            onChange: setStageFilter,
-          },
-        ]}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <FilterBar
+          searchValue={searchText}
+          onSearchChange={setSearchText}
+          placeholder="Search cost elements..."
+          filters={[
+            {
+              id: 'stage',
+              label: 'Stage',
+              value: stageFilter,
+              options: stageOptions,
+              onChange: setStageFilter,
+            },
+          ]}
+        />
+        <FilterToggle showAll={showAll} onChange={setShowAll} />
+      </div>
 
       {/* Data Grid */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">

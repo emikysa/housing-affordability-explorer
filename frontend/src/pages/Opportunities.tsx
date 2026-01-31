@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import type { ColDef } from 'ag-grid-community'
 import DataGrid, { currencyFormatter, BadgeRenderer, BooleanRenderer } from '../components/DataGrid'
 import FilterBar from '../components/FilterBar'
+import FilterToggle from '../components/FilterToggle'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
 import { useCostReductionOpportunities, useStages, useBarriersByCro, useCroImpacts } from '../hooks/useData'
 import type { CostReductionOpportunity } from '../types/database'
@@ -12,6 +13,7 @@ export default function Opportunities() {
   const [searchText, setSearchText] = useState('')
   const [stageFilter, setStageFilter] = useState('')
   const [dependencyFilter, setDependencyFilter] = useState('')
+  const [showAll, setShowAll] = useState(false) // Default: show populated only
   const [selectedCro, setSelectedCro] = useState<CostReductionOpportunity | null>(null)
 
   // Get barriers and impacts for selected CRO
@@ -76,6 +78,11 @@ export default function Opportunities() {
   const filteredData = useMemo(() => {
     let data = cros
 
+    // Filter to show only populated items (with estimate)
+    if (!showAll) {
+      data = data.filter((c) => c.estimate != null)
+    }
+
     if (stageFilter) {
       data = data.filter((c) => c.stage_id === stageFilter)
     }
@@ -85,7 +92,7 @@ export default function Opportunities() {
     }
 
     return data
-  }, [cros, stageFilter, dependencyFilter])
+  }, [cros, stageFilter, dependencyFilter, showAll])
 
   const stageOptions = useMemo(
     () =>
@@ -137,27 +144,30 @@ export default function Opportunities() {
       </div>
 
       {/* Filters */}
-      <FilterBar
-        searchValue={searchText}
-        onSearchChange={setSearchText}
-        placeholder="Search opportunities..."
-        filters={[
-          {
-            id: 'stage',
-            label: 'Stage',
-            value: stageFilter,
-            options: stageOptions,
-            onChange: setStageFilter,
-          },
-          {
-            id: 'dependency',
-            label: 'Dependency',
-            value: dependencyFilter,
-            options: dependencyOptions,
-            onChange: setDependencyFilter,
-          },
-        ]}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <FilterBar
+          searchValue={searchText}
+          onSearchChange={setSearchText}
+          placeholder="Search opportunities..."
+          filters={[
+            {
+              id: 'stage',
+              label: 'Stage',
+              value: stageFilter,
+              options: stageOptions,
+              onChange: setStageFilter,
+            },
+            {
+              id: 'dependency',
+              label: 'Dependency',
+              value: dependencyFilter,
+              options: dependencyOptions,
+              onChange: setDependencyFilter,
+            },
+          ]}
+        />
+        <FilterToggle showAll={showAll} onChange={setShowAll} />
+      </div>
 
       {/* Data Grid */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
