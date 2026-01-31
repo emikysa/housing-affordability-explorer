@@ -34,8 +34,19 @@ A public web application that helps people understand housing costs, cost reduct
 ├── frontend/
 │   ├── src/
 │   │   ├── components/         # Reusable UI components
-│   │   ├── pages/              # Dashboard, CostElements, Opportunities, Barriers, Actors, Relationships
-│   │   ├── hooks/useData.ts    # Supabase data fetching hooks
+│   │   │   ├── Layout.tsx      # Main layout with nav, header, scenario selector
+│   │   │   ├── ScenarioSelector.tsx  # Dropdown for scenario selection
+│   │   │   ├── FilterToggle.tsx      # "Populated only / Show all" toggle
+│   │   │   └── DetailPanel.tsx       # Slide-out detail panels
+│   │   ├── contexts/
+│   │   │   └── ScenarioContext.tsx   # Global scenario state management
+│   │   ├── pages/
+│   │   │   ├── Dashboard.tsx         # Two-tier: Framework Overview + Scenario Analysis
+│   │   │   ├── CostElements.tsx      # AG Grid of cost elements
+│   │   │   ├── Opportunities.tsx     # AG Grid of CROs
+│   │   │   ├── Scenarios.tsx         # Scenario management cards
+│   │   │   └── Explorer.tsx          # 4-column interactive explorer
+│   │   ├── hooks/useData.ts    # Supabase data fetching hooks (scenario-aware)
 │   │   ├── types/database.ts   # TypeScript types
 │   │   └── lib/supabase.ts     # Supabase client config
 │   ├── package.json
@@ -44,6 +55,8 @@ A public web application that helps people understand housing costs, cost reduct
 │   ├── load_data.py            # Python script to load Excel → Supabase
 │   ├── venv/                   # Python virtual environment
 │   └── .env                    # Loader credentials (not in git)
+├── supabase/
+│   └── migrations/             # SQL migration files for schema changes
 ├── CLAUDE_CONTEXT.md           # This file
 ├── CHANGELOG.md                # Running log of changes
 ├── README.md
@@ -107,6 +120,23 @@ Go to Supabase Dashboard → SQL Editor and run ALTER/CREATE statements.
 - **6 denormalized views:** For easy frontend queries (v_cost_elements, v_cros, v_barriers, etc.)
 - **Row Level Security:** Public read access, restricted write
 
+### Scenario Architecture
+
+Scenarios allow modeling different cost assumptions:
+
+- **`scenarios` table:** Defines scenarios with `id`, `name`, `description`, `is_baseline`, `parent_scenario_id`
+- **`ce_scenario_values` table:** Per-scenario cost element overrides (estimate, annual_estimate)
+- **`cro_scenario_values` table:** Per-scenario CRO overrides
+- **Baseline Scenario (ID: `00000000-0000-0000-0000-000000000001`):** Reads from base tables, no overrides
+- **Sub-scenarios:** Inherit from parent, can override specific values
+- **Standalone scenarios:** Must be fully populated (no inheritance)
+
+### Key Database Functions
+
+- `get_ce_values_for_scenario(scenario_uuid)` - Returns CE values with scenario inheritance
+- `get_cro_values_for_scenario(scenario_uuid)` - Returns CRO values with scenario inheritance
+- `get_summary_stats_for_scenario(scenario_uuid)` - Returns totals (one-time, annual, savings)
+
 ### Data Counts
 | Entity | Count |
 |--------|-------|
@@ -126,11 +156,35 @@ Go to Supabase Dashboard → SQL Editor and run ALTER/CREATE statements.
 
 ---
 
+## Current UI Architecture
+
+### Dashboard (Two-Tier Layout)
+1. **Framework Overview** - Master counts from base tables (CEs, CROs, Barriers, Actors)
+2. **Scenario Analysis** - Scenario-specific data with embedded scenario selector
+   - Total One-Time Costs (Build stage)
+   - Total Annual Costs (Operate + Finance stages)
+   - Potential Savings
+
+### Explorer Page
+- 4-column interactive view: Cost Elements → CROs → Barriers → Actors
+- Click any item to filter related items across all columns
+- Sort toggle: A-Z (alphabetical) or By Value (descending)
+- Semantic color coding: Gray (CE), Green (CRO), Amber (Barrier), Blue (Actor)
+
+### Scenario Selector Placement
+- **Dashboard:** Embedded in Scenario Analysis section (not in header)
+- **Scenarios page:** No header selector (page manages scenarios directly)
+- **Other pages:** Prominent selector in header
+
+### Filter Toggle
+- Cost Elements and Opportunities pages have "Populated only / Show all" toggle
+- Default: "Populated only" (hides items with no estimate)
+
+---
+
 ## Future Enhancements Discussed
 
 - Custom domain setup (affordabilityexplorer.fcbsb.org)
-- User-created scenarios
-- Interactive scenario selection affecting results
 - Migration to IONOS if needed
 
 ---

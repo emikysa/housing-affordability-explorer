@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-01-31 (Session 3)
+
+### Explorer Page Improvements
+- Added sort toggle in header: A-Z (alphabetical) vs By Value (descending)
+- Made cards more compact to reduce scrolling:
+  - CE cards: Removed stage badges (redundant with B/O/F prefix in ID)
+  - CRO cards: Removed stage badges
+  - Barrier cards: Put type in parentheses after ID, removed redundant second row
+  - Actor cards: Removed duplicate row
+- Deployed via git push
+
+### Documentation
+- Updated `CLAUDE_CONTEXT.md` with:
+  - Expanded file structure (contexts, migrations, new components)
+  - Scenario architecture documentation
+  - Key database functions
+  - Current UI architecture details
+
+---
+
 ## 2026-01-31 (Context Recovery Session)
 
 - Created `CLAUDE_CONTEXT.md` with full project documentation
