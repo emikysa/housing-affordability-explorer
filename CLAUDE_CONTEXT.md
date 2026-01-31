@@ -116,9 +116,19 @@ Go to Supabase Dashboard → SQL Editor and run ALTER/CREATE statements.
 
 - **9 lookup tables:** stages, actors, barrier_types, barrier_scopes, etc.
 - **3 core tables:** cost_elements, cost_reduction_opportunities, barriers
-- **3 junction tables:** cro_ce_map, ce_actor_map, barrier_authority_map
+- **4 junction tables:** cro_ce_map, ce_actor_map, barrier_authority_map, ce_drilldown
 - **6 denormalized views:** For easy frontend queries (v_cost_elements, v_cros, v_barriers, etc.)
 - **Row Level Security:** Public read access, restricted write
+
+### CE Drilldown Hierarchy
+
+The `ce_drilldown` table stores a hierarchical breakdown of cost elements with up to 4 levels:
+- **ce_code:** References cost_elements.ce_id
+- **level1_name, level2_name:** Always populated
+- **level3_name, level4_name:** Optional deeper levels
+- **cost_component:** 'Total', 'Material', 'Labor', or 'Sub-O+P'
+- **1,001 rows** loaded from `Housing-Affordability-Framework-CostElement-drilldown.xlsx`
+- Note: `B07-HardCosts` in drilldown Excel maps to `B07-HardMatl` in database
 
 ### Scenario Architecture
 
@@ -145,6 +155,7 @@ Scenarios allow modeling different cost assumptions:
 | Barriers | 71 |
 | Actor-CE mappings | 43 |
 | CRO-CE mappings | 55 |
+| CE Drilldown entries | 1,001 |
 
 ---
 
@@ -179,6 +190,12 @@ Scenarios allow modeling different cost assumptions:
 ### Filter Toggle
 - Cost Elements and Opportunities pages have "Populated only / Show all" toggle
 - Default: "Populated only" (hides items with no estimate)
+
+### Cost Elements Page - Cascading Level Filters
+- 4 cascading dropdown filters (CE Level 1-4) that filter by drilldown hierarchy
+- Selecting a parent level limits child level options to matching branches
+- Clearing a parent level clears all downstream selections
+- Filters work alongside Stage filter and search
 
 ---
 

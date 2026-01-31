@@ -243,6 +243,18 @@ export interface Database {
           estimate?: number | null
         }
       }
+      ce_drilldown: {
+        Row: {
+          id: number
+          ce_code: string
+          level1_name: string
+          level2_name: string
+          level3_name: string | null
+          level4_name: string | null
+          cost_component: string
+          created_at: string
+        }
+      }
     }
     Views: {
       v_cost_elements: {
@@ -370,3 +382,6 @@ export type Scenario = Database['public']['Views']['v_scenarios']['Row']
 
 // Baseline scenario ID constant
 export const BASELINE_SCENARIO_ID = '00000000-0000-0000-0000-000000000001'
+
+// CE Drilldown type
+export type CEDrilldown = Database['public']['Tables']['ce_drilldown']['Row']

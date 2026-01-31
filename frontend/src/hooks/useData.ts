@@ -14,6 +14,7 @@ import type {
   BarrierScope,
   LeverType,
   FeasibilityHorizon,
+  CEDrilldown,
 } from '../types/database'
 // BASELINE_SCENARIO_ID available if needed for fallback
 
@@ -252,6 +253,11 @@ export function useLeverTypes() {
 
 export function useFeasibilityHorizons() {
   return useSupabaseQuery<FeasibilityHorizon>('feasibility_horizons', 'sort_order')
+}
+
+// CE Drilldown hierarchy data
+export function useCEDrilldown() {
+  return useSupabaseQuery<CEDrilldown>('ce_drilldown')
 }
 
 // ============================================

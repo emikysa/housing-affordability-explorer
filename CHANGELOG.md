@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-01-31 (Session 4) - CE Drilldown Hierarchy
+
+### Database Changes
+- Created `ce_drilldown` table with foreign key to `cost_elements`
+- Added migration: `20260131030000_ce_drilldown.sql`
+- Loaded 1,001 hierarchy records from `Housing-Affordability-Framework-CostElement-drilldown.xlsx`
+- Note: `B07-HardCosts` in Excel maps to `B07-HardMatl` in database
+
+### Cost Elements Page Enhancements
+- Added 4 cascading level filter dropdowns (CE Level 1-4)
+- Filters cascade: selecting a parent level limits child options to matching branches
+- Clearing a parent filter clears all downstream selections
+- Added "Cost Breakdown Hierarchy" section to detail panel showing drilldown levels
+- Reorganized filter UI into two rows for better layout
+
+### Code Changes
+- Updated `frontend/src/types/database.ts`: Added `CEDrilldown` type
+- Updated `frontend/src/hooks/useData.ts`: Added `useCEDrilldown` hook
+- Updated `frontend/src/pages/CostElements.tsx`: Cascading filters + detail panel hierarchy
+
+### Deployed: Pending
+
+---
+
 ## 2026-01-31 (Session 3)
 
 ### Explorer Page Improvements
