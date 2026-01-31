@@ -171,6 +171,78 @@ export interface Database {
           notes: string | null
         }
       }
+      scenarios: {
+        Row: {
+          scenario_id: string
+          name: string
+          description: string | null
+          parent_scenario_id: string | null
+          is_baseline: boolean
+          is_default: boolean
+          is_public: boolean
+          sort_order: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          scenario_id?: string
+          name: string
+          description?: string | null
+          parent_scenario_id?: string | null
+          is_baseline?: boolean
+          is_default?: boolean
+          is_public?: boolean
+          sort_order?: number | null
+        }
+        Update: {
+          name?: string
+          description?: string | null
+          parent_scenario_id?: string | null
+          is_baseline?: boolean
+          is_default?: boolean
+          is_public?: boolean
+          sort_order?: number | null
+        }
+      }
+      ce_scenario_values: {
+        Row: {
+          id: number
+          scenario_id: string
+          ce_id: string
+          estimate: number | null
+          annual_estimate: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          scenario_id: string
+          ce_id: string
+          estimate?: number | null
+          annual_estimate?: number | null
+        }
+        Update: {
+          estimate?: number | null
+          annual_estimate?: number | null
+        }
+      }
+      cro_scenario_values: {
+        Row: {
+          id: number
+          scenario_id: string
+          cro_id: string
+          estimate: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          scenario_id: string
+          cro_id: string
+          estimate?: number | null
+        }
+        Update: {
+          estimate?: number | null
+        }
+      }
     }
     Views: {
       v_cost_elements: {
@@ -262,6 +334,21 @@ export interface Database {
           total_potential_savings: number
         }
       }
+      v_scenarios: {
+        Row: {
+          scenario_id: string
+          name: string
+          description: string | null
+          parent_scenario_id: string | null
+          parent_scenario_name: string | null
+          is_baseline: boolean
+          is_default: boolean
+          is_public: boolean
+          sort_order: number | null
+          created_at: string
+          updated_at: string
+        }
+      }
     }
   }
 }
@@ -279,3 +366,7 @@ export type BarrierType = Database['public']['Tables']['barrier_types']['Row']
 export type BarrierScope = Database['public']['Tables']['barrier_scopes']['Row']
 export type LeverType = Database['public']['Tables']['lever_types']['Row']
 export type FeasibilityHorizon = Database['public']['Tables']['feasibility_horizons']['Row']
+export type Scenario = Database['public']['Views']['v_scenarios']['Row']
+
+// Baseline scenario ID constant
+export const BASELINE_SCENARIO_ID = '00000000-0000-0000-0000-000000000001'

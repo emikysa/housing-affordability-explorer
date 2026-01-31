@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useScenario } from '../contexts/ScenarioContext'
 
 interface LayoutProps {
   children: ReactNode
@@ -17,6 +18,8 @@ const navItems = [
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
+  const { scenarios, selectedScenarioId, setSelectedScenarioId, selectedScenario, loading } =
+    useScenario()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -33,6 +36,37 @@ export default function Layout({ children }: LayoutProps) {
                 <h1 className="text-xl font-bold text-gray-900">Housing Affordability Explorer</h1>
                 <p className="text-xs text-gray-500">Understanding costs, opportunities, and barriers</p>
               </div>
+            </div>
+
+            {/* Scenario Selector */}
+            <div className="flex items-center space-x-3">
+              <label htmlFor="scenario-select" className="text-sm font-medium text-gray-700">
+                Scenario:
+              </label>
+              {loading ? (
+                <div className="text-sm text-gray-500">Loading...</div>
+              ) : (
+                <select
+                  id="scenario-select"
+                  value={selectedScenarioId}
+                  onChange={(e) => setSelectedScenarioId(e.target.value)}
+                  className="block w-64 rounded-lg border-gray-300 bg-white py-2 pl-3 pr-10 text-sm font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary-500"
+                >
+                  {scenarios.map((scenario) => (
+                    <option key={scenario.scenario_id} value={scenario.scenario_id}>
+                      {scenario.name}
+                      {scenario.parent_scenario_name ? ` (from ${scenario.parent_scenario_name})` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {selectedScenario?.description && (
+                <div className="hidden lg:block max-w-xs">
+                  <p className="text-xs text-gray-500 truncate" title={selectedScenario.description}>
+                    {selectedScenario.description}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
