@@ -105,9 +105,9 @@ export default function Dashboard() {
       .sort((a, b) => b.value - a.value)
   }, [costElements])
 
-  // Stacked bar data for Build costs
+  // Stacked bar data for Build costs (vertical)
   const buildStackedData = useMemo(() => {
-    const data: Record<string, number | string> = { category: 'Build Costs' }
+    const data: Record<string, number | string> = { category: 'Build' }
     buildCostElements.forEach((ce) => {
       data[ce.name] = ce.value
     })
@@ -137,9 +137,9 @@ export default function Dashboard() {
       .sort((a, b) => b.value - a.value)
   }, [costElements])
 
-  // Stacked bar data for Operate + Finance costs
+  // Stacked bar data for Operate + Finance costs (vertical)
   const operateFinanceStackedData = useMemo(() => {
-    const data: Record<string, number | string> = { category: 'Monthly Costs' }
+    const data: Record<string, number | string> = { category: 'Monthly' }
     operateFinanceCostElements.forEach((ce) => {
       data[ce.name] = ce.value
     })
@@ -196,8 +196,12 @@ export default function Dashboard() {
     )
   }
 
+  // Calculate totals for the vertical bars
+  const buildTotal = buildCostElements.reduce((sum, ce) => sum + ce.value, 0)
+  const monthlyTotal = operateFinanceCostElements.reduce((sum, ce) => sum + ce.value, 0)
+
   return (
-    <div className="space-y-8">
+    <div className="max-w-5xl mx-auto space-y-8">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -260,115 +264,137 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Build Cost Element Breakdown (Stacked Bar) */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Build Cost Element Breakdown (One-Time)
-        </h3>
-        <ResponsiveContainer width="100%" height={80}>
-          <BarChart data={buildStackedData} layout="vertical" barSize={40}>
-            <XAxis type="number" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-            <YAxis dataKey="category" type="category" width={100} hide />
-            <Tooltip
-              formatter={(value: number, name: string) => [formatCurrency(value), name]}
-              labelStyle={{ fontWeight: 'bold' }}
-            />
-            {buildCostElements.map((ce, index) => (
-              <Bar
-                key={ce.name}
-                dataKey={ce.name}
-                stackId="build"
-                fill={STACKED_COLORS[index % STACKED_COLORS.length]}
-              />
+      {/* Cost Breakdown Section: Two Vertical Bar Charts + Monthly Payment Summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Build Cost Element Breakdown (Vertical Stacked Bar) */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Build Costs
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">One-time • {formatCurrency(buildTotal)}</p>
+          <div className="flex justify-center">
+            <ResponsiveContainer width={120} height={280}>
+              <BarChart data={buildStackedData} barSize={80}>
+                <YAxis 
+                  type="number" 
+                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                  width={50}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <XAxis dataKey="category" type="category" hide />
+                <Tooltip
+                  formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                  labelStyle={{ fontWeight: 'bold' }}
+                />
+                {buildCostElements.map((ce, index) => (
+                  <Bar
+                    key={ce.name}
+                    dataKey={ce.name}
+                    stackId="build"
+                    fill={STACKED_COLORS[index % STACKED_COLORS.length]}
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 space-y-1">
+            {buildCostElements.slice(0, 6).map((ce, index) => (
+              <div key={ce.name} className="flex items-center text-xs">
+                <div
+                  className="w-3 h-3 rounded mr-2 flex-shrink-0"
+                  style={{ backgroundColor: STACKED_COLORS[index % STACKED_COLORS.length] }}
+                />
+                <span className="text-gray-600 truncate flex-1">{ce.name}</span>
+                <span className="ml-1 text-gray-400 flex-shrink-0">{formatCurrency(ce.value)}</span>
+              </div>
             ))}
-          </BarChart>
-        </ResponsiveContainer>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {buildCostElements.map((ce, index) => (
-            <div key={ce.name} className="flex items-center text-xs">
-              <div
-                className="w-3 h-3 rounded mr-1"
-                style={{ backgroundColor: STACKED_COLORS[index % STACKED_COLORS.length] }}
-              />
-              <span className="text-gray-600">{ce.name}</span>
-              <span className="ml-1 text-gray-400">({formatCurrency(ce.value)})</span>
-            </div>
-          ))}
+            {buildCostElements.length > 6 && (
+              <div className="text-xs text-gray-400 pl-5">
+                +{buildCostElements.length - 6} more
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Operate + Finance Cost Element Breakdown (Stacked Bar) */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Operate + Finance Cost Element Breakdown (Monthly)
-        </h3>
-        <ResponsiveContainer width="100%" height={80}>
-          <BarChart data={operateFinanceStackedData} layout="vertical" barSize={40}>
-            <XAxis type="number" tickFormatter={(v) => `$${v.toFixed(0)}`} />
-            <YAxis dataKey="category" type="category" width={100} hide />
-            <Tooltip
-              formatter={(value: number, name: string) => [formatCurrency(value), name]}
-              labelStyle={{ fontWeight: 'bold' }}
-            />
-            {operateFinanceCostElements.map((ce, index) => (
-              <Bar
-                key={ce.name}
-                dataKey={ce.name}
-                stackId="monthly"
-                fill={STACKED_COLORS[index % STACKED_COLORS.length]}
-              />
+        {/* Operate + Finance Cost Element Breakdown (Vertical Stacked Bar) */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Monthly Costs
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">Operate + Finance • {formatCurrency(monthlyTotal)}/mo</p>
+          <div className="flex justify-center">
+            <ResponsiveContainer width={120} height={280}>
+              <BarChart data={operateFinanceStackedData} barSize={80}>
+                <YAxis 
+                  type="number" 
+                  tickFormatter={(v) => `$${v.toFixed(0)}`}
+                  width={50}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <XAxis dataKey="category" type="category" hide />
+                <Tooltip
+                  formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                  labelStyle={{ fontWeight: 'bold' }}
+                />
+                {operateFinanceCostElements.map((ce, index) => (
+                  <Bar
+                    key={ce.name}
+                    dataKey={ce.name}
+                    stackId="monthly"
+                    fill={STACKED_COLORS[index % STACKED_COLORS.length]}
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 space-y-1">
+            {operateFinanceCostElements.slice(0, 6).map((ce, index) => (
+              <div key={ce.name} className="flex items-center text-xs">
+                <div
+                  className="w-3 h-3 rounded mr-2 flex-shrink-0"
+                  style={{ backgroundColor: STACKED_COLORS[index % STACKED_COLORS.length] }}
+                />
+                <span className="text-gray-600 truncate flex-1">{ce.name}</span>
+                <span className="ml-1 text-gray-400 flex-shrink-0">{formatCurrency(ce.value)}</span>
+              </div>
             ))}
-          </BarChart>
-        </ResponsiveContainer>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {operateFinanceCostElements.map((ce, index) => (
-            <div key={ce.name} className="flex items-center text-xs">
-              <div
-                className="w-3 h-3 rounded mr-1"
-                style={{ backgroundColor: STACKED_COLORS[index % STACKED_COLORS.length] }}
-              />
-              <span className="text-gray-600">{ce.name}</span>
-              <span className="ml-1 text-gray-400">({formatCurrency(ce.value)}/mo)</span>
-            </div>
-          ))}
+            {operateFinanceCostElements.length > 6 && (
+              <div className="text-xs text-gray-400 pl-5">
+                +{operateFinanceCostElements.length - 6} more
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Monthly Payment Summary Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Payment Summary</h3>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Label</th>
-              <th className="text-right py-3 px-4 font-semibold text-gray-700">Amount</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Note</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-b border-gray-100">
-              <td className="py-3 px-4 text-gray-900">Monthly Principal Payment</td>
-              <td className="py-3 px-4 text-right font-medium text-blue-600">
+        {/* Monthly Payment Summary Table */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Payment Summary</h3>
+          <div className="space-y-4">
+            <div className="border-b border-gray-100 pb-4">
+              <div className="text-sm text-gray-600">Principal Payment</div>
+              <div className="text-xl font-semibold text-blue-600 mt-1">
                 {formatCurrency(monthlyPaymentData.principal)}
-              </td>
-              <td className="py-3 px-4 text-gray-500 text-sm">{paymentNotes.principal}</td>
-            </tr>
-            <tr className="border-b border-gray-100">
-              <td className="py-3 px-4 text-gray-900">Monthly Payment Excluding Principal</td>
-              <td className="py-3 px-4 text-right font-medium text-orange-600">
+              </div>
+              <div className="text-xs text-gray-400 mt-1">{paymentNotes.principal}</div>
+            </div>
+            <div className="border-b border-gray-100 pb-4">
+              <div className="text-sm text-gray-600">Excluding Principal</div>
+              <div className="text-xl font-semibold text-orange-600 mt-1">
                 {formatCurrency(monthlyPaymentData.nonPrincipal)}
-              </td>
-              <td className="py-3 px-4 text-gray-500 text-sm">{paymentNotes.nonPrincipal}</td>
-            </tr>
-            <tr className="bg-gray-50">
-              <td className="py-3 px-4 font-semibold text-gray-900">Total Monthly Payment</td>
-              <td className="py-3 px-4 text-right font-bold text-green-600">
+              </div>
+              <div className="text-xs text-gray-400 mt-1">{paymentNotes.nonPrincipal}</div>
+            </div>
+            <div className="bg-gray-50 -mx-6 -mb-6 px-6 py-4 rounded-b-lg">
+              <div className="text-sm font-medium text-gray-700">Total Monthly</div>
+              <div className="text-2xl font-bold text-green-600 mt-1">
                 {formatCurrency(monthlyPaymentData.total)}
-              </td>
-              <td className="py-3 px-4 text-gray-500 text-sm">{paymentNotes.total}</td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+              <div className="text-xs text-gray-400 mt-1">{paymentNotes.total}</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Charts Row 1 */}
