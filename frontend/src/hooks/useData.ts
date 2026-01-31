@@ -62,7 +62,8 @@ function useSupabaseQuery<T>(
 // Hook for calling RPC functions with scenario support
 function useScenarioRpc<T>(
   functionName: string,
-  scenarioId: string
+  scenarioId: string,
+  scenarioLoading: boolean
 ): DataState<T> & { refresh: () => void } {
   const [state, setState] = useState<DataState<T>>({
     data: [],
@@ -71,6 +72,10 @@ function useScenarioRpc<T>(
   })
 
   const fetchData = useCallback(async () => {
+    // Wait for scenario context to finish loading
+    if (scenarioLoading) {
+      return
+    }
     setState((prev) => ({ ...prev, loading: true, error: null }))
     try {
       const { data, error } = await supabase.rpc(functionName as never, {
@@ -85,7 +90,7 @@ function useScenarioRpc<T>(
         error: err instanceof Error ? err.message : 'Unknown error',
       }))
     }
-  }, [functionName, scenarioId])
+  }, [functionName, scenarioId, scenarioLoading])
 
   useEffect(() => {
     fetchData()
@@ -100,31 +105,31 @@ function useScenarioRpc<T>(
 
 // Cost Elements with scenario-specific estimates
 export function useCostElements() {
-  const { selectedScenarioId } = useScenario()
-  return useScenarioRpc<CostElement>('get_cost_elements_for_scenario', selectedScenarioId)
+  const { selectedScenarioId, loading } = useScenario()
+  return useScenarioRpc<CostElement>('get_cost_elements_for_scenario', selectedScenarioId, loading)
 }
 
 // CROs with scenario-specific estimates
 export function useCostReductionOpportunities() {
-  const { selectedScenarioId } = useScenario()
-  return useScenarioRpc<CostReductionOpportunity>('get_cros_for_scenario', selectedScenarioId)
+  const { selectedScenarioId, loading } = useScenario()
+  return useScenarioRpc<CostReductionOpportunity>('get_cros_for_scenario', selectedScenarioId, loading)
 }
 
 // CRO-CE impact with scenario-specific estimates
 export function useCroImpacts() {
-  const { selectedScenarioId } = useScenario()
-  return useScenarioRpc<CroImpact>('get_cro_ce_impact_for_scenario', selectedScenarioId)
+  const { selectedScenarioId, loading } = useScenario()
+  return useScenarioRpc<CroImpact>('get_cro_ce_impact_for_scenario', selectedScenarioId, loading)
 }
 
 // Actor controls with scenario-specific CE estimates
 export function useActorControls() {
-  const { selectedScenarioId } = useScenario()
-  return useScenarioRpc<ActorControl>('get_actor_cost_control_for_scenario', selectedScenarioId)
+  const { selectedScenarioId, loading } = useScenario()
+  return useScenarioRpc<ActorControl>('get_actor_cost_control_for_scenario', selectedScenarioId, loading)
 }
 
 // Summary stats with scenario-specific calculations
 export function useSummaryStats() {
-  const { selectedScenarioId } = useScenario()
+  const { selectedScenarioId, loading: scenarioLoading } = useScenario()
   const [state, setState] = useState<{ data: SummaryStats | null; loading: boolean; error: string | null }>({
     data: null,
     loading: true,
@@ -132,6 +137,10 @@ export function useSummaryStats() {
   })
 
   useEffect(() => {
+    // Wait for scenario context to finish loading
+    if (scenarioLoading) {
+      return
+    }
     async function fetchStats() {
       setState((prev) => ({ ...prev, loading: true }))
       try {
@@ -151,7 +160,7 @@ export function useSummaryStats() {
       }
     }
     fetchStats()
-  }, [selectedScenarioId])
+  }, [selectedScenarioId, scenarioLoading])
 
   return state
 }
@@ -233,7 +242,7 @@ export function useBarriersByCro(croId: string | null) {
 
 // Hook for getting CROs that affect a cost element (with scenario-aware estimates)
 export function useCrosForCostElement(ceId: string | null) {
-  const { selectedScenarioId } = useScenario()
+  const { selectedScenarioId, loading: scenarioLoading } = useScenario()
   const [state, setState] = useState<DataState<CroImpact>>({
     data: [],
     loading: false,
@@ -241,7 +250,7 @@ export function useCrosForCostElement(ceId: string | null) {
   })
 
   useEffect(() => {
-    if (!ceId) {
+    if (!ceId || scenarioLoading) {
       setState({ data: [], loading: false, error: null })
       return
     }
@@ -268,7 +277,7 @@ export function useCrosForCostElement(ceId: string | null) {
       }
     }
     fetchCros()
-  }, [ceId, selectedScenarioId])
+  }, [ceId, selectedScenarioId, scenarioLoading])
 
   return state
 }

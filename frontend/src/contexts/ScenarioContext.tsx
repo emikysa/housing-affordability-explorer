@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Scenario } from '../types/database'
-import { BASELINE_SCENARIO_ID } from '../types/database'
 
 interface ScenarioContextType {
   scenarios: Scenario[]
@@ -16,7 +15,7 @@ const ScenarioContext = createContext<ScenarioContextType | undefined>(undefined
 
 export function ScenarioProvider({ children }: { children: ReactNode }) {
   const [scenarios, setScenarios] = useState<Scenario[]>([])
-  const [selectedScenarioId, setSelectedScenarioId] = useState<string>(BASELINE_SCENARIO_ID)
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -34,10 +33,13 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
         const scenarioData = (data || []) as Scenario[]
         setScenarios(scenarioData)
 
-        // Set default scenario if available
+        // Set default scenario (first one with is_default=true, or first scenario, or baseline)
         const defaultScenario = scenarioData.find((s) => s.is_default)
-        if (defaultScenario) {
-          setSelectedScenarioId(defaultScenario.scenario_id)
+        const baselineScenario = scenarioData.find((s) => s.is_baseline)
+        const firstScenario = scenarioData[0]
+        const scenarioToSelect = defaultScenario || baselineScenario || firstScenario
+        if (scenarioToSelect) {
+          setSelectedScenarioId(scenarioToSelect.scenario_id)
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load scenarios')
