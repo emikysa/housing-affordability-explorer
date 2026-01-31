@@ -23,6 +23,8 @@ type SelectedItem = {
   id: string
 }
 
+type SortMode = 'alpha' | 'value'
+
 // Semantic color types for Explorer columns
 type ColumnColorType = 'ce' | 'cro' | 'barrier' | 'actor'
 
@@ -35,6 +37,7 @@ export default function Explorer() {
   const { data: actorControls } = useActorControls()
 
   const [selected, setSelected] = useState<SelectedItem | null>(null)
+  const [sortMode, setSortMode] = useState<SortMode>('alpha')
   const [detailItem, setDetailItem] = useState<{
     type: SelectionType
     data: CostElement | CostReductionOpportunity | Barrier | Actor
@@ -194,6 +197,39 @@ export default function Explorer() {
     actorToCes,
   ])
 
+  // Sort filtered data based on sort mode
+  const sortedData = useMemo(() => {
+    const sortAlpha = <T extends { [key: string]: unknown }>(arr: T[], key: string) =>
+      [...arr].sort((a, b) => String(a[key]).localeCompare(String(b[key])))
+
+    const sortByValue = <T extends { [key: string]: unknown }>(
+      arr: T[],
+      valueKey: string
+    ) =>
+      [...arr].sort((a, b) => {
+        const aVal = (a[valueKey] as number) || 0
+        const bVal = (b[valueKey] as number) || 0
+        return bVal - aVal // Descending
+      })
+
+    if (sortMode === 'alpha') {
+      return {
+        ces: sortAlpha(filteredData.ces, 'ce_id'),
+        cros: sortAlpha(filteredData.cros, 'cro_id'),
+        barriers: sortAlpha(filteredData.barriers, 'barrier_id'),
+        actors: sortAlpha(filteredData.actors, 'actor_id'),
+      }
+    } else {
+      // Sort by value descending (for items without values, put at end)
+      return {
+        ces: sortByValue(filteredData.ces, 'estimate'),
+        cros: sortByValue(filteredData.cros, 'estimate'),
+        barriers: sortAlpha(filteredData.barriers, 'barrier_id'), // Barriers don't have values
+        actors: sortAlpha(filteredData.actors, 'actor_id'), // Actors don't have values
+      }
+    }
+  }, [filteredData, sortMode])
+
   const handleItemClick = (type: SelectionType, id: string) => {
     if (selected?.type === type && selected?.id === id) {
       // Clicking same item clears selection
@@ -243,11 +279,41 @@ export default function Explorer() {
   return (
     <div className="space-y-4">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Explorer</h1>
-        <p className="mt-1 text-gray-500">
-          Click any item to filter related elements across all columns. Click again to clear.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Explorer</h1>
+          <p className="mt-1 text-gray-500">
+            Click any item to filter related elements across all columns. Click again to clear.
+          </p>
+        </div>
+        {/* Sort Toggle */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Sort:</span>
+          <div className="inline-flex rounded-md shadow-sm" role="group">
+            <button
+              type="button"
+              onClick={() => setSortMode('alpha')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-l-md border ${
+                sortMode === 'alpha'
+                  ? 'bg-primary-50 border-primary-300 text-primary-700'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              A-Z
+            </button>
+            <button
+              type="button"
+              onClick={() => setSortMode('value')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-r-md border-t border-r border-b -ml-px ${
+                sortMode === 'value'
+                  ? 'bg-primary-50 border-primary-300 text-primary-700'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              By Value
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Selection indicator */}
@@ -273,25 +339,22 @@ export default function Explorer() {
 
       {/* Multi-column layout */}
       {!loading && (
-        <div className="grid grid-cols-4 gap-4" style={{ height: 'calc(100vh - 280px)' }}>
+        <div className="grid grid-cols-4 gap-3" style={{ height: 'calc(100vh - 280px)' }}>
           {/* Cost Elements Column - Gray (Neutral) */}
           <ExplorerColumn
             title="Cost Elements"
-            count={filteredData.ces.length}
+            count={sortedData.ces.length}
             totalCount={costElements.length}
             colorType="ce"
           >
-            {filteredData.ces.map((ce) => (
-              <ExplorerCard
+            {sortedData.ces.map((ce) => (
+              <CeCard
                 key={ce.ce_id}
-                id={ce.ce_id}
-                title={ce.description}
-                subtitle={ce.stage_id || undefined}
-                value={formatCurrency(ce.estimate)}
+                ce={ce}
                 isSelected={isSelected('ce', ce.ce_id)}
                 onClick={() => handleItemClick('ce', ce.ce_id)}
                 onDetailClick={() => handleDetailClick('ce', ce)}
-                colorType="ce"
+                formatCurrency={formatCurrency}
               />
             ))}
           </ExplorerColumn>
@@ -299,21 +362,18 @@ export default function Explorer() {
           {/* CROs Column - Green (Opportunity) */}
           <ExplorerColumn
             title="Reduction Opportunities"
-            count={filteredData.cros.length}
+            count={sortedData.cros.length}
             totalCount={cros.length}
             colorType="cro"
           >
-            {filteredData.cros.map((cro) => (
-              <ExplorerCard
+            {sortedData.cros.map((cro) => (
+              <CroCard
                 key={cro.cro_id}
-                id={cro.cro_id}
-                title={cro.description}
-                subtitle={cro.stage_id || undefined}
-                value={cro.estimate ? formatCurrency(cro.estimate) : undefined}
+                cro={cro}
                 isSelected={isSelected('cro', cro.cro_id)}
                 onClick={() => handleItemClick('cro', cro.cro_id)}
                 onDetailClick={() => handleDetailClick('cro', cro)}
-                colorType="cro"
+                formatCurrency={formatCurrency}
               />
             ))}
           </ExplorerColumn>
@@ -321,21 +381,17 @@ export default function Explorer() {
           {/* Barriers Column - Amber (Friction) */}
           <ExplorerColumn
             title="Barriers & Levers"
-            count={filteredData.barriers.length}
+            count={sortedData.barriers.length}
             totalCount={barriers.length}
             colorType="barrier"
           >
-            {filteredData.barriers.map((barrier) => (
-              <ExplorerCard
+            {sortedData.barriers.map((barrier) => (
+              <BarrierCard
                 key={barrier.barrier_id}
-                id={barrier.barrier_id}
-                title={barrier.short_name || barrier.description}
-                subtitle={barrier.barrier_type || undefined}
+                barrier={barrier}
                 isSelected={isSelected('barrier', barrier.barrier_id)}
                 onClick={() => handleItemClick('barrier', barrier.barrier_id)}
                 onDetailClick={() => handleDetailClick('barrier', barrier)}
-                colorType="barrier"
-                barrierType={barrier.barrier_type || undefined}
               />
             ))}
           </ExplorerColumn>
@@ -343,20 +399,17 @@ export default function Explorer() {
           {/* Actors Column - Blue (Agency) */}
           <ExplorerColumn
             title="Actors"
-            count={filteredData.actors.length}
+            count={sortedData.actors.length}
             totalCount={actors.length}
             colorType="actor"
           >
-            {filteredData.actors.map((actor) => (
-              <ExplorerCard
+            {sortedData.actors.map((actor) => (
+              <ActorCard
                 key={actor.actor_id}
-                id={actor.actor_id}
-                title={actor.actor_id}
-                subtitle={actor.description || undefined}
+                actor={actor}
                 isSelected={isSelected('actor', actor.actor_id)}
                 onClick={() => handleItemClick('actor', actor.actor_id)}
                 onDetailClick={() => handleDetailClick('actor', actor)}
-                colorType="actor"
               />
             ))}
           </ExplorerColumn>
@@ -493,7 +546,7 @@ function ExplorerColumn({ title, count, totalCount, colorType, children }: Explo
           </span>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-2 space-y-2">{children}</div>
+      <div className="flex-1 overflow-y-auto p-2 space-y-1.5">{children}</div>
     </div>
   )
 }
@@ -518,12 +571,10 @@ function ExplorerBadge({
 
   return (
     <span
-      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
       style={{
         backgroundColor: badgeColors.bg,
         color: badgeColors.text,
-        borderWidth: '1px',
-        borderColor: badgeColors.border,
       }}
     >
       {value}
@@ -531,35 +582,25 @@ function ExplorerBadge({
   )
 }
 
-// Card component
-interface ExplorerCardProps {
-  id: string
-  title: string
-  subtitle?: string
-  value?: string
-  isSelected: boolean
-  onClick: () => void
-  onDetailClick: () => void
-  colorType: ColumnColorType
-  barrierType?: string
-}
-
-function ExplorerCard({
-  id,
-  title,
-  subtitle,
-  value,
+// Compact CE Card - no stage badge, just ID + description + value
+function CeCard({
+  ce,
   isSelected,
   onClick,
   onDetailClick,
-  colorType,
-  barrierType,
-}: ExplorerCardProps) {
-  const colors = columnColors[colorType]
+  formatCurrency,
+}: {
+  ce: CostElement
+  isSelected: boolean
+  onClick: () => void
+  onDetailClick: () => void
+  formatCurrency: (v: number | null | undefined) => string
+}) {
+  const colors = columnColors.ce
 
   return (
     <div
-      className="rounded-lg p-2 cursor-pointer transition-all"
+      className="rounded p-1.5 cursor-pointer transition-all"
       style={{
         backgroundColor: '#FFFFFF',
         borderLeftWidth: '3px',
@@ -570,30 +611,83 @@ function ExplorerCard({
       }}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-1">
         <div className="flex-1 min-w-0">
-          <div
-            className="text-xs font-mono truncate"
-            style={{ color: colors.card.secondaryText }}
-          >
-            {id}
+          <div className="text-xs font-mono" style={{ color: colors.card.secondaryText }}>
+            {ce.ce_id}
           </div>
           <div
-            className="text-sm font-medium line-clamp-2"
+            className="text-xs leading-tight line-clamp-2"
             style={{ color: colors.card.primaryText }}
           >
-            {title}
+            {ce.description}
           </div>
-          {subtitle && (
-            <div className="mt-1">
-              <ExplorerBadge value={subtitle} colorType={colorType} barrierType={barrierType} />
-            </div>
-          )}
         </div>
-        <div className="flex flex-col items-end gap-1">
-          {value && (
+        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+          <span className="text-xs font-medium" style={{ color: colors.card.secondaryText }}>
+            {formatCurrency(ce.estimate)}
+          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDetailClick()
+            }}
+            className="text-xs hover:underline"
+            style={{ color: colors.card.secondaryText }}
+          >
+            Details
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Compact CRO Card - no stage badge
+function CroCard({
+  cro,
+  isSelected,
+  onClick,
+  onDetailClick,
+  formatCurrency,
+}: {
+  cro: CostReductionOpportunity
+  isSelected: boolean
+  onClick: () => void
+  onDetailClick: () => void
+  formatCurrency: (v: number | null | undefined) => string
+}) {
+  const colors = columnColors.cro
+
+  return (
+    <div
+      className="rounded p-1.5 cursor-pointer transition-all"
+      style={{
+        backgroundColor: '#FFFFFF',
+        borderLeftWidth: '3px',
+        borderLeftColor: colors.card.border,
+        boxShadow: isSelected
+          ? `0 0 0 2px ${colors.selected.border}`
+          : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      }}
+      onClick={onClick}
+    >
+      <div className="flex items-start justify-between gap-1">
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-mono" style={{ color: colors.card.secondaryText }}>
+            {cro.cro_id}
+          </div>
+          <div
+            className="text-xs leading-tight line-clamp-2"
+            style={{ color: colors.card.primaryText }}
+          >
+            {cro.description}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+          {cro.estimate && (
             <span className="text-xs font-medium" style={{ color: colors.card.secondaryText }}>
-              {value}
+              {formatCurrency(cro.estimate)}
             </span>
           )}
           <button
@@ -601,12 +695,125 @@ function ExplorerCard({
               e.stopPropagation()
               onDetailClick()
             }}
-            className="text-xs font-medium hover:underline"
+            className="text-xs hover:underline"
             style={{ color: colors.card.secondaryText }}
           >
             Details
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Compact Barrier Card - ID with type in parentheses, description only
+function BarrierCard({
+  barrier,
+  isSelected,
+  onClick,
+  onDetailClick,
+}: {
+  barrier: Barrier
+  isSelected: boolean
+  onClick: () => void
+  onDetailClick: () => void
+}) {
+  const colors = columnColors.barrier
+
+  return (
+    <div
+      className="rounded p-1.5 cursor-pointer transition-all"
+      style={{
+        backgroundColor: '#FFFFFF',
+        borderLeftWidth: '3px',
+        borderLeftColor: colors.card.border,
+        boxShadow: isSelected
+          ? `0 0 0 2px ${colors.selected.border}`
+          : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      }}
+      onClick={onClick}
+    >
+      <div className="flex items-start justify-between gap-1">
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-mono" style={{ color: colors.card.secondaryText }}>
+            {barrier.barrier_id}
+            {barrier.barrier_type && (
+              <span className="ml-1 font-normal">({barrier.barrier_type})</span>
+            )}
+          </div>
+          <div
+            className="text-xs leading-tight line-clamp-2"
+            style={{ color: colors.card.primaryText }}
+          >
+            {barrier.short_name || barrier.description}
+          </div>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onDetailClick()
+          }}
+          className="text-xs hover:underline flex-shrink-0"
+          style={{ color: colors.card.secondaryText }}
+        >
+          Details
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// Compact Actor Card - just ID + description (no duplicate)
+function ActorCard({
+  actor,
+  isSelected,
+  onClick,
+  onDetailClick,
+}: {
+  actor: Actor
+  isSelected: boolean
+  onClick: () => void
+  onDetailClick: () => void
+}) {
+  const colors = columnColors.actor
+
+  return (
+    <div
+      className="rounded p-1.5 cursor-pointer transition-all"
+      style={{
+        backgroundColor: '#FFFFFF',
+        borderLeftWidth: '3px',
+        borderLeftColor: colors.card.border,
+        boxShadow: isSelected
+          ? `0 0 0 2px ${colors.selected.border}`
+          : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      }}
+      onClick={onClick}
+    >
+      <div className="flex items-start justify-between gap-1">
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-mono font-medium" style={{ color: colors.card.primaryText }}>
+            {actor.actor_id}
+          </div>
+          {actor.description && (
+            <div
+              className="text-xs leading-tight line-clamp-2"
+              style={{ color: colors.card.secondaryText }}
+            >
+              {actor.description}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onDetailClick()
+          }}
+          className="text-xs hover:underline flex-shrink-0"
+          style={{ color: colors.card.secondaryText }}
+        >
+          Details
+        </button>
       </div>
     </div>
   )
