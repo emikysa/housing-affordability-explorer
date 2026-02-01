@@ -97,6 +97,8 @@ function generateHierarchyCodes(
   return codeMap
 }
 
+type SortMode = 'alpha' | 'value'
+
 export default function CostElements() {
   const { data: costElements, loading } = useCostElements()
   const { data: stages } = useStages()
@@ -104,6 +106,7 @@ export default function CostElements() {
   const [stageFilter, setStageFilter] = useState('')
   const [showAll, setShowAll] = useState(false)
   const [selectedElement, setSelectedElement] = useState<CostElement | null>(null)
+  const [sortMode, setSortMode] = useState<SortMode>('alpha')
 
   // Multi-select state for each column (using Set for efficient lookups)
   const [selectedCEs, setSelectedCEs] = useState<Set<string>>(new Set())
@@ -202,8 +205,22 @@ export default function CostElements() {
       data = data.filter((ce) => ce.stage_id === stageFilter)
     }
 
-    return data.sort((a, b) => a.ce_id.localeCompare(b.ce_id))
-  }, [costElements, stageFilter, showAll])
+    // Sort based on sortMode
+    if (sortMode === 'alpha') {
+      return data.sort((a, b) => a.ce_id.localeCompare(b.ce_id))
+    } else {
+      return data.sort((a, b) => (b.estimate || 0) - (a.estimate || 0))
+    }
+  }, [costElements, stageFilter, showAll, sortMode])
+
+  // Sort helper for hierarchy items - uses display name (with code) for alpha, count for value
+  const sortItems = (items: { name: string; count: number; displayName: string }[]) => {
+    if (sortMode === 'alpha') {
+      return items.sort((a, b) => a.displayName.localeCompare(b.displayName))
+    } else {
+      return items.sort((a, b) => b.count - a.count)
+    }
+  }
 
   // Get Level 1 items - REQUIRES at least one CE to be selected
   const level1Items = useMemo(() => {
@@ -216,8 +233,13 @@ export default function CostElements() {
       }
       items.get(d.level1_name)!.count++
     })
-    return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedCEs])
+    // Add displayName for sorting
+    const itemsWithDisplay = [...items.values()].map(item => ({
+      ...item,
+      displayName: getLevel1Display(item.name)
+    }))
+    return sortItems(itemsWithDisplay)
+  }, [totalDrilldown, selectedCEs, sortMode, hierarchyCodes])
 
   // Get Level 2 items - REQUIRES CE, filtered by Level 1 selections
   const level2Items = useMemo(() => {
@@ -233,8 +255,13 @@ export default function CostElements() {
       }
       items.get(d.level2_name)!.count++
     })
-    return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedCEs, selectedLevel1s])
+    // Add displayName for sorting
+    const itemsWithDisplay = [...items.values()].map(item => ({
+      ...item,
+      displayName: getLevel2Display(item.name)
+    }))
+    return sortItems(itemsWithDisplay)
+  }, [totalDrilldown, selectedCEs, selectedLevel1s, sortMode, hierarchyCodes])
 
   // Get Level 3 items - REQUIRES CE, filtered by Level 1 and 2 selections
   const level3Items = useMemo(() => {
@@ -255,8 +282,13 @@ export default function CostElements() {
         items.get(d.level3_name)!.count++
       }
     })
-    return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedCEs, selectedLevel1s, selectedLevel2s])
+    // Add displayName for sorting
+    const itemsWithDisplay = [...items.values()].map(item => ({
+      ...item,
+      displayName: getLevel3Display(item.name)
+    }))
+    return sortItems(itemsWithDisplay)
+  }, [totalDrilldown, selectedCEs, selectedLevel1s, selectedLevel2s, sortMode, hierarchyCodes])
 
   // Get Level 4 items - REQUIRES CE, filtered by Level 1, 2, and 3 selections
   const level4Items = useMemo(() => {
@@ -280,8 +312,13 @@ export default function CostElements() {
         items.get(d.level4_name)!.count++
       }
     })
-    return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedCEs, selectedLevel1s, selectedLevel2s, selectedLevel3s])
+    // Add displayName for sorting
+    const itemsWithDisplay = [...items.values()].map(item => ({
+      ...item,
+      displayName: getLevel4Display(item.name)
+    }))
+    return sortItems(itemsWithDisplay)
+  }, [totalDrilldown, selectedCEs, selectedLevel1s, selectedLevel2s, selectedLevel3s, sortMode, hierarchyCodes])
 
   // Toggle selection helper for multi-select
   const toggleSetItem = <T,>(set: Set<T>, item: T, setter: (s: Set<T>) => void) => {
@@ -444,6 +481,34 @@ export default function CostElements() {
         </div>
         {/* Top Filters */}
         <div className="flex items-center gap-4">
+          {/* Sort Toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Sort:</span>
+            <div className="inline-flex rounded-md shadow-sm" role="group">
+              <button
+                type="button"
+                onClick={() => setSortMode('alpha')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-l-md border ${
+                  sortMode === 'alpha'
+                    ? 'bg-primary-50 border-primary-300 text-primary-700'
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                A-Z
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortMode('value')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-r-md border-t border-r border-b -ml-px ${
+                  sortMode === 'value'
+                    ? 'bg-primary-50 border-primary-300 text-primary-700'
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                By Count
+              </button>
+            </div>
+          </div>
           <div className="min-w-[130px]">
             <label className="block text-xs font-medium text-gray-500 mb-1">Stage</label>
             <select
