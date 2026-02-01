@@ -16,36 +16,36 @@ function indexToLetters(index: number): string {
   return result
 }
 
-// Generate hierarchical codes for all drilldown items
+// Get base CE code (e.g., "B01" from "B01-Land")
+function getBaseCode(ceCode: string): string {
+  const match = ceCode.match(/^([A-Z]\d+)/)
+  return match ? match[1] : ceCode.substring(0, 3)
+}
+
+// Generate hierarchical codes for all drilldown items for a specific CE
+// Codes build on each other: B01 > B01a > B01a01 > B01a01a > B01a01a01
 function generateHierarchyCodes(
   drilldownData: CEDrilldown[],
-  selectedCE: string | null
+  ceCode: string
 ): Map<string, { code: string; displayName: string }> {
   const codeMap = new Map<string, { code: string; displayName: string }>()
 
-  // Filter to selected CE if one is selected
-  const filtered = selectedCE
-    ? drilldownData.filter(d => d.ce_code === selectedCE)
-    : drilldownData
+  // Filter to this CE only
+  const filtered = drilldownData.filter(d => d.ce_code === ceCode)
+  if (filtered.length === 0) return codeMap
 
-  // Get base CE code (e.g., "B07" from "B07-HardMatl")
-  const getBaseCode = (ceCode: string) => {
-    const match = ceCode.match(/^([A-Z]\d+)/)
-    return match ? match[1] : ceCode.substring(0, 3)
-  }
+  const baseCode = getBaseCode(ceCode)
 
-  // Build Level 1 codes: B07a, B07b, etc.
+  // Build Level 1 codes: B01a, B01b, etc.
   const level1Names = [...new Set(filtered.map(d => d.level1_name))].sort()
   const level1Codes = new Map<string, string>()
   level1Names.forEach((name, idx) => {
-    // Use the selected CE's base code, or a generic prefix
-    const baseCode = selectedCE ? getBaseCode(selectedCE) : 'CE'
     const code = `${baseCode}${indexToLetters(idx)}`
     level1Codes.set(name, code)
     codeMap.set(`L1:${name}`, { code, displayName: `${code}-${name}` })
   })
 
-  // Build Level 2 codes: B07a01, B07a02, etc.
+  // Build Level 2 codes: B01a01, B01a02, etc. (inherits from L1 code)
   level1Names.forEach(level1Name => {
     const level1Code = level1Codes.get(level1Name)!
     const level2Names = [...new Set(
@@ -54,31 +54,41 @@ function generateHierarchyCodes(
         .map(d => d.level2_name)
     )].sort()
 
+    const level2Codes = new Map<string, string>()
     level2Names.forEach((name, idx) => {
       const code = `${level1Code}${String(idx + 1).padStart(2, '0')}`
+      level2Codes.set(name, code)
       codeMap.set(`L2:${level1Name}:${name}`, { code, displayName: `${code}-${name}` })
+    })
 
-      // Build Level 3 codes: B07a01a, B07a01b, etc.
+    // Build Level 3 codes: B01a01a, B01a01b, etc. (inherits from L2 code)
+    level2Names.forEach(level2Name => {
+      const level2Code = level2Codes.get(level2Name)!
       const level3Names = [...new Set(
         filtered
-          .filter(d => d.level1_name === level1Name && d.level2_name === name && d.level3_name)
+          .filter(d => d.level1_name === level1Name && d.level2_name === level2Name && d.level3_name)
           .map(d => d.level3_name!)
       )].sort()
 
-      level3Names.forEach((l3Name, l3Idx) => {
-        const l3Code = `${code}${indexToLetters(l3Idx)}`
-        codeMap.set(`L3:${level1Name}:${name}:${l3Name}`, { code: l3Code, displayName: `${l3Code}-${l3Name}` })
+      const level3Codes = new Map<string, string>()
+      level3Names.forEach((name, idx) => {
+        const code = `${level2Code}${indexToLetters(idx)}`
+        level3Codes.set(name, code)
+        codeMap.set(`L3:${level1Name}:${level2Name}:${name}`, { code, displayName: `${code}-${name}` })
+      })
 
-        // Build Level 4 codes: B07a01a01, B07a01a02, etc.
+      // Build Level 4 codes: B01a01a01, B01a01a02, etc. (inherits from L3 code)
+      level3Names.forEach(level3Name => {
+        const level3Code = level3Codes.get(level3Name)!
         const level4Names = [...new Set(
           filtered
-            .filter(d => d.level1_name === level1Name && d.level2_name === name && d.level3_name === l3Name && d.level4_name)
+            .filter(d => d.level1_name === level1Name && d.level2_name === level2Name && d.level3_name === level3Name && d.level4_name)
             .map(d => d.level4_name!)
         )].sort()
 
-        level4Names.forEach((l4Name, l4Idx) => {
-          const l4Code = `${l3Code}${String(l4Idx + 1).padStart(2, '0')}`
-          codeMap.set(`L4:${level1Name}:${name}:${l3Name}:${l4Name}`, { code: l4Code, displayName: `${l4Code}-${l4Name}` })
+        level4Names.forEach((name, idx) => {
+          const code = `${level3Code}${String(idx + 1).padStart(2, '0')}`
+          codeMap.set(`L4:${level1Name}:${level2Name}:${level3Name}:${name}`, { code, displayName: `${code}-${name}` })
         })
       })
     })
@@ -111,30 +121,68 @@ export default function CostElements() {
     return drilldownData.filter((d) => d.cost_component === 'Total')
   }, [drilldownData])
 
-  // Generate hierarchy codes
+  // Generate hierarchy codes - only when a CE is selected
   const hierarchyCodes = useMemo(() => {
+    if (!selectedCE) return new Map<string, { code: string; displayName: string }>()
     return generateHierarchyCodes(totalDrilldown, selectedCE)
   }, [totalDrilldown, selectedCE])
 
-  // Helper to get display name with code
+  // Helper to get display name with code for Level 1
   const getLevel1Display = (name: string) => {
     const entry = hierarchyCodes.get(`L1:${name}`)
     return entry?.displayName || name
   }
 
-  const getLevel2Display = (l1Name: string, name: string) => {
-    const entry = hierarchyCodes.get(`L2:${l1Name}:${name}`)
-    return entry?.displayName || name
+  // Helper to find Level 2 display - needs to find parent L1 from drilldown data
+  const getLevel2Display = (l2Name: string) => {
+    if (!selectedCE) return l2Name
+    // If L1 is selected, use it directly
+    if (selectedLevel1) {
+      const entry = hierarchyCodes.get(`L2:${selectedLevel1}:${l2Name}`)
+      return entry?.displayName || l2Name
+    }
+    // Otherwise find the L1 parent from the data
+    const record = totalDrilldown.find(d => d.ce_code === selectedCE && d.level2_name === l2Name)
+    if (record) {
+      const entry = hierarchyCodes.get(`L2:${record.level1_name}:${l2Name}`)
+      return entry?.displayName || l2Name
+    }
+    return l2Name
   }
 
-  const getLevel3Display = (l1Name: string, l2Name: string, name: string) => {
-    const entry = hierarchyCodes.get(`L3:${l1Name}:${l2Name}:${name}`)
-    return entry?.displayName || name
+  // Helper to find Level 3 display - needs parent L1 and L2
+  const getLevel3Display = (l3Name: string) => {
+    if (!selectedCE) return l3Name
+    // Find the record to get parent hierarchy
+    const record = totalDrilldown.find(d =>
+      d.ce_code === selectedCE &&
+      d.level3_name === l3Name &&
+      (!selectedLevel1 || d.level1_name === selectedLevel1) &&
+      (!selectedLevel2 || d.level2_name === selectedLevel2)
+    )
+    if (record) {
+      const entry = hierarchyCodes.get(`L3:${record.level1_name}:${record.level2_name}:${l3Name}`)
+      return entry?.displayName || l3Name
+    }
+    return l3Name
   }
 
-  const getLevel4Display = (l1Name: string, l2Name: string, l3Name: string, name: string) => {
-    const entry = hierarchyCodes.get(`L4:${l1Name}:${l2Name}:${l3Name}:${name}`)
-    return entry?.displayName || name
+  // Helper to find Level 4 display - needs parent L1, L2, and L3
+  const getLevel4Display = (l4Name: string) => {
+    if (!selectedCE) return l4Name
+    // Find the record to get parent hierarchy
+    const record = totalDrilldown.find(d =>
+      d.ce_code === selectedCE &&
+      d.level4_name === l4Name &&
+      (!selectedLevel1 || d.level1_name === selectedLevel1) &&
+      (!selectedLevel2 || d.level2_name === selectedLevel2) &&
+      (!selectedLevel3 || d.level3_name === selectedLevel3)
+    )
+    if (record && record.level3_name) {
+      const entry = hierarchyCodes.get(`L4:${record.level1_name}:${record.level2_name}:${record.level3_name}:${l4Name}`)
+      return entry?.displayName || l4Name
+    }
+    return l4Name
   }
 
   // Filter cost elements based on stage and showAll
@@ -152,12 +200,10 @@ export default function CostElements() {
     return data.sort((a, b) => a.ce_id.localeCompare(b.ce_id))
   }, [costElements, stageFilter, showAll])
 
-  // Get Level 1 items - filtered by selected CE
+  // Get Level 1 items - REQUIRES a CE to be selected
   const level1Items = useMemo(() => {
-    let filtered = totalDrilldown
-    if (selectedCE) {
-      filtered = filtered.filter((d) => d.ce_code === selectedCE)
-    }
+    if (!selectedCE) return []
+    const filtered = totalDrilldown.filter((d) => d.ce_code === selectedCE)
     const items = new Map<string, { name: string; count: number }>()
     filtered.forEach((d) => {
       if (!items.has(d.level1_name)) {
@@ -168,12 +214,10 @@ export default function CostElements() {
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [totalDrilldown, selectedCE])
 
-  // Get Level 2 items - filtered by selected CE and Level 1
+  // Get Level 2 items - REQUIRES CE, filtered by Level 1 if selected
   const level2Items = useMemo(() => {
-    let filtered = totalDrilldown
-    if (selectedCE) {
-      filtered = filtered.filter((d) => d.ce_code === selectedCE)
-    }
+    if (!selectedCE) return []
+    let filtered = totalDrilldown.filter((d) => d.ce_code === selectedCE)
     if (selectedLevel1) {
       filtered = filtered.filter((d) => d.level1_name === selectedLevel1)
     }
@@ -187,12 +231,10 @@ export default function CostElements() {
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [totalDrilldown, selectedCE, selectedLevel1])
 
-  // Get Level 3 items - filtered by selected CE, Level 1, and Level 2
+  // Get Level 3 items - REQUIRES CE, filtered by Level 1 and 2 if selected
   const level3Items = useMemo(() => {
-    let filtered = totalDrilldown
-    if (selectedCE) {
-      filtered = filtered.filter((d) => d.ce_code === selectedCE)
-    }
+    if (!selectedCE) return []
+    let filtered = totalDrilldown.filter((d) => d.ce_code === selectedCE)
     if (selectedLevel1) {
       filtered = filtered.filter((d) => d.level1_name === selectedLevel1)
     }
@@ -211,12 +253,10 @@ export default function CostElements() {
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [totalDrilldown, selectedCE, selectedLevel1, selectedLevel2])
 
-  // Get Level 4 items - filtered by selected CE, Level 1, 2, and 3
+  // Get Level 4 items - REQUIRES CE, filtered by Level 1, 2, and 3 if selected
   const level4Items = useMemo(() => {
-    let filtered = totalDrilldown
-    if (selectedCE) {
-      filtered = filtered.filter((d) => d.ce_code === selectedCE)
-    }
+    if (!selectedCE) return []
+    let filtered = totalDrilldown.filter((d) => d.ce_code === selectedCE)
     if (selectedLevel1) {
       filtered = filtered.filter((d) => d.level1_name === selectedLevel1)
     }
@@ -392,9 +432,9 @@ export default function CostElements() {
             <span className="font-medium">Filtering by:</span>{' '}
             {selectedCE && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">{selectedCE}</span>}
             {selectedLevel1 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel1Display(selectedLevel1)}</span>}
-            {selectedLevel2 && selectedLevel1 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel2Display(selectedLevel1, selectedLevel2)}</span>}
-            {selectedLevel3 && selectedLevel1 && selectedLevel2 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel3Display(selectedLevel1, selectedLevel2, selectedLevel3)}</span>}
-            {selectedLevel4 && selectedLevel1 && selectedLevel2 && selectedLevel3 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded">→ {getLevel4Display(selectedLevel1, selectedLevel2, selectedLevel3, selectedLevel4)}</span>}
+            {selectedLevel2 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel2Display(selectedLevel2)}</span>}
+            {selectedLevel3 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel3Display(selectedLevel3)}</span>}
+            {selectedLevel4 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded">→ {getLevel4Display(selectedLevel4)}</span>}
           </span>
           <button
             onClick={clearAllSelections}
@@ -467,7 +507,7 @@ export default function CostElements() {
                 <HierarchyCard
                   key={item.name}
                   name={item.name}
-                  displayName={selectedLevel1 ? getLevel2Display(selectedLevel1, item.name) : item.name}
+                  displayName={getLevel2Display(item.name)}
                   count={item.count}
                   isSelected={selectedLevel2 === item.name}
                   onClick={() => handleLevel2Click(item.name)}
@@ -484,14 +524,14 @@ export default function CostElements() {
           >
             {level3Items.length === 0 ? (
               <div className="text-xs text-gray-400 p-2 italic">
-                {selectedCE || selectedLevel1 || selectedLevel2 ? 'No Level 3 items' : 'Select a Cost Element'}
+                {selectedCE ? 'No Level 3 items' : 'Select a Cost Element'}
               </div>
             ) : (
               level3Items.map((item) => (
                 <HierarchyCard
                   key={item.name}
                   name={item.name}
-                  displayName={selectedLevel1 && selectedLevel2 ? getLevel3Display(selectedLevel1, selectedLevel2, item.name) : item.name}
+                  displayName={getLevel3Display(item.name)}
                   count={item.count}
                   isSelected={selectedLevel3 === item.name}
                   onClick={() => handleLevel3Click(item.name)}
@@ -508,14 +548,14 @@ export default function CostElements() {
           >
             {level4Items.length === 0 ? (
               <div className="text-xs text-gray-400 p-2 italic">
-                {selectedCE || selectedLevel1 || selectedLevel2 || selectedLevel3 ? 'No Level 4 items' : 'Select a Cost Element'}
+                {selectedCE ? 'No Level 4 items' : 'Select a Cost Element'}
               </div>
             ) : (
               level4Items.map((item) => (
                 <HierarchyCard
                   key={item.name}
                   name={item.name}
-                  displayName={selectedLevel1 && selectedLevel2 && selectedLevel3 ? getLevel4Display(selectedLevel1, selectedLevel2, selectedLevel3, item.name) : item.name}
+                  displayName={getLevel4Display(item.name)}
                   count={item.count}
                   isSelected={selectedLevel4 === item.name}
                   onClick={() => handleLevel4Click(item.name)}
