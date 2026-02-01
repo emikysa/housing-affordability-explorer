@@ -3,7 +3,89 @@ import FilterToggle from '../components/FilterToggle'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
 import { BadgeRenderer } from '../components/DataGrid'
 import { useCostElements, useStages, useCrosForCostElement, useCEDrilldown } from '../hooks/useData'
-import type { CostElement } from '../types/database'
+import type { CostElement, CEDrilldown } from '../types/database'
+
+// Generate a letter suffix from an index (0=a, 1=b, ..., 25=z, 26=aa, etc.)
+function indexToLetters(index: number): string {
+  let result = ''
+  let n = index
+  do {
+    result = String.fromCharCode(97 + (n % 26)) + result
+    n = Math.floor(n / 26) - 1
+  } while (n >= 0)
+  return result
+}
+
+// Generate hierarchical codes for all drilldown items
+function generateHierarchyCodes(
+  drilldownData: CEDrilldown[],
+  selectedCE: string | null
+): Map<string, { code: string; displayName: string }> {
+  const codeMap = new Map<string, { code: string; displayName: string }>()
+
+  // Filter to selected CE if one is selected
+  const filtered = selectedCE
+    ? drilldownData.filter(d => d.ce_code === selectedCE)
+    : drilldownData
+
+  // Get base CE code (e.g., "B07" from "B07-HardMatl")
+  const getBaseCode = (ceCode: string) => {
+    const match = ceCode.match(/^([A-Z]\d+)/)
+    return match ? match[1] : ceCode.substring(0, 3)
+  }
+
+  // Build Level 1 codes: B07a, B07b, etc.
+  const level1Names = [...new Set(filtered.map(d => d.level1_name))].sort()
+  const level1Codes = new Map<string, string>()
+  level1Names.forEach((name, idx) => {
+    // Use the selected CE's base code, or a generic prefix
+    const baseCode = selectedCE ? getBaseCode(selectedCE) : 'CE'
+    const code = `${baseCode}${indexToLetters(idx)}`
+    level1Codes.set(name, code)
+    codeMap.set(`L1:${name}`, { code, displayName: `${code}-${name}` })
+  })
+
+  // Build Level 2 codes: B07a01, B07a02, etc.
+  level1Names.forEach(level1Name => {
+    const level1Code = level1Codes.get(level1Name)!
+    const level2Names = [...new Set(
+      filtered
+        .filter(d => d.level1_name === level1Name)
+        .map(d => d.level2_name)
+    )].sort()
+
+    level2Names.forEach((name, idx) => {
+      const code = `${level1Code}${String(idx + 1).padStart(2, '0')}`
+      codeMap.set(`L2:${level1Name}:${name}`, { code, displayName: `${code}-${name}` })
+
+      // Build Level 3 codes: B07a01a, B07a01b, etc.
+      const level3Names = [...new Set(
+        filtered
+          .filter(d => d.level1_name === level1Name && d.level2_name === name && d.level3_name)
+          .map(d => d.level3_name!)
+      )].sort()
+
+      level3Names.forEach((l3Name, l3Idx) => {
+        const l3Code = `${code}${indexToLetters(l3Idx)}`
+        codeMap.set(`L3:${level1Name}:${name}:${l3Name}`, { code: l3Code, displayName: `${l3Code}-${l3Name}` })
+
+        // Build Level 4 codes: B07a01a01, B07a01a02, etc.
+        const level4Names = [...new Set(
+          filtered
+            .filter(d => d.level1_name === level1Name && d.level2_name === name && d.level3_name === l3Name && d.level4_name)
+            .map(d => d.level4_name!)
+        )].sort()
+
+        level4Names.forEach((l4Name, l4Idx) => {
+          const l4Code = `${l3Code}${String(l4Idx + 1).padStart(2, '0')}`
+          codeMap.set(`L4:${level1Name}:${name}:${l3Name}:${l4Name}`, { code: l4Code, displayName: `${l4Code}-${l4Name}` })
+        })
+      })
+    })
+  })
+
+  return codeMap
+}
 
 export default function CostElements() {
   const { data: costElements, loading } = useCostElements()
@@ -28,6 +110,32 @@ export default function CostElements() {
   const totalDrilldown = useMemo(() => {
     return drilldownData.filter((d) => d.cost_component === 'Total')
   }, [drilldownData])
+
+  // Generate hierarchy codes
+  const hierarchyCodes = useMemo(() => {
+    return generateHierarchyCodes(totalDrilldown, selectedCE)
+  }, [totalDrilldown, selectedCE])
+
+  // Helper to get display name with code
+  const getLevel1Display = (name: string) => {
+    const entry = hierarchyCodes.get(`L1:${name}`)
+    return entry?.displayName || name
+  }
+
+  const getLevel2Display = (l1Name: string, name: string) => {
+    const entry = hierarchyCodes.get(`L2:${l1Name}:${name}`)
+    return entry?.displayName || name
+  }
+
+  const getLevel3Display = (l1Name: string, l2Name: string, name: string) => {
+    const entry = hierarchyCodes.get(`L3:${l1Name}:${l2Name}:${name}`)
+    return entry?.displayName || name
+  }
+
+  const getLevel4Display = (l1Name: string, l2Name: string, l3Name: string, name: string) => {
+    const entry = hierarchyCodes.get(`L4:${l1Name}:${l2Name}:${l3Name}:${name}`)
+    return entry?.displayName || name
+  }
 
   // Filter cost elements based on stage and showAll
   const filteredCostElements = useMemo(() => {
@@ -240,6 +348,12 @@ export default function CostElements() {
     return items.size
   }, [totalDrilldown])
 
+  // Get hierarchy codes for detail panel display
+  const getDetailHierarchyCodes = useMemo(() => {
+    if (!selectedElement) return new Map()
+    return generateHierarchyCodes(totalDrilldown, selectedElement.ce_id)
+  }, [totalDrilldown, selectedElement])
+
   return (
     <div className="space-y-4">
       {/* Page Header */}
@@ -277,10 +391,10 @@ export default function CostElements() {
           <span className="text-gray-800 text-sm">
             <span className="font-medium">Filtering by:</span>{' '}
             {selectedCE && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">{selectedCE}</span>}
-            {selectedLevel1 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {selectedLevel1}</span>}
-            {selectedLevel2 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {selectedLevel2}</span>}
-            {selectedLevel3 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {selectedLevel3}</span>}
-            {selectedLevel4 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded">→ {selectedLevel4}</span>}
+            {selectedLevel1 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel1Display(selectedLevel1)}</span>}
+            {selectedLevel2 && selectedLevel1 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel2Display(selectedLevel1, selectedLevel2)}</span>}
+            {selectedLevel3 && selectedLevel1 && selectedLevel2 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel3Display(selectedLevel1, selectedLevel2, selectedLevel3)}</span>}
+            {selectedLevel4 && selectedLevel1 && selectedLevel2 && selectedLevel3 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded">→ {getLevel4Display(selectedLevel1, selectedLevel2, selectedLevel3, selectedLevel4)}</span>}
           </span>
           <button
             onClick={clearAllSelections}
@@ -329,6 +443,7 @@ export default function CostElements() {
                 <HierarchyCard
                   key={item.name}
                   name={item.name}
+                  displayName={getLevel1Display(item.name)}
                   count={item.count}
                   isSelected={selectedLevel1 === item.name}
                   onClick={() => handleLevel1Click(item.name)}
@@ -352,6 +467,7 @@ export default function CostElements() {
                 <HierarchyCard
                   key={item.name}
                   name={item.name}
+                  displayName={selectedLevel1 ? getLevel2Display(selectedLevel1, item.name) : item.name}
                   count={item.count}
                   isSelected={selectedLevel2 === item.name}
                   onClick={() => handleLevel2Click(item.name)}
@@ -375,6 +491,7 @@ export default function CostElements() {
                 <HierarchyCard
                   key={item.name}
                   name={item.name}
+                  displayName={selectedLevel1 && selectedLevel2 ? getLevel3Display(selectedLevel1, selectedLevel2, item.name) : item.name}
                   count={item.count}
                   isSelected={selectedLevel3 === item.name}
                   onClick={() => handleLevel3Click(item.name)}
@@ -398,6 +515,7 @@ export default function CostElements() {
                 <HierarchyCard
                   key={item.name}
                   name={item.name}
+                  displayName={selectedLevel1 && selectedLevel2 && selectedLevel3 ? getLevel4Display(selectedLevel1, selectedLevel2, selectedLevel3, item.name) : item.name}
                   count={item.count}
                   isSelected={selectedLevel4 === item.name}
                   onClick={() => handleLevel4Click(item.name)}
@@ -436,31 +554,42 @@ export default function CostElements() {
             {selectedDrilldown.length > 0 && (
               <DetailSection title="Cost Breakdown Hierarchy">
                 <div className="space-y-2">
-                  {selectedDrilldown.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 bg-gray-50 rounded-lg text-sm"
-                    >
-                      <div className="flex flex-wrap gap-x-4 gap-y-1">
-                        <span className="text-gray-700">
-                          <span className="font-medium text-gray-500">L1:</span> {item.level1_name}
-                        </span>
-                        <span className="text-gray-700">
-                          <span className="font-medium text-gray-500">L2:</span> {item.level2_name}
-                        </span>
-                        {item.level3_name && (
+                  {selectedDrilldown.map((item, idx) => {
+                    const l1Code = getDetailHierarchyCodes.get(`L1:${item.level1_name}`)
+                    const l2Code = getDetailHierarchyCodes.get(`L2:${item.level1_name}:${item.level2_name}`)
+                    const l3Code = item.level3_name ? getDetailHierarchyCodes.get(`L3:${item.level1_name}:${item.level2_name}:${item.level3_name}`) : null
+                    const l4Code = item.level4_name && item.level3_name ? getDetailHierarchyCodes.get(`L4:${item.level1_name}:${item.level2_name}:${item.level3_name}:${item.level4_name}`) : null
+
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 bg-gray-50 rounded-lg text-sm"
+                      >
+                        <div className="flex flex-wrap gap-x-4 gap-y-1">
                           <span className="text-gray-700">
-                            <span className="font-medium text-gray-500">L3:</span> {item.level3_name}
+                            <span className="font-medium text-gray-500">L1:</span>{' '}
+                            <span className="font-mono text-xs">{l1Code?.code}</span> {item.level1_name}
                           </span>
-                        )}
-                        {item.level4_name && (
                           <span className="text-gray-700">
-                            <span className="font-medium text-gray-500">L4:</span> {item.level4_name}
+                            <span className="font-medium text-gray-500">L2:</span>{' '}
+                            <span className="font-mono text-xs">{l2Code?.code}</span> {item.level2_name}
                           </span>
-                        )}
+                          {item.level3_name && l3Code && (
+                            <span className="text-gray-700">
+                              <span className="font-medium text-gray-500">L3:</span>{' '}
+                              <span className="font-mono text-xs">{l3Code.code}</span> {item.level3_name}
+                            </span>
+                          )}
+                          {item.level4_name && l4Code && (
+                            <span className="text-gray-700">
+                              <span className="font-medium text-gray-500">L4:</span>{' '}
+                              <span className="font-mono text-xs">{l4Code.code}</span> {item.level4_name}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </DetailSection>
             )}
@@ -573,12 +702,13 @@ function CECard({ ce, isSelected, onClick, onDetailClick, formatCurrency }: CECa
 // Hierarchy Card Component
 interface HierarchyCardProps {
   name: string
+  displayName: string
   count: number
   isSelected: boolean
   onClick: () => void
 }
 
-function HierarchyCard({ name, count, isSelected, onClick }: HierarchyCardProps) {
+function HierarchyCard({ displayName, count, isSelected, onClick }: HierarchyCardProps) {
   return (
     <div
       className={`rounded p-2 cursor-pointer transition-all text-sm ${
@@ -589,7 +719,7 @@ function HierarchyCard({ name, count, isSelected, onClick }: HierarchyCardProps)
       onClick={onClick}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate">{name}</span>
+        <span className="truncate">{displayName}</span>
         <span className={`text-xs flex-shrink-0 ${isSelected ? 'text-primary-600' : 'text-gray-400'}`}>
           ({count})
         </span>
