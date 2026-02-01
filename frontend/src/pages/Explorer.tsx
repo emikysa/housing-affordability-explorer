@@ -841,7 +841,7 @@ function BarrierCard({
             className="text-xs leading-tight line-clamp-2"
             style={{ color: colors.card.primaryText }}
           >
-            {barrier.short_name || barrier.description}
+            {barrier.description}
           </div>
         </div>
         <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
