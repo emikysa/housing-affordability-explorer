@@ -114,11 +114,23 @@ Go to Supabase Dashboard → SQL Editor and run ALTER/CREATE statements.
 
 ## Database Schema Highlights
 
-- **9 lookup tables:** stages, actors, barrier_types, barrier_scopes, etc.
-- **3 core tables:** cost_elements, cost_reduction_opportunities, barriers
-- **4 junction tables:** cro_ce_map, ce_actor_map, barrier_authority_map, ce_drilldown
-- **6 denormalized views:** For easy frontend queries (v_cost_elements, v_cros, v_barriers, etc.)
+- **9 lookup tables:** stages, actors, barrier_types, barrier_scopes, lever_types, etc.
+- **4 core tables:** cost_elements, cost_reduction_opportunities, barriers, levers
+- **5 junction tables:** cro_ce_map, ce_actor_map, barrier_authority_map, ce_drilldown, barrier_lever_map
+- **8 views:** v_cost_elements, v_cros, v_barriers, v_levers, v_barrier_levers, etc.
 - **Row Level Security:** Public read access, restricted write
+
+### Levers (Many-to-Many with Barriers)
+
+The `levers` table stores policy interventions that can address barriers:
+- **lever_id:** Primary key (e.g., LEV-REGULATORY_REFORM)
+- **lever_type_id:** References lever_types lookup table
+- **name, description:** Lever details
+- **implementation_approach, typical_actors, typical_timeline:** Implementation info
+- **barrier_lever_map:** Junction table linking barriers to levers (many-to-many)
+- **v_levers:** View with barrier_count
+- **v_barrier_levers:** View for easy querying of relationships
+- 5 levers created from existing barrier data, 71 barrier-lever mappings
 
 ### CE Drilldown Hierarchy
 
@@ -177,10 +189,10 @@ Scenarios allow modeling different cost assumptions:
    - Potential Savings
 
 ### Explorer Page
-- 4-column interactive view: Cost Elements → CROs → Barriers → Actors
+- 5-column interactive view: Costs → Opportunities → Barriers → Levers → Actors
 - Click any item to filter related items across all columns
 - Sort toggle: A-Z (alphabetical) or By Value (descending)
-- Semantic color coding: Gray (CE), Green (CRO), Amber (Barrier), Blue (Actor)
+- Semantic color coding: Gray (CE), Green (CRO), Amber (Barrier), Purple (Lever), Blue (Actor)
 
 ### Scenario Selector Placement
 - **Dashboard:** Embedded in Scenario Analysis section (not in header)
@@ -191,11 +203,17 @@ Scenarios allow modeling different cost assumptions:
 - Cost Elements and Opportunities pages have "Populated only / Show all" toggle
 - Default: "Populated only" (hides items with no estimate)
 
-### Cost Elements Page - Cascading Level Filters
-- 4 cascading dropdown filters (CE Level 1-4) that filter by drilldown hierarchy
-- Selecting a parent level limits child level options to matching branches
-- Clearing a parent level clears all downstream selections
-- Filters work alongside Stage filter and search
+### Cost Elements Page (Costs Tab)
+- 5-column Explorer-style layout: CE Level 1 → CE Level 2 → CE Level 3 → CE Level 4 → CE Level 5
+- Multi-select in all columns with "Select all" / "Deselect all" buttons
+- Auto-generated hierarchical codes (e.g., B01 → B01a → B01a01 → B01a01a)
+- Sort toggle: A-Z (alphabetical) or By Count (descending)
+- Selecting items in one column filters downstream columns
+- Detail panel shows cost breakdown hierarchy with codes
+
+### Navigation Tabs
+- Dashboard, Explorer, Models, Costs, Opportunities, Barriers, Levers, Actors, Relationships
+- "Costs" = Cost Elements page, "Opportunities" = CROs page, "Models" = Scenarios page
 
 ---
 

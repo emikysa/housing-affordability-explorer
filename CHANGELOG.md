@@ -4,6 +4,35 @@
 
 ---
 
+## 2026-02-01 (Session 7) - Multi-Select, Explorer Levers, Nav Simplification
+
+### Cost Elements Page - Multi-Select Implementation
+- Changed from single-select to multi-select for all columns
+- Added "Select all" / "Deselect all" buttons to each column header
+- Selection indicator shows count of selected items per level
+- Added sort toggle (A-Z / By Count) matching Explorer page style
+
+### Explorer Page - Levers Column Added
+- Expanded from 4-column to 5-column layout: Costs → Opportunities → Barriers → Levers → Actors
+- Added LeverCard component (purple color scheme)
+- Added LeverDetail component showing implementation info and related barriers
+- Clicking a lever filters to show related barriers, CROs, CEs, and actors
+- Lever-barrier relationships flow through barrier_lever_map
+
+### Navigation Simplification
+- Renamed "Cost Elements" tab to "Costs"
+- Renamed "Reduction Opportunities" tab to "Opportunities"
+- Split "Barriers & Levers" into separate "Barriers" and "Levers" tabs
+
+### Code Changes
+- `frontend/src/pages/CostElements.tsx`: Multi-select with Sets, sort toggle, Select all/Deselect all
+- `frontend/src/pages/Explorer.tsx`: Added Levers column, LeverCard, LeverDetail, lever filtering logic
+- `frontend/src/components/Layout.tsx`: Updated nav labels
+
+### Deployed: Yes (via git push to Vercel)
+
+---
+
 ## 2026-02-01 (Session 6) - Levers as First-Class Entities
 
 ### Database Schema Changes
