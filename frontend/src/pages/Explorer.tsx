@@ -805,7 +805,7 @@ function CroCard({
   )
 }
 
-// Compact Barrier Card - ID with type in parentheses, description only
+// Compact Barrier Card - ID on first line, short description on second
 function BarrierCard({
   barrier,
   isSelected,
@@ -836,9 +836,6 @@ function BarrierCard({
         <div className="flex-1 min-w-0">
           <div className="text-xs font-mono" style={{ color: colors.card.secondaryText }}>
             {barrier.barrier_id}
-            {barrier.barrier_type && (
-              <span className="ml-1 font-normal">({barrier.barrier_type})</span>
-            )}
           </div>
           <div
             className="text-xs leading-tight line-clamp-2"
@@ -847,16 +844,26 @@ function BarrierCard({
             {barrier.short_name || barrier.description}
           </div>
         </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onDetailClick()
-          }}
-          className="text-xs hover:underline flex-shrink-0"
-          style={{ color: colors.card.secondaryText }}
-        >
-          Details
-        </button>
+        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+          {barrier.barrier_type && (
+            <span
+              className="text-xs px-1 py-0.5 rounded"
+              style={{ backgroundColor: colors.badge.bg, color: colors.badge.text }}
+            >
+              {barrier.barrier_type}
+            </span>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDetailClick()
+            }}
+            className="text-xs hover:underline"
+            style={{ color: colors.card.secondaryText }}
+          >
+            Details
+          </button>
+        </div>
       </div>
     </div>
   )
