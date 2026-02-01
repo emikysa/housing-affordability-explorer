@@ -14,7 +14,7 @@ import {
   Legend,
 } from 'recharts'
 import StatCard from '../components/StatCard'
-import ScenarioSelector from '../components/ScenarioSelector'
+import ModelSelector from '../components/ModelSelector'
 import { useMasterCounts, useSummaryStats, useCostElements, useBarriers } from '../hooks/useData'
 
 const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6366f1']
@@ -249,13 +249,13 @@ export default function Dashboard() {
       </div>
 
       {/* ============================================ */}
-      {/* SECTION 2: SCENARIO ANALYSIS */}
+      {/* SECTION 2: MODEL ANALYSIS */}
       {/* ============================================ */}
       <div className="pt-4 border-t border-gray-200">
-        {/* Scenario Selector */}
+        {/* Model Selector */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-700">Scenario Analysis</h2>
-          <ScenarioSelector variant="prominent" label="Viewing" />
+          <h2 className="text-lg font-semibold text-gray-700">Model Analysis</h2>
+          <ModelSelector variant="prominent" label="Viewing" />
         </div>
 
         {scenarioDataLoading ? (

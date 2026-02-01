@@ -1,6 +1,6 @@
-import { useScenario } from '../contexts/ScenarioContext'
+import { useModel } from '../contexts/ModelContext'
 
-interface ScenarioSelectorProps {
+interface ModelSelectorProps {
   /** Display style variant */
   variant?: 'default' | 'prominent'
   /** Optional label to show before the dropdown */
@@ -9,17 +9,17 @@ interface ScenarioSelectorProps {
   className?: string
 }
 
-export default function ScenarioSelector({
+export default function ModelSelector({
   variant = 'default',
-  label = 'Scenario',
+  label = 'Model',
   className = '',
-}: ScenarioSelectorProps) {
-  const { scenarios, selectedScenarioId, setSelectedScenarioId, loading } = useScenario()
+}: ModelSelectorProps) {
+  const { models, selectedModelId, setSelectedModelId, loading } = useModel()
 
   if (loading) {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        <span className="text-sm text-gray-500">Loading scenarios...</span>
+        <span className="text-sm text-gray-500">Loading models...</span>
       </div>
     )
   }
@@ -30,16 +30,16 @@ export default function ScenarioSelector({
     <div className={`flex items-center gap-2 ${className}`}>
       {label && (
         <label
-          htmlFor="scenario-select"
+          htmlFor="model-select"
           className={`text-sm font-medium ${isProminent ? 'text-gray-700' : 'text-gray-600'}`}
         >
           {label}:
         </label>
       )}
       <select
-        id="scenario-select"
-        value={selectedScenarioId}
-        onChange={(e) => setSelectedScenarioId(e.target.value)}
+        id="model-select"
+        value={selectedModelId}
+        onChange={(e) => setSelectedModelId(e.target.value)}
         className={`
           rounded-md border text-sm font-medium
           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
@@ -50,10 +50,9 @@ export default function ScenarioSelector({
           }
         `}
       >
-        {scenarios.map((scenario) => (
-          <option key={scenario.scenario_id} value={scenario.scenario_id}>
-            {scenario.name}
-            {scenario.is_baseline ? ' (Baseline)' : ''}
+        {models.map((model) => (
+          <option key={model.scenario_id} value={model.scenario_id}>
+            {model.name}
           </option>
         ))}
       </select>

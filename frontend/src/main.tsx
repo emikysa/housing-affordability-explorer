@@ -2,15 +2,15 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
-import { ScenarioProvider } from './contexts/ScenarioContext'
+import { ModelProvider } from './contexts/ModelContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <ScenarioProvider>
+      <ModelProvider>
         <App />
-      </ScenarioProvider>
+      </ModelProvider>
     </BrowserRouter>
   </React.StrictMode>,
 )

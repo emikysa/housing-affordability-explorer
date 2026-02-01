@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import ScenarioSelector from './ScenarioSelector'
+import ModelSelector from './ModelSelector'
 
 interface LayoutProps {
   children: ReactNode
@@ -9,7 +9,7 @@ interface LayoutProps {
 const navItems = [
   { path: '/', label: 'Dashboard' },
   { path: '/explorer', label: 'Explorer' },
-  { path: '/scenarios', label: 'Scenarios' },
+  { path: '/models', label: 'Models' },
   { path: '/cost-elements', label: 'Costs' },
   { path: '/opportunities', label: 'Opportunities' },
   { path: '/barriers', label: 'Barriers' },
@@ -18,9 +18,9 @@ const navItems = [
   { path: '/relationships', label: 'Relationships' },
 ]
 
-// Pages where we don't show the header scenario selector
-// (Dashboard has its own, Scenarios page doesn't need one)
-const pagesWithoutHeaderSelector = ['/', '/scenarios']
+// Pages where we don't show the header model selector
+// (Dashboard has its own, Models page doesn't need one)
+const pagesWithoutHeaderSelector = ['/', '/models']
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
@@ -44,11 +44,11 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
 
-            {/* Scenario Selector - shown on relevant pages with prominent styling */}
+            {/* Model Selector - shown on relevant pages with prominent styling */}
             {showHeaderSelector && (
               <div className="flex items-center">
                 <div className="bg-gray-100 rounded-lg px-4 py-2 border border-gray-200">
-                  <ScenarioSelector variant="prominent" label="Scenario" />
+                  <ModelSelector variant="prominent" label="Model" />
                 </div>
               </div>
             )}

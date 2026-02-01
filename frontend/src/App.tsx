@@ -8,7 +8,7 @@ import Levers from './pages/Levers'
 import Actors from './pages/Actors'
 import Relationships from './pages/Relationships'
 import Explorer from './pages/Explorer'
-import Scenarios from './pages/Scenarios'
+import Models from './pages/Models'
 
 function App() {
   return (
@@ -22,7 +22,7 @@ function App() {
         <Route path="/actors" element={<Actors />} />
         <Route path="/relationships" element={<Relationships />} />
         <Route path="/explorer" element={<Explorer />} />
-        <Route path="/scenarios" element={<Scenarios />} />
+        <Route path="/models" element={<Models />} />
       </Routes>
     </Layout>
   )

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { useScenario } from '../contexts/ScenarioContext'
+import { useModel } from '../contexts/ModelContext'
 import type {
   CostElement,
   CostReductionOpportunity,
@@ -62,11 +62,11 @@ function useSupabaseQuery<T>(
   return { ...state, refresh: fetchData }
 }
 
-// Hook for calling RPC functions with scenario support
-function useScenarioRpc<T>(
+// Hook for calling RPC functions with model (scenario) support
+function useModelRpc<T>(
   functionName: string,
-  scenarioId: string,
-  scenarioLoading: boolean
+  modelId: string,
+  modelLoading: boolean
 ): DataState<T> & { refresh: () => void } {
   const [state, setState] = useState<DataState<T>>({
     data: [],
@@ -75,14 +75,14 @@ function useScenarioRpc<T>(
   })
 
   const fetchData = useCallback(async () => {
-    // Wait for scenario context to finish loading
-    if (scenarioLoading) {
+    // Wait for model context to finish loading
+    if (modelLoading) {
       return
     }
     setState((prev) => ({ ...prev, loading: true, error: null }))
     try {
       const { data, error } = await supabase.rpc(functionName as never, {
-        p_scenario_id: scenarioId,
+        p_scenario_id: modelId,
       } as never)
       if (error) throw error
       setState({ data: (data || []) as T[], loading: false, error: null })
@@ -93,7 +93,7 @@ function useScenarioRpc<T>(
         error: err instanceof Error ? err.message : 'Unknown error',
       }))
     }
-  }, [functionName, scenarioId, scenarioLoading])
+  }, [functionName, modelId, modelLoading])
 
   useEffect(() => {
     fetchData()
@@ -103,36 +103,36 @@ function useScenarioRpc<T>(
 }
 
 // ============================================
-// SCENARIO-AWARE HOOKS (use these for estimate data)
+// MODEL-AWARE HOOKS (use these for estimate data)
 // ============================================
 
-// Cost Elements with scenario-specific estimates
+// Cost Elements with model-specific estimates
 export function useCostElements() {
-  const { selectedScenarioId, loading } = useScenario()
-  return useScenarioRpc<CostElement>('get_cost_elements_for_scenario', selectedScenarioId, loading)
+  const { selectedModelId, loading } = useModel()
+  return useModelRpc<CostElement>('get_cost_elements_for_scenario', selectedModelId, loading)
 }
 
-// CROs with scenario-specific estimates
+// CROs with model-specific estimates
 export function useCostReductionOpportunities() {
-  const { selectedScenarioId, loading } = useScenario()
-  return useScenarioRpc<CostReductionOpportunity>('get_cros_for_scenario', selectedScenarioId, loading)
+  const { selectedModelId, loading } = useModel()
+  return useModelRpc<CostReductionOpportunity>('get_cros_for_scenario', selectedModelId, loading)
 }
 
-// CRO-CE impact with scenario-specific estimates
+// CRO-CE impact with model-specific estimates
 export function useCroImpacts() {
-  const { selectedScenarioId, loading } = useScenario()
-  return useScenarioRpc<CroImpact>('get_cro_ce_impact_for_scenario', selectedScenarioId, loading)
+  const { selectedModelId, loading } = useModel()
+  return useModelRpc<CroImpact>('get_cro_ce_impact_for_scenario', selectedModelId, loading)
 }
 
-// Actor controls with scenario-specific CE estimates
+// Actor controls with model-specific CE estimates
 export function useActorControls() {
-  const { selectedScenarioId, loading } = useScenario()
-  return useScenarioRpc<ActorControl>('get_actor_cost_control_for_scenario', selectedScenarioId, loading)
+  const { selectedModelId, loading } = useModel()
+  return useModelRpc<ActorControl>('get_actor_cost_control_for_scenario', selectedModelId, loading)
 }
 
-// Summary stats with scenario-specific calculations
+// Summary stats with model-specific calculations
 export function useSummaryStats() {
-  const { selectedScenarioId, loading: scenarioLoading } = useScenario()
+  const { selectedModelId, loading: modelLoading } = useModel()
   const [state, setState] = useState<{ data: SummaryStats | null; loading: boolean; error: string | null }>({
     data: null,
     loading: true,
@@ -140,15 +140,15 @@ export function useSummaryStats() {
   })
 
   useEffect(() => {
-    // Wait for scenario context to finish loading
-    if (scenarioLoading) {
+    // Wait for model context to finish loading
+    if (modelLoading) {
       return
     }
     async function fetchStats() {
       setState((prev) => ({ ...prev, loading: true }))
       try {
         const { data, error } = await supabase.rpc('get_summary_stats_for_scenario' as never, {
-          p_scenario_id: selectedScenarioId,
+          p_scenario_id: selectedModelId,
         } as never)
         if (error) throw error
         // RPC returns array, get first element
@@ -163,7 +163,7 @@ export function useSummaryStats() {
       }
     }
     fetchStats()
-  }, [selectedScenarioId, scenarioLoading])
+  }, [selectedModelId, modelLoading])
 
   return state
 }
@@ -390,9 +390,9 @@ export function useBarriersByCro(croId: string | null) {
   return state
 }
 
-// Hook for getting CROs that affect a cost element (with scenario-aware estimates)
+// Hook for getting CROs that affect a cost element (with model-aware estimates)
 export function useCrosForCostElement(ceId: string | null) {
-  const { selectedScenarioId, loading: scenarioLoading } = useScenario()
+  const { selectedModelId, loading: modelLoading } = useModel()
   const [state, setState] = useState<DataState<CroImpact>>({
     data: [],
     loading: false,
@@ -400,20 +400,20 @@ export function useCrosForCostElement(ceId: string | null) {
   })
 
   useEffect(() => {
-    if (!ceId || scenarioLoading) {
+    if (!ceId || modelLoading) {
       setState({ data: [], loading: false, error: null })
       return
     }
 
     const currentCeId = ceId
-    const currentScenarioId = selectedScenarioId
+    const currentModelId = selectedModelId
 
     async function fetchCros() {
       setState((prev) => ({ ...prev, loading: true }))
       try {
-        // Use the scenario-aware function and filter client-side
+        // Use the model-aware function and filter client-side
         const { data, error } = await supabase.rpc('get_cro_ce_impact_for_scenario' as never, {
-          p_scenario_id: currentScenarioId,
+          p_scenario_id: currentModelId,
         } as never)
         if (error) throw error
         const filtered = ((data || []) as CroImpact[]).filter((d: CroImpact) => d.ce_id === currentCeId)
@@ -427,7 +427,7 @@ export function useCrosForCostElement(ceId: string | null) {
       }
     }
     fetchCros()
-  }, [ceId, selectedScenarioId, scenarioLoading])
+  }, [ceId, selectedModelId, modelLoading])
 
   return state
 }
