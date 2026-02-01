@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-02-01 (Session 5) - Hierarchical Codes for CE Levels
+
+### Cost Elements Page - Explorer-Style Layout
+- Completely redesigned from grid+dropdowns to 5-column Explorer-style layout
+- Column 1: Cost Elements (clickable cards with details button)
+- Columns 2-5: CE Level 1-4 hierarchy items
+- Clicking a CE filters hierarchy columns to show only that CE's breakdown
+- Clicking hierarchy items cascades filtering downstream
+
+### Auto-Generated Hierarchical Codes
+- Added unique codes to each CE level display name
+- Code pattern: `B07a` (L1) → `B07a01` (L2) → `B07a01a` (L3) → `B07a01a01` (L4)
+- Letters and 2-digit numbers alternate at each level
+- Codes based on alphabetical sort order within each level
+- Codes shown in: column cards, filter breadcrumb bar, detail panel
+
+### Code Changes
+- `frontend/src/pages/CostElements.tsx`:
+  - Added `indexToLetters()` and `generateHierarchyCodes()` functions
+  - New components: `ExplorerColumn`, `CECard`, `HierarchyCard`
+  - Filter breadcrumb bar shows current selection path with codes
+
+### Deployed: Yes (via git push to Vercel)
+
+---
+
 ## 2026-01-31 (Session 4) - CE Drilldown Hierarchy
 
 ### Database Changes
@@ -24,7 +50,7 @@
 - Updated `frontend/src/hooks/useData.ts`: Added `useCEDrilldown` hook
 - Updated `frontend/src/pages/CostElements.tsx`: Cascading filters + detail panel hierarchy
 
-### Deployed: Pending
+### Deployed: Yes
 
 ---
 
