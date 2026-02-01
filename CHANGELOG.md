@@ -4,6 +4,60 @@
 
 ---
 
+## 2026-02-01 (Session 10) - L1 CE Restructure + UniFormat II Alignment
+
+### Database Changes
+- **L1 CE Renumbering:** Removed a/b suffixes, renumbered B01-B13 clean sequence
+  - B04a-PermitsAdmin → B03-Permits
+  - B04b-UtilityFees → B04-Utilities
+  - B09-TempIndirect → B08-TempIndirect (filled gap)
+  - B10-RiskIns → B09-RiskIns
+  - B11-Finance → B10-Finance
+  - B12-Overhead → B11-Overhead
+  - B13-Contingtic → B12-Contingency (renamed)
+  - B14-Return → B13-Return
+- **LandCarry Removal:** B03-LandCarry removed as L1 CE
+  - Drilldown data migrated to B10-Finance
+  - Concept now handled via duration attributes + financing
+- **O03 Rename:** O03-PropInsurance → O03-PropIns for consistency
+- **New Table:** `ce_code_alias` for backward compatibility mapping
+- **ce_drilldown Enhancements:**
+  - Added `level5_name` column (5-level hierarchy support)
+  - Added `cost_composition` column (mixed/material/labor/sub_op)
+  - Added `uniformat_code` column (UniFormat II categories A-F, Z)
+  - Added `sort_order` column
+  - Updated `v_ce_drilldown_hierarchy` view
+
+### UniFormat II Alignment
+- B07-BuildCost drilldown entries tagged with UniFormat codes:
+  - A = Substructure (foundations, slab)
+  - B = Shell (framing, exterior, roofing)
+  - C = Interiors (partitions, finishes)
+  - D = Services (MEP)
+  - E = Equipment & Furnishings
+  - F = Special Construction
+  - Z = Uncategorized
+
+### Frontend Changes
+- Updated `database.ts` types for ce_drilldown (new columns)
+- Added CECodeAlias type export
+
+### Documentation
+- Created `MIGRATION.md` with full old→new CE mapping
+- Updated `CLAUDE_CONTEXT.md` with new CE list
+
+### Cost Elements (22 total after migration)
+- Build: B01-B13 (13 elements)
+- Operate: O01-O05 (5 elements)
+- Finance: F01-F04 (4 elements)
+
+### Migration File
+- `20260201080000_l1_restructure_uniformat.sql`
+
+### Deployed: Pending (migration SQL ready)
+
+---
+
 ## 2026-02-01 (Session 9) - Cost Element Consolidation, Explorer Fixes
 
 ### Database Changes

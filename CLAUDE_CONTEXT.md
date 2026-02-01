@@ -144,43 +144,70 @@ Barriers have a many-to-many relationship with CROs:
 
 ### CE Drilldown Hierarchy
 
-The `ce_drilldown` table stores a hierarchical breakdown of cost elements with up to 4 levels:
+The `ce_drilldown` table stores a hierarchical breakdown of cost elements with up to 5 levels:
 - **ce_code:** References cost_elements.ce_id
 - **level1_name, level2_name:** Always populated
-- **level3_name, level4_name:** Optional deeper levels
+- **level3_name, level4_name, level5_name:** Optional deeper levels
 - **cost_component:** 'Total', 'Material', 'Labor', or 'Sub-O+P'
+- **cost_composition:** 'mixed' (default), 'material', 'labor', or 'sub_op' - for tagging bundled cost breakdown
+- **uniformat_code:** UniFormat II category for B07-BuildCost entries (A=Substructure, B=Shell, C=Interiors, D=Services, E=Equipment, F=Special, Z=Uncategorized)
+- **sort_order:** Display order within CE
 - **1,001 rows** loaded from `Housing-Affordability-Framework-CostElement-drilldown.xlsx`
-- Note: `B07-HardCosts` in drilldown Excel maps to `B07-BuildCost` in database
 
-### Cost Elements (L1)
+### UniFormat II Alignment (B07-BuildCost)
 
+Drilldown entries under B07-BuildCost are categorized by UniFormat-like systems:
+- **A - Substructure:** Foundations, footings, basement, slab
+- **B - Shell:** Framing, exterior walls, roofing, windows, doors
+- **C - Interiors:** Partitions, finishes, flooring, ceilings, millwork
+- **D - Services:** Plumbing, HVAC, electrical, fire protection
+- **E - Equipment & Furnishings:** Appliances, fixtures
+- **F - Special Construction:** Demolition, hazmat abatement
+
+### Cost Elements (L1) - Updated 2026-02-01
+
+**BUILD / DEVELOPMENT (B01-B13)**
 ```
-B01-Land - Land acquisition & assemblage
-B02-PreDev - Pre-development & entitlement
-B03-LandCarry - Land holding, time, and uncertainty costs
-B04a-PermitsAdmin - Permits & administrative fees
-B04b-UtilityFees - Utility connection & capacity fees
-B05-SiteInfra - Physical site & infrastructure construction
-B06-SoftCosts - Professional & administrative soft costs
-B07-BuildCost - Hard construction - materials and labor
-B09-TempIndirect - Temporary, indirect, and jobsite costs
-B10-RiskIns - Construction insurance & bonding (3rd-party)
-B11-Finance - Development financing & capital costs
-B12-Overhead - Developer overhead and marketing
-B13-Contingtic - Warranty and litigation contingency
-B14-Return - Required developer return
-O01-Utilities - Operating utilities
-O02-Maint - Maintenance, repairs, and capital reserves
-O03-PropInsurance - Operating property insurance
-O04-Taxes - Property taxes & special assessments
-O05-HOA - HOA fees and assessments
-F01-Principal - Mortgage principal payment (monthly)
-F02-Interest - Mortgage interest payment (monthly)
-F03-PMI - Private mortgage insurance (PMI) (monthly)
-F04-ClosingCosts - Buyer closing costs (one-time)
+B01-Land        - Land acquisition & assemblage
+B02-PreDev      - Pre-development, entitlement, and approvals
+B03-Permits     - Permits, plan review, and administrative fees
+B04-Utilities   - Utility connection, tap, and capacity fees
+B05-SiteInfra   - Site work & infrastructure construction
+B06-SoftCosts   - Professional, consulting, and admin soft costs
+B07-BuildCost   - Hard construction (materials, labor, subcontractor O&P)
+B08-TempIndirect- Temporary, indirect, and jobsite costs
+B09-RiskIns     - Construction insurance, bonding, and third-party risk
+B10-Finance     - Development financing & capital costs
+B11-Overhead    - Developer overhead, sales, and marketing
+B12-Contingency - Risk, uncertainty, and legal contingency
+B13-Return      - Required developer return
 ```
 
-Note: B08 gap intentionally left after consolidating B07-HardMatl + B08-HardLabor into B07-BuildCost
+**OPERATIONS (O01-O05)**
+```
+O01-Utilities   - Operating utilities
+O02-Maint       - Maintenance, repairs, and capital reserves
+O03-PropIns     - Operating property insurance
+O04-Taxes       - Property taxes & special assessments
+O05-HOA         - HOA fees and assessments
+```
+
+**OCCUPANT FINANCE (F01-F04)**
+```
+F01-Principal   - Mortgage principal payment (monthly)
+F02-Interest    - Mortgage interest payment (monthly)
+F03-PMI         - Private mortgage insurance (PMI) (monthly)
+F04-Closing     - Buyer closing costs (one-time)
+```
+
+**Migration Notes (2026-02-01):**
+- Removed B03-LandCarry (migrated to B10-Finance; concept handled via duration + financing)
+- Removed a/b suffixes (B04a/B04b → B03/B04)
+- Renumbered B09-B14 → B08-B13 (filled the B08 gap)
+- Renamed B13-Contingtic → B12-Contingency
+- Shortened O03-PropInsurance → O03-PropIns
+- Added `ce_code_alias` table for backward compatibility lookup
+- See MIGRATION.md for full mapping details
 
 ### Scenario Architecture
 
@@ -202,7 +229,7 @@ Scenarios allow modeling different cost assumptions:
 ### Data Counts
 | Entity | Count |
 |--------|-------|
-| Cost Elements | 23 (B08 gap intentional) |
+| Cost Elements | 22 (B01-B13, O01-O05, F01-F04) |
 | CROs | 22 |
 | Barriers | 71 |
 | Levers | 5 |

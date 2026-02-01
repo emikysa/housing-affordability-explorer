@@ -254,8 +254,21 @@ export interface Database {
           level2_name: string
           level3_name: string | null
           level4_name: string | null
+          level5_name: string | null
           cost_component: string
+          cost_composition: 'mixed' | 'material' | 'labor' | 'sub_op'
+          uniformat_code: string | null
+          sort_order: number | null
           created_at: string
+        }
+      }
+      ce_code_alias: {
+        Row: {
+          id: number
+          old_code: string
+          new_code: string
+          migration_date: string
+          notes: string | null
         }
       }
       levers: {
@@ -489,6 +502,9 @@ export const BASELINE_SCENARIO_ID = '00000000-0000-0000-0000-000000000001'
 
 // CE Drilldown type
 export type CEDrilldown = Database['public']['Tables']['ce_drilldown']['Row']
+
+// CE Code Alias type (for backward compatibility mapping)
+export type CECodeAlias = Database['public']['Tables']['ce_code_alias']['Row']
 
 // Lever types
 export type Lever = Database['public']['Views']['v_levers']['Row']
