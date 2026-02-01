@@ -15,6 +15,8 @@ import type {
   LeverType,
   FeasibilityHorizon,
   CEDrilldown,
+  Lever,
+  BarrierLever,
 } from '../types/database'
 // BASELINE_SCENARIO_ID available if needed for fallback
 
@@ -258,6 +260,92 @@ export function useFeasibilityHorizons() {
 // CE Drilldown hierarchy data
 export function useCEDrilldown() {
   return useSupabaseQuery<CEDrilldown>('ce_drilldown')
+}
+
+// Levers (first-class entities with many-to-many to barriers)
+export function useLevers() {
+  return useSupabaseQuery<Lever>('v_levers', 'sort_order')
+}
+
+// Barrier-Lever mappings
+export function useBarrierLevers() {
+  return useSupabaseQuery<BarrierLever>('v_barrier_levers', 'barrier_id')
+}
+
+// Hook for getting levers for a specific barrier
+export function useLeversForBarrier(barrierId: string | null) {
+  const [state, setState] = useState<DataState<BarrierLever>>({
+    data: [],
+    loading: false,
+    error: null,
+  })
+
+  useEffect(() => {
+    if (!barrierId) {
+      setState({ data: [], loading: false, error: null })
+      return
+    }
+
+    const currentBarrierId = barrierId // Capture for closure
+    async function fetchLevers() {
+      setState((prev) => ({ ...prev, loading: true }))
+      try {
+        const { data, error } = await supabase
+          .from('v_barrier_levers')
+          .select('*')
+          .eq('barrier_id', currentBarrierId)
+        if (error) throw error
+        setState({ data: data || [], loading: false, error: null })
+      } catch (err) {
+        setState({
+          data: [],
+          loading: false,
+          error: err instanceof Error ? err.message : 'Unknown error',
+        })
+      }
+    }
+    fetchLevers()
+  }, [barrierId])
+
+  return state
+}
+
+// Hook for getting barriers for a specific lever
+export function useBarriersForLever(leverId: string | null) {
+  const [state, setState] = useState<DataState<BarrierLever>>({
+    data: [],
+    loading: false,
+    error: null,
+  })
+
+  useEffect(() => {
+    if (!leverId) {
+      setState({ data: [], loading: false, error: null })
+      return
+    }
+
+    const currentLeverId = leverId // Capture for closure
+    async function fetchBarriers() {
+      setState((prev) => ({ ...prev, loading: true }))
+      try {
+        const { data, error } = await supabase
+          .from('v_barrier_levers')
+          .select('*')
+          .eq('lever_id', currentLeverId)
+        if (error) throw error
+        setState({ data: data || [], loading: false, error: null })
+      } catch (err) {
+        setState({
+          data: [],
+          loading: false,
+          error: err instanceof Error ? err.message : 'Unknown error',
+        })
+      }
+    }
+    fetchBarriers()
+  }, [leverId])
+
+  return state
 }
 
 // ============================================

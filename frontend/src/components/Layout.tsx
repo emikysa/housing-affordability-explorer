@@ -12,7 +12,8 @@ const navItems = [
   { path: '/scenarios', label: 'Scenarios' },
   { path: '/cost-elements', label: 'Cost Elements' },
   { path: '/opportunities', label: 'Reduction Opportunities' },
-  { path: '/barriers', label: 'Barriers & Levers' },
+  { path: '/barriers', label: 'Barriers' },
+  { path: '/levers', label: 'Levers' },
   { path: '/actors', label: 'Actors' },
   { path: '/relationships', label: 'Relationships' },
 ]

@@ -255,6 +255,49 @@ export interface Database {
           created_at: string
         }
       }
+      levers: {
+        Row: {
+          lever_id: string
+          lever_type_id: string | null
+          name: string
+          description: string | null
+          implementation_approach: string | null
+          typical_actors: string | null
+          typical_timeline: string | null
+          feasibility_notes: string | null
+          sort_order: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          lever_id: string
+          lever_type_id?: string | null
+          name: string
+          description?: string | null
+          implementation_approach?: string | null
+          typical_actors?: string | null
+          typical_timeline?: string | null
+          feasibility_notes?: string | null
+          sort_order?: number | null
+        }
+        Update: Partial<Database['public']['Tables']['levers']['Insert']>
+      }
+      barrier_lever_map: {
+        Row: {
+          barrier_id: string
+          lever_id: string
+          relationship_notes: string | null
+          created_at: string
+        }
+        Insert: {
+          barrier_id: string
+          lever_id: string
+          relationship_notes?: string | null
+        }
+        Update: {
+          relationship_notes?: string | null
+        }
+      }
     }
     Views: {
       v_cost_elements: {
@@ -335,6 +378,33 @@ export interface Database {
           notes: string | null
         }
       }
+      v_levers: {
+        Row: {
+          lever_id: string
+          lever_type_id: string | null
+          lever_type_description: string | null
+          name: string
+          description: string | null
+          implementation_approach: string | null
+          typical_actors: string | null
+          typical_timeline: string | null
+          feasibility_notes: string | null
+          sort_order: number | null
+          barrier_count: number
+        }
+      }
+      v_barrier_levers: {
+        Row: {
+          barrier_id: string
+          barrier_short_name: string | null
+          barrier_description: string
+          lever_id: string
+          lever_name: string
+          lever_type_id: string | null
+          lever_type_description: string | null
+          relationship_notes: string | null
+        }
+      }
       v_summary_stats: {
         Row: {
           total_cost_elements: number
@@ -385,3 +455,8 @@ export const BASELINE_SCENARIO_ID = '00000000-0000-0000-0000-000000000001'
 
 // CE Drilldown type
 export type CEDrilldown = Database['public']['Tables']['ce_drilldown']['Row']
+
+// Lever types
+export type Lever = Database['public']['Views']['v_levers']['Row']
+export type BarrierLever = Database['public']['Views']['v_barrier_levers']['Row']
+export type BarrierLeverMap = Database['public']['Tables']['barrier_lever_map']['Row']
