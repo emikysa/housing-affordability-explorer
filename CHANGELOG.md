@@ -4,6 +4,36 @@
 
 ---
 
+## 2026-02-01 (Session 6) - Levers as First-Class Entities
+
+### Database Schema Changes
+- Created `levers` table with columns: lever_id, lever_type_id, name, description, implementation_approach, typical_actors, typical_timeline, feasibility_notes
+- Created `barrier_lever_map` junction table for many-to-many relationship between barriers and levers
+- Created `v_levers` view (includes barrier_count)
+- Created `v_barrier_levers` view for easy querying of relationships
+- Migration: `20260201_levers_refactor_v2.sql`
+- Migrated existing barrier lever_id data: 5 levers created, 71 barrier-lever mappings
+
+### New Levers Page
+- Added `/levers` route with AG Grid displaying all levers
+- Filter by lever type
+- Detail panel shows related barriers
+
+### UI Changes
+- Split "Barriers & Levers" nav item into separate "Barriers" and "Levers" links
+- Cost Elements page: Renamed columns from "Cost Elements + CE Level 1-4" to "CE Level 1-5"
+
+### Code Changes
+- `frontend/src/types/database.ts`: Added Lever, BarrierLever, BarrierLeverMap types
+- `frontend/src/hooks/useData.ts`: Added useLevers, useBarrierLevers, useLeversForBarrier, useBarriersForLever hooks
+- `frontend/src/pages/Levers.tsx`: New page
+- `frontend/src/App.tsx`: Added /levers route
+- `frontend/src/components/Layout.tsx`: Updated navigation
+
+### Deployed: Yes (via git push to Vercel)
+
+---
+
 ## 2026-02-01 (Session 5) - Hierarchical Codes for CE Levels
 
 ### Cost Elements Page - Explorer-Style Layout
