@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react'
-import type { ColDef } from 'ag-grid-community'
-import DataGrid, { currencyFormatter, BadgeRenderer } from '../components/DataGrid'
 import FilterToggle from '../components/FilterToggle'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
+import { BadgeRenderer } from '../components/DataGrid'
 import { useCostElements, useStages, useCrosForCostElement, useCEDrilldown } from '../hooks/useData'
 import type { CostElement } from '../types/database'
 
@@ -10,18 +9,19 @@ export default function CostElements() {
   const { data: costElements, loading } = useCostElements()
   const { data: stages } = useStages()
   const { data: drilldownData } = useCEDrilldown()
-  const [searchText, setSearchText] = useState('')
   const [stageFilter, setStageFilter] = useState('')
   const [showAll, setShowAll] = useState(false)
   const [selectedElement, setSelectedElement] = useState<CostElement | null>(null)
 
-  // Explorer-style level selections
+  // Selected CE for filtering hierarchy columns
+  const [selectedCE, setSelectedCE] = useState<string | null>(null)
+  // Selected hierarchy levels
   const [selectedLevel1, setSelectedLevel1] = useState<string | null>(null)
   const [selectedLevel2, setSelectedLevel2] = useState<string | null>(null)
   const [selectedLevel3, setSelectedLevel3] = useState<string | null>(null)
   const [selectedLevel4, setSelectedLevel4] = useState<string | null>(null)
 
-  // Get CROs for selected cost element
+  // Get CROs for selected cost element (detail panel)
   const { data: relatedCros } = useCrosForCostElement(selectedElement?.ce_id || null)
 
   // Filter drilldown to only 'Total' cost component to avoid duplicates
@@ -29,21 +29,43 @@ export default function CostElements() {
     return drilldownData.filter((d) => d.cost_component === 'Total')
   }, [drilldownData])
 
-  // Get unique Level 1 items
+  // Filter cost elements based on stage and showAll
+  const filteredCostElements = useMemo(() => {
+    let data = costElements
+
+    if (!showAll) {
+      data = data.filter((ce) => ce.estimate != null || ce.annual_estimate != null)
+    }
+
+    if (stageFilter) {
+      data = data.filter((ce) => ce.stage_id === stageFilter)
+    }
+
+    return data.sort((a, b) => a.ce_id.localeCompare(b.ce_id))
+  }, [costElements, stageFilter, showAll])
+
+  // Get Level 1 items - filtered by selected CE
   const level1Items = useMemo(() => {
+    let filtered = totalDrilldown
+    if (selectedCE) {
+      filtered = filtered.filter((d) => d.ce_code === selectedCE)
+    }
     const items = new Map<string, { name: string; count: number }>()
-    totalDrilldown.forEach((d) => {
+    filtered.forEach((d) => {
       if (!items.has(d.level1_name)) {
         items.set(d.level1_name, { name: d.level1_name, count: 0 })
       }
       items.get(d.level1_name)!.count++
     })
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown])
+  }, [totalDrilldown, selectedCE])
 
-  // Get Level 2 items - filtered by Level 1 selection
+  // Get Level 2 items - filtered by selected CE and Level 1
   const level2Items = useMemo(() => {
     let filtered = totalDrilldown
+    if (selectedCE) {
+      filtered = filtered.filter((d) => d.ce_code === selectedCE)
+    }
     if (selectedLevel1) {
       filtered = filtered.filter((d) => d.level1_name === selectedLevel1)
     }
@@ -55,11 +77,14 @@ export default function CostElements() {
       items.get(d.level2_name)!.count++
     })
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedLevel1])
+  }, [totalDrilldown, selectedCE, selectedLevel1])
 
-  // Get Level 3 items - filtered by Level 1 and Level 2 selections
+  // Get Level 3 items - filtered by selected CE, Level 1, and Level 2
   const level3Items = useMemo(() => {
     let filtered = totalDrilldown
+    if (selectedCE) {
+      filtered = filtered.filter((d) => d.ce_code === selectedCE)
+    }
     if (selectedLevel1) {
       filtered = filtered.filter((d) => d.level1_name === selectedLevel1)
     }
@@ -76,11 +101,14 @@ export default function CostElements() {
       }
     })
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedLevel1, selectedLevel2])
+  }, [totalDrilldown, selectedCE, selectedLevel1, selectedLevel2])
 
-  // Get Level 4 items - filtered by Level 1, 2, and 3 selections
+  // Get Level 4 items - filtered by selected CE, Level 1, 2, and 3
   const level4Items = useMemo(() => {
     let filtered = totalDrilldown
+    if (selectedCE) {
+      filtered = filtered.filter((d) => d.ce_code === selectedCE)
+    }
     if (selectedLevel1) {
       filtered = filtered.filter((d) => d.level1_name === selectedLevel1)
     }
@@ -100,63 +128,51 @@ export default function CostElements() {
       }
     })
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedLevel1, selectedLevel2, selectedLevel3])
+  }, [totalDrilldown, selectedCE, selectedLevel1, selectedLevel2, selectedLevel3])
 
-  // Get CE codes that match current hierarchy selection
-  const filteredCECodes = useMemo(() => {
-    let filtered = totalDrilldown
-
-    if (selectedLevel1) {
-      filtered = filtered.filter((d) => d.level1_name === selectedLevel1)
+  // Handle CE click - select CE and clear hierarchy selections
+  const handleCEClick = (ceId: string) => {
+    if (selectedCE === ceId) {
+      setSelectedCE(null)
+    } else {
+      setSelectedCE(ceId)
     }
-    if (selectedLevel2) {
-      filtered = filtered.filter((d) => d.level2_name === selectedLevel2)
-    }
-    if (selectedLevel3) {
-      filtered = filtered.filter((d) => d.level3_name === selectedLevel3)
-    }
-    if (selectedLevel4) {
-      filtered = filtered.filter((d) => d.level4_name === selectedLevel4)
-    }
-
-    return new Set(filtered.map((d) => d.ce_code))
-  }, [totalDrilldown, selectedLevel1, selectedLevel2, selectedLevel3, selectedLevel4])
+    // Clear downstream hierarchy selections
+    setSelectedLevel1(null)
+    setSelectedLevel2(null)
+    setSelectedLevel3(null)
+    setSelectedLevel4(null)
+  }
 
   // Handle level selection - clear downstream selections
   const handleLevel1Click = (name: string) => {
     if (selectedLevel1 === name) {
       setSelectedLevel1(null)
-      setSelectedLevel2(null)
-      setSelectedLevel3(null)
-      setSelectedLevel4(null)
     } else {
       setSelectedLevel1(name)
-      setSelectedLevel2(null)
-      setSelectedLevel3(null)
-      setSelectedLevel4(null)
     }
+    setSelectedLevel2(null)
+    setSelectedLevel3(null)
+    setSelectedLevel4(null)
   }
 
   const handleLevel2Click = (name: string) => {
     if (selectedLevel2 === name) {
       setSelectedLevel2(null)
-      setSelectedLevel3(null)
-      setSelectedLevel4(null)
     } else {
       setSelectedLevel2(name)
-      setSelectedLevel3(null)
-      setSelectedLevel4(null)
     }
+    setSelectedLevel3(null)
+    setSelectedLevel4(null)
   }
 
   const handleLevel3Click = (name: string) => {
     if (selectedLevel3 === name) {
       setSelectedLevel3(null)
-      setSelectedLevel4(null)
     } else {
       setSelectedLevel3(name)
-      setSelectedLevel4(null)
     }
+    setSelectedLevel4(null)
   }
 
   const handleLevel4Click = (name: string) => {
@@ -167,83 +183,15 @@ export default function CostElements() {
     }
   }
 
-  const hasHierarchySelection = selectedLevel1 || selectedLevel2 || selectedLevel3 || selectedLevel4
+  const hasSelection = selectedCE || selectedLevel1 || selectedLevel2 || selectedLevel3 || selectedLevel4
 
-  const clearHierarchySelection = () => {
+  const clearAllSelections = () => {
+    setSelectedCE(null)
     setSelectedLevel1(null)
     setSelectedLevel2(null)
     setSelectedLevel3(null)
     setSelectedLevel4(null)
   }
-
-  const columnDefs = useMemo<ColDef<CostElement>[]>(
-    () => [
-      {
-        field: 'ce_id',
-        headerName: 'ID',
-        width: 120,
-        pinned: 'left',
-      },
-      {
-        field: 'stage_id',
-        headerName: 'Stage',
-        width: 110,
-        cellRenderer: (params: { value: string }) => <BadgeRenderer value={params.value} />,
-      },
-      {
-        field: 'description',
-        headerName: 'Description',
-        flex: 2,
-        minWidth: 200,
-      },
-      {
-        field: 'estimate',
-        headerName: 'Estimate',
-        width: 130,
-        valueFormatter: currencyFormatter,
-        type: 'numericColumn',
-      },
-      {
-        field: 'annual_estimate',
-        headerName: 'Annual',
-        width: 130,
-        valueFormatter: currencyFormatter,
-        type: 'numericColumn',
-      },
-      {
-        field: 'unit',
-        headerName: 'Unit',
-        width: 100,
-      },
-      {
-        field: 'cadence',
-        headerName: 'Cadence',
-        width: 120,
-      },
-    ],
-    []
-  )
-
-  // Filter data
-  const filteredData = useMemo(() => {
-    let data = costElements
-
-    // Filter to show only populated items (with estimate or annual_estimate)
-    if (!showAll) {
-      data = data.filter((ce) => ce.estimate != null || ce.annual_estimate != null)
-    }
-
-    if (stageFilter) {
-      data = data.filter((ce) => ce.stage_id === stageFilter)
-    }
-
-    // Filter by hierarchy selection if any level is selected
-    if (hasHierarchySelection) {
-      data = data.filter((ce) => filteredCECodes.has(ce.ce_id))
-    }
-
-    return data
-  }, [costElements, stageFilter, showAll, hasHierarchySelection, filteredCECodes])
 
   const stageOptions = useMemo(
     () =>
@@ -265,60 +213,45 @@ export default function CostElements() {
     }).format(value)
   }
 
-  // Get drilldown details for selected element
+  // Get drilldown details for selected element (detail panel)
   const selectedDrilldown = useMemo(() => {
     if (!selectedElement) return []
     return totalDrilldown.filter((d) => d.ce_code === selectedElement.ce_id)
   }, [totalDrilldown, selectedElement])
 
-  const clearAllFilters = () => {
-    setSearchText('')
-    setStageFilter('')
-    clearHierarchySelection()
-  }
+  // Get total counts for columns
+  const totalLevel1Count = useMemo(() => {
+    const items = new Set(totalDrilldown.map((d) => d.level1_name))
+    return items.size
+  }, [totalDrilldown])
 
-  const hasAnyFilter = searchText || stageFilter || hasHierarchySelection
+  const totalLevel2Count = useMemo(() => {
+    const items = new Set(totalDrilldown.map((d) => d.level2_name))
+    return items.size
+  }, [totalDrilldown])
+
+  const totalLevel3Count = useMemo(() => {
+    const items = new Set(totalDrilldown.filter((d) => d.level3_name).map((d) => d.level3_name))
+    return items.size
+  }, [totalDrilldown])
+
+  const totalLevel4Count = useMemo(() => {
+    const items = new Set(totalDrilldown.filter((d) => d.level4_name).map((d) => d.level4_name))
+    return items.size
+  }, [totalDrilldown])
 
   return (
     <div className="space-y-4">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Cost Elements</h1>
-        <p className="mt-1 text-gray-500">
-          Click items in the hierarchy columns to filter. Click again to clear.
-        </p>
-      </div>
-
-      {/* Top Filters Row: Search, Stage, Toggle */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Search Input */}
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative">
-              <svg
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                placeholder="Search cost elements..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Stage Filter */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Cost Elements</h1>
+          <p className="mt-1 text-gray-500">
+            Click a Cost Element to see its hierarchy breakdown. Click again to clear.
+          </p>
+        </div>
+        {/* Top Filters */}
+        <div className="flex items-center gap-4">
           <div className="min-w-[130px]">
             <label className="block text-xs font-medium text-gray-500 mb-1">Stage</label>
             <select
@@ -334,33 +267,23 @@ export default function CostElements() {
               ))}
             </select>
           </div>
-
           <FilterToggle showAll={showAll} onChange={setShowAll} />
-
-          {/* Clear Filters Button */}
-          {hasAnyFilter && (
-            <button
-              onClick={clearAllFilters}
-              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors whitespace-nowrap"
-            >
-              Clear filters
-            </button>
-          )}
         </div>
       </div>
 
       {/* Selection indicator */}
-      {hasHierarchySelection && (
+      {hasSelection && (
         <div className="bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 flex items-center justify-between">
           <span className="text-gray-800 text-sm">
             <span className="font-medium">Filtering by:</span>{' '}
-            {selectedLevel1 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">{selectedLevel1}</span>}
+            {selectedCE && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">{selectedCE}</span>}
+            {selectedLevel1 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {selectedLevel1}</span>}
             {selectedLevel2 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {selectedLevel2}</span>}
             {selectedLevel3 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {selectedLevel3}</span>}
             {selectedLevel4 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded">→ {selectedLevel4}</span>}
           </span>
           <button
-            onClick={clearHierarchySelection}
+            onClick={clearAllSelections}
             className="text-gray-600 hover:text-gray-800 font-medium text-sm"
           >
             Clear
@@ -368,100 +291,122 @@ export default function CostElements() {
         </div>
       )}
 
-      {/* 4-Column Hierarchy Explorer */}
-      <div className="grid grid-cols-4 gap-3" style={{ height: '280px' }}>
-        {/* Level 1 Column */}
-        <HierarchyColumn
-          title="CE Level 1"
-          count={level1Items.length}
-          totalCount={level1Items.length}
-        >
-          {level1Items.map((item) => (
-            <HierarchyCard
-              key={item.name}
-              name={item.name}
-              count={item.count}
-              isSelected={selectedLevel1 === item.name}
-              onClick={() => handleLevel1Click(item.name)}
-            />
-          ))}
-        </HierarchyColumn>
-
-        {/* Level 2 Column */}
-        <HierarchyColumn
-          title="CE Level 2"
-          count={level2Items.length}
-          totalCount={level2Items.length}
-        >
-          {level2Items.map((item) => (
-            <HierarchyCard
-              key={item.name}
-              name={item.name}
-              count={item.count}
-              isSelected={selectedLevel2 === item.name}
-              onClick={() => handleLevel2Click(item.name)}
-            />
-          ))}
-        </HierarchyColumn>
-
-        {/* Level 3 Column */}
-        <HierarchyColumn
-          title="CE Level 3"
-          count={level3Items.length}
-          totalCount={level3Items.length}
-        >
-          {level3Items.length === 0 ? (
-            <div className="text-xs text-gray-400 p-2 italic">
-              {selectedLevel1 || selectedLevel2 ? 'No Level 3 items' : 'Select Level 1 or 2'}
-            </div>
-          ) : (
-            level3Items.map((item) => (
-              <HierarchyCard
-                key={item.name}
-                name={item.name}
-                count={item.count}
-                isSelected={selectedLevel3 === item.name}
-                onClick={() => handleLevel3Click(item.name)}
+      {/* 5-Column Explorer Layout */}
+      {loading ? (
+        <div className="text-center py-8 text-gray-500">Loading data...</div>
+      ) : (
+        <div className="grid grid-cols-5 gap-3" style={{ height: 'calc(100vh - 240px)' }}>
+          {/* Cost Elements Column */}
+          <ExplorerColumn
+            title="Cost Elements"
+            count={filteredCostElements.length}
+            totalCount={costElements.length}
+          >
+            {filteredCostElements.map((ce) => (
+              <CECard
+                key={ce.ce_id}
+                ce={ce}
+                isSelected={selectedCE === ce.ce_id}
+                onClick={() => handleCEClick(ce.ce_id)}
+                onDetailClick={() => setSelectedElement(ce)}
+                formatCurrency={formatCurrency}
               />
-            ))
-          )}
-        </HierarchyColumn>
+            ))}
+          </ExplorerColumn>
 
-        {/* Level 4 Column */}
-        <HierarchyColumn
-          title="CE Level 4"
-          count={level4Items.length}
-          totalCount={level4Items.length}
-        >
-          {level4Items.length === 0 ? (
-            <div className="text-xs text-gray-400 p-2 italic">
-              {selectedLevel1 || selectedLevel2 || selectedLevel3 ? 'No Level 4 items' : 'Select Level 1, 2, or 3'}
-            </div>
-          ) : (
-            level4Items.map((item) => (
-              <HierarchyCard
-                key={item.name}
-                name={item.name}
-                count={item.count}
-                isSelected={selectedLevel4 === item.name}
-                onClick={() => handleLevel4Click(item.name)}
-              />
-            ))
-          )}
-        </HierarchyColumn>
-      </div>
+          {/* Level 1 Column */}
+          <ExplorerColumn
+            title="CE Level 1"
+            count={level1Items.length}
+            totalCount={totalLevel1Count}
+          >
+            {level1Items.length === 0 ? (
+              <div className="text-xs text-gray-400 p-2 italic">
+                Select a Cost Element
+              </div>
+            ) : (
+              level1Items.map((item) => (
+                <HierarchyCard
+                  key={item.name}
+                  name={item.name}
+                  count={item.count}
+                  isSelected={selectedLevel1 === item.name}
+                  onClick={() => handleLevel1Click(item.name)}
+                />
+              ))
+            )}
+          </ExplorerColumn>
 
-      {/* Data Grid */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <DataGrid
-          rowData={filteredData}
-          columnDefs={columnDefs}
-          loading={loading}
-          quickFilterText={searchText}
-          onRowClick={setSelectedElement}
-          height="calc(100vh - 620px)"
-        />
-      </div>
+          {/* Level 2 Column */}
+          <ExplorerColumn
+            title="CE Level 2"
+            count={level2Items.length}
+            totalCount={totalLevel2Count}
+          >
+            {level2Items.length === 0 ? (
+              <div className="text-xs text-gray-400 p-2 italic">
+                {selectedCE ? 'No Level 2 items' : 'Select a Cost Element'}
+              </div>
+            ) : (
+              level2Items.map((item) => (
+                <HierarchyCard
+                  key={item.name}
+                  name={item.name}
+                  count={item.count}
+                  isSelected={selectedLevel2 === item.name}
+                  onClick={() => handleLevel2Click(item.name)}
+                />
+              ))
+            )}
+          </ExplorerColumn>
+
+          {/* Level 3 Column */}
+          <ExplorerColumn
+            title="CE Level 3"
+            count={level3Items.length}
+            totalCount={totalLevel3Count}
+          >
+            {level3Items.length === 0 ? (
+              <div className="text-xs text-gray-400 p-2 italic">
+                {selectedCE || selectedLevel1 || selectedLevel2 ? 'No Level 3 items' : 'Select a Cost Element'}
+              </div>
+            ) : (
+              level3Items.map((item) => (
+                <HierarchyCard
+                  key={item.name}
+                  name={item.name}
+                  count={item.count}
+                  isSelected={selectedLevel3 === item.name}
+                  onClick={() => handleLevel3Click(item.name)}
+                />
+              ))
+            )}
+          </ExplorerColumn>
+
+          {/* Level 4 Column */}
+          <ExplorerColumn
+            title="CE Level 4"
+            count={level4Items.length}
+            totalCount={totalLevel4Count}
+          >
+            {level4Items.length === 0 ? (
+              <div className="text-xs text-gray-400 p-2 italic">
+                {selectedCE || selectedLevel1 || selectedLevel2 || selectedLevel3 ? 'No Level 4 items' : 'Select a Cost Element'}
+              </div>
+            ) : (
+              level4Items.map((item) => (
+                <HierarchyCard
+                  key={item.name}
+                  name={item.name}
+                  count={item.count}
+                  isSelected={selectedLevel4 === item.name}
+                  onClick={() => handleLevel4Click(item.name)}
+                />
+              ))
+            )}
+          </ExplorerColumn>
+        </div>
+      )}
 
       {/* Detail Panel */}
       {selectedElement && (
@@ -554,15 +499,15 @@ export default function CostElements() {
   )
 }
 
-// Hierarchy Column Component
-interface HierarchyColumnProps {
+// Explorer Column Component
+interface ExplorerColumnProps {
   title: string
   count: number
   totalCount: number
   children: React.ReactNode
 }
 
-function HierarchyColumn({ title, count, totalCount, children }: HierarchyColumnProps) {
+function ExplorerColumn({ title, count, totalCount, children }: ExplorerColumnProps) {
   return (
     <div className="rounded-lg flex flex-col overflow-hidden bg-gray-50 border border-gray-200">
       <div className="px-3 py-2 bg-gray-100 border-b border-gray-200">
@@ -574,6 +519,53 @@ function HierarchyColumn({ title, count, totalCount, children }: HierarchyColumn
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-1">{children}</div>
+    </div>
+  )
+}
+
+// CE Card Component
+interface CECardProps {
+  ce: CostElement
+  isSelected: boolean
+  onClick: () => void
+  onDetailClick: () => void
+  formatCurrency: (v: number | null) => string
+}
+
+function CECard({ ce, isSelected, onClick, onDetailClick, formatCurrency }: CECardProps) {
+  return (
+    <div
+      className={`rounded p-2 cursor-pointer transition-all text-sm ${
+        isSelected
+          ? 'bg-primary-100 border-2 border-primary-500'
+          : 'bg-white border border-gray-200 hover:border-gray-300'
+      }`}
+      onClick={onClick}
+    >
+      <div className="flex items-start justify-between gap-1">
+        <div className="flex-1 min-w-0">
+          <div className={`font-mono text-xs ${isSelected ? 'text-primary-700' : 'text-gray-500'}`}>
+            {ce.ce_id}
+          </div>
+          <div className={`text-xs leading-tight line-clamp-2 ${isSelected ? 'text-primary-900' : 'text-gray-700'}`}>
+            {ce.description}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+          <span className={`text-xs font-medium ${isSelected ? 'text-primary-600' : 'text-gray-500'}`}>
+            {formatCurrency(ce.estimate)}
+          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDetailClick()
+            }}
+            className={`text-xs hover:underline ${isSelected ? 'text-primary-600' : 'text-gray-400'}`}
+          >
+            Details
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
