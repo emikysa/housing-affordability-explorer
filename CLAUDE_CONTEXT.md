@@ -299,3 +299,45 @@ Scenarios allow modeling different cost assumptions:
 1. **Start of session:** Read this file (`cat CLAUDE_CONTEXT.md`)
 2. **During session:** Test changes locally before deploying
 3. **End of session:** Append summary of changes to `CHANGELOG.md`
+
+---
+
+## IMPORTANT: Deployment Checklist
+
+**Claude: DO NOT mark a task as complete until these steps are done!**
+
+### Database Changes
+When you create migration SQL files:
+1. **Run the migration** - Use `loader/run_migration.py` or `loader/fix_migration.py` for data changes
+2. **DDL changes** (CREATE TABLE, ALTER TABLE) cannot be done via REST API. Either:
+   - Generate SQL and tell user to run in Supabase SQL Editor, OR
+   - Use `loader/add_new_columns.py` to generate the SQL
+3. **Verify** - Always verify the migration worked by querying the affected tables
+
+### Frontend Changes
+When you modify frontend code:
+1. **Git add** the changed files: `git add <files>`
+2. **Git commit** with descriptive message
+3. **Git push** to trigger Vercel deploy: `git push`
+4. Wait for Vercel deploy to complete (~1-2 min)
+
+### Migration Scripts Location
+- `loader/run_migration.py` - Run L1 CE restructure via Python/REST
+- `loader/fix_migration.py` - Fix migrations using delete+insert for PK changes
+- `loader/add_new_columns.py` - Generate DDL SQL for Supabase SQL Editor
+- `supabase/migrations/` - SQL migration files (reference, not auto-applied)
+
+### Quick Deploy Commands
+```bash
+cd /Users/emikysa/Claude/HousingAffordabilityFramework
+git add .
+git commit -m "Description of changes"
+git push
+```
+
+### Quick Migration Commands
+```bash
+cd /Users/emikysa/Claude/HousingAffordabilityFramework/loader
+source venv/bin/activate
+python run_migration.py  # or fix_migration.py
+```
