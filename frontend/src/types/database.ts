@@ -117,14 +117,17 @@ export interface Database {
       actors: {
         Row: {
           actor_id: string
+          actor_code: string | null
           description: string | null
         }
         Insert: {
           actor_id: string
+          actor_code?: string | null
           description?: string | null
         }
         Update: {
           actor_id?: string
+          actor_code?: string | null
           description?: string | null
         }
       }
