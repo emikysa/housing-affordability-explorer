@@ -301,6 +301,23 @@ export interface Database {
           relationship_notes?: string | null
         }
       }
+      barrier_cro_map: {
+        Row: {
+          id: number
+          barrier_id: string
+          cro_id: string
+          relationship_notes: string | null
+          created_at: string
+        }
+        Insert: {
+          barrier_id: string
+          cro_id: string
+          relationship_notes?: string | null
+        }
+        Update: {
+          relationship_notes?: string | null
+        }
+      }
     }
     Views: {
       v_cost_elements: {
@@ -345,16 +362,30 @@ export interface Database {
           effect_mechanism: string | null
           authority: string | null
           actor_scope: string | null
-          cro_id: string | null
+          cro_id: string | null  // Deprecated: use barrier_cro_map
           cro_description: string | null
           barrier_type: string | null
           barrier_type_description: string | null
           barrier_scope: string | null
           barrier_scope_description: string | null
+          lever_id: string | null
           lever_type: string | null
           lever_type_description: string | null
           feasibility_horizon: string | null
           feasibility_horizon_description: string | null
+          cro_count: number
+        }
+      }
+      v_barrier_cros: {
+        Row: {
+          id: number
+          barrier_id: string
+          barrier_short_name: string | null
+          barrier_description: string
+          cro_id: string
+          cro_description: string
+          relationship_notes: string | null
+          created_at: string
         }
       }
       v_cro_cost_element_impact: {
@@ -463,3 +494,7 @@ export type CEDrilldown = Database['public']['Tables']['ce_drilldown']['Row']
 export type Lever = Database['public']['Views']['v_levers']['Row']
 export type BarrierLever = Database['public']['Views']['v_barrier_levers']['Row']
 export type BarrierLeverMap = Database['public']['Tables']['barrier_lever_map']['Row']
+
+// Barrier-CRO many-to-many types
+export type BarrierCro = Database['public']['Views']['v_barrier_cros']['Row']
+export type BarrierCroMap = Database['public']['Tables']['barrier_cro_map']['Row']

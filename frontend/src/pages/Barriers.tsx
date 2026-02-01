@@ -118,9 +118,9 @@ export default function Barriers() {
       {/* Page Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Barriers & Levers</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Barriers</h1>
           <p className="mt-1 text-gray-500">
-            What blocks cost reductions and how to overcome them
+            What blocks cost reductions
           </p>
         </div>
         <div className="flex gap-4 text-center">

@@ -17,6 +17,7 @@ import type {
   CEDrilldown,
   Lever,
   BarrierLever,
+  BarrierCro,
 } from '../types/database'
 // BASELINE_SCENARIO_ID available if needed for fallback
 
@@ -270,6 +271,87 @@ export function useLevers() {
 // Barrier-Lever mappings
 export function useBarrierLevers() {
   return useSupabaseQuery<BarrierLever>('v_barrier_levers', 'barrier_id')
+}
+
+// Barrier-CRO mappings (many-to-many)
+export function useBarrierCros() {
+  return useSupabaseQuery<BarrierCro>('v_barrier_cros', 'barrier_id')
+}
+
+// Hook for getting CROs for a specific barrier
+export function useCrosForBarrier(barrierId: string | null) {
+  const [state, setState] = useState<DataState<BarrierCro>>({
+    data: [],
+    loading: false,
+    error: null,
+  })
+
+  useEffect(() => {
+    if (!barrierId) {
+      setState({ data: [], loading: false, error: null })
+      return
+    }
+
+    const currentBarrierId = barrierId
+    async function fetchCros() {
+      setState((prev) => ({ ...prev, loading: true }))
+      try {
+        const { data, error } = await supabase
+          .from('v_barrier_cros')
+          .select('*')
+          .eq('barrier_id', currentBarrierId)
+        if (error) throw error
+        setState({ data: data || [], loading: false, error: null })
+      } catch (err) {
+        setState({
+          data: [],
+          loading: false,
+          error: err instanceof Error ? err.message : 'Unknown error',
+        })
+      }
+    }
+    fetchCros()
+  }, [barrierId])
+
+  return state
+}
+
+// Hook for getting barriers for a specific CRO
+export function useBarriersForCro(croId: string | null) {
+  const [state, setState] = useState<DataState<BarrierCro>>({
+    data: [],
+    loading: false,
+    error: null,
+  })
+
+  useEffect(() => {
+    if (!croId) {
+      setState({ data: [], loading: false, error: null })
+      return
+    }
+
+    const currentCroId = croId
+    async function fetchBarriers() {
+      setState((prev) => ({ ...prev, loading: true }))
+      try {
+        const { data, error } = await supabase
+          .from('v_barrier_cros')
+          .select('*')
+          .eq('cro_id', currentCroId)
+        if (error) throw error
+        setState({ data: data || [], loading: false, error: null })
+      } catch (err) {
+        setState({
+          data: [],
+          loading: false,
+          error: err instanceof Error ? err.message : 'Unknown error',
+        })
+      }
+    }
+    fetchBarriers()
+  }, [croId])
+
+  return state
 }
 
 // Hook for getting levers for a specific barrier

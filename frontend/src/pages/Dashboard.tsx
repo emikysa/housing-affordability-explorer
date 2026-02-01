@@ -539,7 +539,7 @@ export default function Dashboard() {
             to="/barriers"
             className="p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
           >
-            <h4 className="font-medium text-gray-900">Barriers & Levers</h4>
+            <h4 className="font-medium text-gray-900">Barriers</h4>
             <p className="text-sm text-gray-500 mt-1">
               Understand what blocks cost reductions and how to overcome them
             </p>
