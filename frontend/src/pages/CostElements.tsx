@@ -105,13 +105,12 @@ export default function CostElements() {
   const [showAll, setShowAll] = useState(false)
   const [selectedElement, setSelectedElement] = useState<CostElement | null>(null)
 
-  // Selected CE for filtering hierarchy columns
-  const [selectedCE, setSelectedCE] = useState<string | null>(null)
-  // Selected hierarchy levels
-  const [selectedLevel1, setSelectedLevel1] = useState<string | null>(null)
-  const [selectedLevel2, setSelectedLevel2] = useState<string | null>(null)
-  const [selectedLevel3, setSelectedLevel3] = useState<string | null>(null)
-  const [selectedLevel4, setSelectedLevel4] = useState<string | null>(null)
+  // Multi-select state for each column (using Set for efficient lookups)
+  const [selectedCEs, setSelectedCEs] = useState<Set<string>>(new Set())
+  const [selectedLevel1s, setSelectedLevel1s] = useState<Set<string>>(new Set())
+  const [selectedLevel2s, setSelectedLevel2s] = useState<Set<string>>(new Set())
+  const [selectedLevel3s, setSelectedLevel3s] = useState<Set<string>>(new Set())
+  const [selectedLevel4s, setSelectedLevel4s] = useState<Set<string>>(new Set())
 
   // Get CROs for selected cost element (detail panel)
   const { data: relatedCros } = useCrosForCostElement(selectedElement?.ce_id || null)
@@ -121,65 +120,71 @@ export default function CostElements() {
     return drilldownData.filter((d) => d.cost_component === 'Total')
   }, [drilldownData])
 
-  // Generate hierarchy codes - only when a CE is selected
+  // Generate hierarchy codes for all selected CEs
   const hierarchyCodes = useMemo(() => {
-    if (!selectedCE) return new Map<string, { code: string; displayName: string }>()
-    return generateHierarchyCodes(totalDrilldown, selectedCE)
-  }, [totalDrilldown, selectedCE])
+    if (selectedCEs.size === 0) return new Map<string, { code: string; displayName: string }>()
+    const combined = new Map<string, { code: string; displayName: string }>()
+    selectedCEs.forEach(ceCode => {
+      const codes = generateHierarchyCodes(totalDrilldown, ceCode)
+      codes.forEach((value, key) => combined.set(`${ceCode}:${key}`, value))
+    })
+    return combined
+  }, [totalDrilldown, selectedCEs])
 
   // Helper to get display name with code for Level 1
+  // With multi-select, find the first matching CE that has this L1 item
   const getLevel1Display = (name: string) => {
-    const entry = hierarchyCodes.get(`L1:${name}`)
-    return entry?.displayName || name
+    for (const ceCode of selectedCEs) {
+      const entry = hierarchyCodes.get(`${ceCode}:L1:${name}`)
+      if (entry) return entry.displayName
+    }
+    return name
   }
 
-  // Helper to find Level 2 display - needs to find parent L1 from drilldown data
+  // Helper to find Level 2 display
   const getLevel2Display = (l2Name: string) => {
-    if (!selectedCE) return l2Name
-    // If L1 is selected, use it directly
-    if (selectedLevel1) {
-      const entry = hierarchyCodes.get(`L2:${selectedLevel1}:${l2Name}`)
-      return entry?.displayName || l2Name
-    }
-    // Otherwise find the L1 parent from the data
-    const record = totalDrilldown.find(d => d.ce_code === selectedCE && d.level2_name === l2Name)
+    if (selectedCEs.size === 0) return l2Name
+    // Find the record to get parent hierarchy
+    const record = totalDrilldown.find(d =>
+      selectedCEs.has(d.ce_code) &&
+      d.level2_name === l2Name &&
+      (selectedLevel1s.size === 0 || selectedLevel1s.has(d.level1_name))
+    )
     if (record) {
-      const entry = hierarchyCodes.get(`L2:${record.level1_name}:${l2Name}`)
+      const entry = hierarchyCodes.get(`${record.ce_code}:L2:${record.level1_name}:${l2Name}`)
       return entry?.displayName || l2Name
     }
     return l2Name
   }
 
-  // Helper to find Level 3 display - needs parent L1 and L2
+  // Helper to find Level 3 display
   const getLevel3Display = (l3Name: string) => {
-    if (!selectedCE) return l3Name
-    // Find the record to get parent hierarchy
+    if (selectedCEs.size === 0) return l3Name
     const record = totalDrilldown.find(d =>
-      d.ce_code === selectedCE &&
+      selectedCEs.has(d.ce_code) &&
       d.level3_name === l3Name &&
-      (!selectedLevel1 || d.level1_name === selectedLevel1) &&
-      (!selectedLevel2 || d.level2_name === selectedLevel2)
+      (selectedLevel1s.size === 0 || selectedLevel1s.has(d.level1_name)) &&
+      (selectedLevel2s.size === 0 || selectedLevel2s.has(d.level2_name))
     )
     if (record) {
-      const entry = hierarchyCodes.get(`L3:${record.level1_name}:${record.level2_name}:${l3Name}`)
+      const entry = hierarchyCodes.get(`${record.ce_code}:L3:${record.level1_name}:${record.level2_name}:${l3Name}`)
       return entry?.displayName || l3Name
     }
     return l3Name
   }
 
-  // Helper to find Level 4 display - needs parent L1, L2, and L3
+  // Helper to find Level 4 display
   const getLevel4Display = (l4Name: string) => {
-    if (!selectedCE) return l4Name
-    // Find the record to get parent hierarchy
+    if (selectedCEs.size === 0) return l4Name
     const record = totalDrilldown.find(d =>
-      d.ce_code === selectedCE &&
+      selectedCEs.has(d.ce_code) &&
       d.level4_name === l4Name &&
-      (!selectedLevel1 || d.level1_name === selectedLevel1) &&
-      (!selectedLevel2 || d.level2_name === selectedLevel2) &&
-      (!selectedLevel3 || d.level3_name === selectedLevel3)
+      (selectedLevel1s.size === 0 || selectedLevel1s.has(d.level1_name)) &&
+      (selectedLevel2s.size === 0 || selectedLevel2s.has(d.level2_name)) &&
+      (selectedLevel3s.size === 0 || (d.level3_name && selectedLevel3s.has(d.level3_name)))
     )
     if (record && record.level3_name) {
-      const entry = hierarchyCodes.get(`L4:${record.level1_name}:${record.level2_name}:${record.level3_name}:${l4Name}`)
+      const entry = hierarchyCodes.get(`${record.ce_code}:L4:${record.level1_name}:${record.level2_name}:${record.level3_name}:${l4Name}`)
       return entry?.displayName || l4Name
     }
     return l4Name
@@ -200,10 +205,10 @@ export default function CostElements() {
     return data.sort((a, b) => a.ce_id.localeCompare(b.ce_id))
   }, [costElements, stageFilter, showAll])
 
-  // Get Level 1 items - REQUIRES a CE to be selected
+  // Get Level 1 items - REQUIRES at least one CE to be selected
   const level1Items = useMemo(() => {
-    if (!selectedCE) return []
-    const filtered = totalDrilldown.filter((d) => d.ce_code === selectedCE)
+    if (selectedCEs.size === 0) return []
+    const filtered = totalDrilldown.filter((d) => selectedCEs.has(d.ce_code))
     const items = new Map<string, { name: string; count: number }>()
     filtered.forEach((d) => {
       if (!items.has(d.level1_name)) {
@@ -212,14 +217,14 @@ export default function CostElements() {
       items.get(d.level1_name)!.count++
     })
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedCE])
+  }, [totalDrilldown, selectedCEs])
 
-  // Get Level 2 items - REQUIRES CE, filtered by Level 1 if selected
+  // Get Level 2 items - REQUIRES CE, filtered by Level 1 selections
   const level2Items = useMemo(() => {
-    if (!selectedCE) return []
-    let filtered = totalDrilldown.filter((d) => d.ce_code === selectedCE)
-    if (selectedLevel1) {
-      filtered = filtered.filter((d) => d.level1_name === selectedLevel1)
+    if (selectedCEs.size === 0) return []
+    let filtered = totalDrilldown.filter((d) => selectedCEs.has(d.ce_code))
+    if (selectedLevel1s.size > 0) {
+      filtered = filtered.filter((d) => selectedLevel1s.has(d.level1_name))
     }
     const items = new Map<string, { name: string; count: number }>()
     filtered.forEach((d) => {
@@ -229,17 +234,17 @@ export default function CostElements() {
       items.get(d.level2_name)!.count++
     })
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedCE, selectedLevel1])
+  }, [totalDrilldown, selectedCEs, selectedLevel1s])
 
-  // Get Level 3 items - REQUIRES CE, filtered by Level 1 and 2 if selected
+  // Get Level 3 items - REQUIRES CE, filtered by Level 1 and 2 selections
   const level3Items = useMemo(() => {
-    if (!selectedCE) return []
-    let filtered = totalDrilldown.filter((d) => d.ce_code === selectedCE)
-    if (selectedLevel1) {
-      filtered = filtered.filter((d) => d.level1_name === selectedLevel1)
+    if (selectedCEs.size === 0) return []
+    let filtered = totalDrilldown.filter((d) => selectedCEs.has(d.ce_code))
+    if (selectedLevel1s.size > 0) {
+      filtered = filtered.filter((d) => selectedLevel1s.has(d.level1_name))
     }
-    if (selectedLevel2) {
-      filtered = filtered.filter((d) => d.level2_name === selectedLevel2)
+    if (selectedLevel2s.size > 0) {
+      filtered = filtered.filter((d) => selectedLevel2s.has(d.level2_name))
     }
     const items = new Map<string, { name: string; count: number }>()
     filtered.forEach((d) => {
@@ -251,20 +256,20 @@ export default function CostElements() {
       }
     })
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedCE, selectedLevel1, selectedLevel2])
+  }, [totalDrilldown, selectedCEs, selectedLevel1s, selectedLevel2s])
 
-  // Get Level 4 items - REQUIRES CE, filtered by Level 1, 2, and 3 if selected
+  // Get Level 4 items - REQUIRES CE, filtered by Level 1, 2, and 3 selections
   const level4Items = useMemo(() => {
-    if (!selectedCE) return []
-    let filtered = totalDrilldown.filter((d) => d.ce_code === selectedCE)
-    if (selectedLevel1) {
-      filtered = filtered.filter((d) => d.level1_name === selectedLevel1)
+    if (selectedCEs.size === 0) return []
+    let filtered = totalDrilldown.filter((d) => selectedCEs.has(d.ce_code))
+    if (selectedLevel1s.size > 0) {
+      filtered = filtered.filter((d) => selectedLevel1s.has(d.level1_name))
     }
-    if (selectedLevel2) {
-      filtered = filtered.filter((d) => d.level2_name === selectedLevel2)
+    if (selectedLevel2s.size > 0) {
+      filtered = filtered.filter((d) => selectedLevel2s.has(d.level2_name))
     }
-    if (selectedLevel3) {
-      filtered = filtered.filter((d) => d.level3_name === selectedLevel3)
+    if (selectedLevel3s.size > 0) {
+      filtered = filtered.filter((d) => d.level3_name && selectedLevel3s.has(d.level3_name))
     }
     const items = new Map<string, { name: string; count: number }>()
     filtered.forEach((d) => {
@@ -276,69 +281,102 @@ export default function CostElements() {
       }
     })
     return [...items.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [totalDrilldown, selectedCE, selectedLevel1, selectedLevel2, selectedLevel3])
+  }, [totalDrilldown, selectedCEs, selectedLevel1s, selectedLevel2s, selectedLevel3s])
 
-  // Handle CE click - select CE and clear hierarchy selections
-  const handleCEClick = (ceId: string) => {
-    if (selectedCE === ceId) {
-      setSelectedCE(null)
+  // Toggle selection helper for multi-select
+  const toggleSetItem = <T,>(set: Set<T>, item: T, setter: (s: Set<T>) => void) => {
+    const newSet = new Set(set)
+    if (newSet.has(item)) {
+      newSet.delete(item)
     } else {
-      setSelectedCE(ceId)
+      newSet.add(item)
     }
-    // Clear downstream hierarchy selections
-    setSelectedLevel1(null)
-    setSelectedLevel2(null)
-    setSelectedLevel3(null)
-    setSelectedLevel4(null)
+    setter(newSet)
   }
 
-  // Handle level selection - clear downstream selections
-  const handleLevel1Click = (name: string) => {
-    if (selectedLevel1 === name) {
-      setSelectedLevel1(null)
+  // Handle CE click - toggle selection, clear downstream if removing last CE
+  const handleCEClick = (ceId: string) => {
+    const newSet = new Set(selectedCEs)
+    if (newSet.has(ceId)) {
+      newSet.delete(ceId)
     } else {
-      setSelectedLevel1(name)
+      newSet.add(ceId)
     }
-    setSelectedLevel2(null)
-    setSelectedLevel3(null)
-    setSelectedLevel4(null)
+    setSelectedCEs(newSet)
+    // If no CEs selected, clear all downstream
+    if (newSet.size === 0) {
+      setSelectedLevel1s(new Set())
+      setSelectedLevel2s(new Set())
+      setSelectedLevel3s(new Set())
+      setSelectedLevel4s(new Set())
+    }
+  }
+
+  // Handle level selection - toggle item
+  const handleLevel1Click = (name: string) => {
+    toggleSetItem(selectedLevel1s, name, setSelectedLevel1s)
   }
 
   const handleLevel2Click = (name: string) => {
-    if (selectedLevel2 === name) {
-      setSelectedLevel2(null)
-    } else {
-      setSelectedLevel2(name)
-    }
-    setSelectedLevel3(null)
-    setSelectedLevel4(null)
+    toggleSetItem(selectedLevel2s, name, setSelectedLevel2s)
   }
 
   const handleLevel3Click = (name: string) => {
-    if (selectedLevel3 === name) {
-      setSelectedLevel3(null)
-    } else {
-      setSelectedLevel3(name)
-    }
-    setSelectedLevel4(null)
+    toggleSetItem(selectedLevel3s, name, setSelectedLevel3s)
   }
 
   const handleLevel4Click = (name: string) => {
-    if (selectedLevel4 === name) {
-      setSelectedLevel4(null)
-    } else {
-      setSelectedLevel4(name)
-    }
+    toggleSetItem(selectedLevel4s, name, setSelectedLevel4s)
   }
 
-  const hasSelection = selectedCE || selectedLevel1 || selectedLevel2 || selectedLevel3 || selectedLevel4
+  const hasSelection = selectedCEs.size > 0 || selectedLevel1s.size > 0 || selectedLevel2s.size > 0 || selectedLevel3s.size > 0 || selectedLevel4s.size > 0
 
   const clearAllSelections = () => {
-    setSelectedCE(null)
-    setSelectedLevel1(null)
-    setSelectedLevel2(null)
-    setSelectedLevel3(null)
-    setSelectedLevel4(null)
+    setSelectedCEs(new Set())
+    setSelectedLevel1s(new Set())
+    setSelectedLevel2s(new Set())
+    setSelectedLevel3s(new Set())
+    setSelectedLevel4s(new Set())
+  }
+
+  // Select all / Deselect all handlers
+  const selectAllCEs = () => {
+    setSelectedCEs(new Set(filteredCostElements.map(ce => ce.ce_id)))
+  }
+  const deselectAllCEs = () => {
+    setSelectedCEs(new Set())
+    setSelectedLevel1s(new Set())
+    setSelectedLevel2s(new Set())
+    setSelectedLevel3s(new Set())
+    setSelectedLevel4s(new Set())
+  }
+
+  const selectAllLevel1 = () => {
+    setSelectedLevel1s(new Set(level1Items.map(item => item.name)))
+  }
+  const deselectAllLevel1 = () => {
+    setSelectedLevel1s(new Set())
+  }
+
+  const selectAllLevel2 = () => {
+    setSelectedLevel2s(new Set(level2Items.map(item => item.name)))
+  }
+  const deselectAllLevel2 = () => {
+    setSelectedLevel2s(new Set())
+  }
+
+  const selectAllLevel3 = () => {
+    setSelectedLevel3s(new Set(level3Items.map(item => item.name)))
+  }
+  const deselectAllLevel3 = () => {
+    setSelectedLevel3s(new Set())
+  }
+
+  const selectAllLevel4 = () => {
+    setSelectedLevel4s(new Set(level4Items.map(item => item.name)))
+  }
+  const deselectAllLevel4 = () => {
+    setSelectedLevel4s(new Set())
   }
 
   const stageOptions = useMemo(
@@ -401,7 +439,7 @@ export default function CostElements() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Cost Elements</h1>
           <p className="mt-1 text-gray-500">
-            Click a Cost Element to see its hierarchy breakdown. Click again to clear.
+            Click items to select/deselect. Use "Select all" / "Deselect all" in column headers.
           </p>
         </div>
         {/* Top Filters */}
@@ -428,19 +466,39 @@ export default function CostElements() {
       {/* Selection indicator */}
       {hasSelection && (
         <div className="bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 flex items-center justify-between">
-          <span className="text-gray-800 text-sm">
-            <span className="font-medium">Filtering by:</span>{' '}
-            {selectedCE && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">{selectedCE}</span>}
-            {selectedLevel1 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel1Display(selectedLevel1)}</span>}
-            {selectedLevel2 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel2Display(selectedLevel2)}</span>}
-            {selectedLevel3 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded mr-2">→ {getLevel3Display(selectedLevel3)}</span>}
-            {selectedLevel4 && <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded">→ {getLevel4Display(selectedLevel4)}</span>}
+          <span className="text-gray-800 text-sm flex flex-wrap items-center gap-1">
+            <span className="font-medium">Selected:</span>
+            {selectedCEs.size > 0 && (
+              <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-xs">
+                {selectedCEs.size} CE{selectedCEs.size > 1 ? 's' : ''}
+              </span>
+            )}
+            {selectedLevel1s.size > 0 && (
+              <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-xs">
+                → {selectedLevel1s.size} L1
+              </span>
+            )}
+            {selectedLevel2s.size > 0 && (
+              <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-xs">
+                → {selectedLevel2s.size} L2
+              </span>
+            )}
+            {selectedLevel3s.size > 0 && (
+              <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-xs">
+                → {selectedLevel3s.size} L3
+              </span>
+            )}
+            {selectedLevel4s.size > 0 && (
+              <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-xs">
+                → {selectedLevel4s.size} L4
+              </span>
+            )}
           </span>
           <button
             onClick={clearAllSelections}
             className="text-gray-600 hover:text-gray-800 font-medium text-sm"
           >
-            Clear
+            Clear all
           </button>
         </div>
       )}
@@ -455,12 +513,16 @@ export default function CostElements() {
             title="Cost Elements"
             count={filteredCostElements.length}
             totalCount={costElements.length}
+            hasItems={filteredCostElements.length > 0}
+            hasSelection={selectedCEs.size > 0}
+            onSelectAll={selectAllCEs}
+            onDeselectAll={deselectAllCEs}
           >
             {filteredCostElements.map((ce) => (
               <CECard
                 key={ce.ce_id}
                 ce={ce}
-                isSelected={selectedCE === ce.ce_id}
+                isSelected={selectedCEs.has(ce.ce_id)}
                 onClick={() => handleCEClick(ce.ce_id)}
                 onDetailClick={() => setSelectedElement(ce)}
                 formatCurrency={formatCurrency}
@@ -473,6 +535,10 @@ export default function CostElements() {
             title="CE Level 1"
             count={level1Items.length}
             totalCount={totalLevel1Count}
+            hasItems={level1Items.length > 0}
+            hasSelection={selectedLevel1s.size > 0}
+            onSelectAll={selectAllLevel1}
+            onDeselectAll={deselectAllLevel1}
           >
             {level1Items.length === 0 ? (
               <div className="text-xs text-gray-400 p-2 italic">
@@ -485,7 +551,7 @@ export default function CostElements() {
                   name={item.name}
                   displayName={getLevel1Display(item.name)}
                   count={item.count}
-                  isSelected={selectedLevel1 === item.name}
+                  isSelected={selectedLevel1s.has(item.name)}
                   onClick={() => handleLevel1Click(item.name)}
                 />
               ))
@@ -497,10 +563,14 @@ export default function CostElements() {
             title="CE Level 2"
             count={level2Items.length}
             totalCount={totalLevel2Count}
+            hasItems={level2Items.length > 0}
+            hasSelection={selectedLevel2s.size > 0}
+            onSelectAll={selectAllLevel2}
+            onDeselectAll={deselectAllLevel2}
           >
             {level2Items.length === 0 ? (
               <div className="text-xs text-gray-400 p-2 italic">
-                {selectedCE ? 'No Level 2 items' : 'Select a Cost Element'}
+                {selectedCEs.size > 0 ? 'No Level 2 items' : 'Select a Cost Element'}
               </div>
             ) : (
               level2Items.map((item) => (
@@ -509,7 +579,7 @@ export default function CostElements() {
                   name={item.name}
                   displayName={getLevel2Display(item.name)}
                   count={item.count}
-                  isSelected={selectedLevel2 === item.name}
+                  isSelected={selectedLevel2s.has(item.name)}
                   onClick={() => handleLevel2Click(item.name)}
                 />
               ))
@@ -521,10 +591,14 @@ export default function CostElements() {
             title="CE Level 3"
             count={level3Items.length}
             totalCount={totalLevel3Count}
+            hasItems={level3Items.length > 0}
+            hasSelection={selectedLevel3s.size > 0}
+            onSelectAll={selectAllLevel3}
+            onDeselectAll={deselectAllLevel3}
           >
             {level3Items.length === 0 ? (
               <div className="text-xs text-gray-400 p-2 italic">
-                {selectedCE ? 'No Level 3 items' : 'Select a Cost Element'}
+                {selectedCEs.size > 0 ? 'No Level 3 items' : 'Select a Cost Element'}
               </div>
             ) : (
               level3Items.map((item) => (
@@ -533,7 +607,7 @@ export default function CostElements() {
                   name={item.name}
                   displayName={getLevel3Display(item.name)}
                   count={item.count}
-                  isSelected={selectedLevel3 === item.name}
+                  isSelected={selectedLevel3s.has(item.name)}
                   onClick={() => handleLevel3Click(item.name)}
                 />
               ))
@@ -545,10 +619,14 @@ export default function CostElements() {
             title="CE Level 4"
             count={level4Items.length}
             totalCount={totalLevel4Count}
+            hasItems={level4Items.length > 0}
+            hasSelection={selectedLevel4s.size > 0}
+            onSelectAll={selectAllLevel4}
+            onDeselectAll={deselectAllLevel4}
           >
             {level4Items.length === 0 ? (
               <div className="text-xs text-gray-400 p-2 italic">
-                {selectedCE ? 'No Level 4 items' : 'Select a Cost Element'}
+                {selectedCEs.size > 0 ? 'No Level 4 items' : 'Select a Cost Element'}
               </div>
             ) : (
               level4Items.map((item) => (
@@ -557,7 +635,7 @@ export default function CostElements() {
                   name={item.name}
                   displayName={getLevel4Display(item.name)}
                   count={item.count}
-                  isSelected={selectedLevel4 === item.name}
+                  isSelected={selectedLevel4s.has(item.name)}
                   onClick={() => handleLevel4Click(item.name)}
                 />
               ))
@@ -674,9 +752,22 @@ interface ExplorerColumnProps {
   count: number
   totalCount: number
   children: React.ReactNode
+  hasItems?: boolean
+  hasSelection?: boolean
+  onSelectAll?: () => void
+  onDeselectAll?: () => void
 }
 
-function ExplorerColumn({ title, count, totalCount, children }: ExplorerColumnProps) {
+function ExplorerColumn({
+  title,
+  count,
+  totalCount,
+  children,
+  hasItems = false,
+  hasSelection = false,
+  onSelectAll,
+  onDeselectAll,
+}: ExplorerColumnProps) {
   return (
     <div className="rounded-lg flex flex-col overflow-hidden bg-gray-50 border border-gray-200">
       <div className="px-3 py-2 bg-gray-100 border-b border-gray-200">
@@ -686,6 +777,27 @@ function ExplorerColumn({ title, count, totalCount, children }: ExplorerColumnPr
             {count === totalCount ? count : `${count} / ${totalCount}`}
           </span>
         </div>
+        {/* Select All / Deselect All buttons */}
+        {hasItems && (onSelectAll || onDeselectAll) && (
+          <div className="flex gap-2 mt-1">
+            {onSelectAll && !hasSelection && (
+              <button
+                onClick={onSelectAll}
+                className="text-xs text-primary-600 hover:text-primary-800 hover:underline"
+              >
+                Select all
+              </button>
+            )}
+            {onDeselectAll && hasSelection && (
+              <button
+                onClick={onDeselectAll}
+                className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
+              >
+                Deselect all
+              </button>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-1">{children}</div>
     </div>
