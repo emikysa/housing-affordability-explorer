@@ -35,17 +35,17 @@ A public web application that helps people understand housing costs, cost reduct
 │   ├── src/
 │   │   ├── components/         # Reusable UI components
 │   │   │   ├── Layout.tsx      # Main layout with nav, header, scenario selector
-│   │   │   ├── ScenarioSelector.tsx  # Dropdown for scenario selection
+│   │   │   ├── ModelSelector.tsx      # Dropdown for model selection
 │   │   │   ├── FilterToggle.tsx      # "Populated only / Show all" toggle
 │   │   │   └── DetailPanel.tsx       # Slide-out detail panels
 │   │   ├── contexts/
-│   │   │   └── ScenarioContext.tsx   # Global scenario state management
+│   │   │   └── ModelContext.tsx      # Global model state management
 │   │   ├── pages/
 │   │   │   ├── Dashboard.tsx         # Two-tier: Framework Overview + Scenario Analysis
 │   │   │   ├── CostElements.tsx      # AG Grid of cost elements
 │   │   │   ├── Opportunities.tsx     # AG Grid of CROs
-│   │   │   ├── Scenarios.tsx         # Scenario management cards
-│   │   │   └── Explorer.tsx          # 4-column interactive explorer
+│   │   │   ├── Models.tsx             # Model management cards
+│   │   │   └── Explorer.tsx          # 5-column interactive explorer
 │   │   ├── hooks/useData.ts    # Supabase data fetching hooks (scenario-aware)
 │   │   ├── types/database.ts   # TypeScript types
 │   │   └── lib/supabase.ts     # Supabase client config
@@ -116,8 +116,8 @@ Go to Supabase Dashboard → SQL Editor and run ALTER/CREATE statements.
 
 - **9 lookup tables:** stages, actors, barrier_types, barrier_scopes, lever_types, etc.
 - **4 core tables:** cost_elements, cost_reduction_opportunities, barriers, levers
-- **5 junction tables:** cro_ce_map, ce_actor_map, barrier_authority_map, ce_drilldown, barrier_lever_map
-- **8 views:** v_cost_elements, v_cros, v_barriers, v_levers, v_barrier_levers, etc.
+- **6 junction tables:** cro_ce_map, ce_actor_map, barrier_authority_map, ce_drilldown, barrier_lever_map, barrier_cro_map
+- **9 views:** v_cost_elements, v_cros, v_barriers, v_levers, v_barrier_levers, v_barrier_cros, etc.
 - **Row Level Security:** Public read access, restricted write
 
 ### Levers (Many-to-Many with Barriers)
@@ -131,6 +131,16 @@ The `levers` table stores policy interventions that can address barriers:
 - **v_levers:** View with barrier_count
 - **v_barrier_levers:** View for easy querying of relationships
 - 5 levers created from existing barrier data, 71 barrier-lever mappings
+
+### Barriers (Many-to-Many with CROs)
+
+Barriers have a many-to-many relationship with CROs:
+- **barrier_id:** Primary key in format `BAR-{NAME}` (e.g., BAR-LONG_TIMELINES)
+- **barrier_cro_map:** Junction table linking barriers to CROs (many-to-many)
+- **v_barrier_cros:** View for easy querying of barrier-CRO relationships
+- **v_barriers:** View includes `cro_count` field showing number of linked CROs
+- 71 barriers, 71 barrier-CRO mappings (migrated from original 1:1 relationship)
+- Note: `barriers.cro_id` column is deprecated; use barrier_cro_map for new relationships
 
 ### CE Drilldown Hierarchy
 

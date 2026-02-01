@@ -4,6 +4,37 @@
 
 ---
 
+## 2026-02-01 (Session 8) - Barrier-CRO Many-to-Many, Simplified Barrier IDs, Models Rename
+
+### Database Changes
+- Created `barrier_cro_map` junction table for many-to-many Barrier-CRO relationships
+- Migrated 71 existing barrier-CRO relationships from deprecated `cro_id` column
+- Created `v_barrier_cros` view for querying barrier-CRO relationships
+- Updated `v_barriers` view to include all description fields and `cro_count`
+- Renamed all barrier IDs from `BAR-{CRO}-{NAME}` to `BAR-{NAME}` format
+  - e.g., `BAR-DURATION-LONG_TIMELINES` → `BAR-LONG_TIMELINES`
+- Added `actor_code` column to actors table (ACT-01 through ACT-11)
+- Renamed "Scenarios" to "Models" throughout (database scenario renamed to "Model 1 - Illustrative")
+
+### Frontend Changes
+- Renamed `ScenarioContext.tsx` → `ModelContext.tsx`, `ScenarioSelector.tsx` → `ModelSelector.tsx`
+- Renamed `Scenarios.tsx` → `Models.tsx`, updated route from `/scenarios` to `/models`
+- Updated Barriers page:
+  - Changed title from "Barriers & Levers" to "Barriers"
+  - Replaced single CRO column with CRO count badge column
+  - Detail panel now shows multiple linked CROs with descriptions
+- Added new hooks: `useBarrierCros()`, `useCrosForBarrier()`, `useBarriersForCro()`
+- Updated TypeScript types for new tables and views
+
+### Migrations
+- `20260201040000_actor_codes.sql` - Add actor_code column
+- `20260201050000_barrier_cro_many_to_many.sql` - Junction table and views
+- `20260201060000_rename_barrier_ids.sql` - Simplify barrier ID format
+
+### Deployed: Yes (via git push to Vercel)
+
+---
+
 ## 2026-02-01 (Session 7) - Multi-Select, Explorer Levers, Nav Simplification
 
 ### Cost Elements Page - Multi-Select Implementation

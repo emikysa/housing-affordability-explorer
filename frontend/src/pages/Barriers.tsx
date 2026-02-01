@@ -8,6 +8,7 @@ import {
   useBarrierTypes,
   useBarrierScopes,
   useFeasibilityHorizons,
+  useCrosForBarrier,
 } from '../hooks/useData'
 import type { Barrier } from '../types/database'
 
@@ -23,6 +24,11 @@ export default function Barriers() {
   const [horizonFilter, setHorizonFilter] = useState('')
   const [selectedBarrier, setSelectedBarrier] = useState<Barrier | null>(null)
 
+  // Fetch CROs for selected barrier
+  const { data: barrierCros, loading: crosLoading } = useCrosForBarrier(
+    selectedBarrier?.barrier_id ?? null
+  )
+
   const columnDefs = useMemo<ColDef<Barrier>[]>(
     () => [
       {
@@ -32,9 +38,14 @@ export default function Barriers() {
         pinned: 'left',
       },
       {
-        field: 'cro_id',
-        headerName: 'CRO',
-        width: 150,
+        field: 'cro_count',
+        headerName: 'CROs',
+        width: 80,
+        cellRenderer: (params: { value: number }) => (
+          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            {params.value}
+          </span>
+        ),
       },
       {
         field: 'description',
@@ -256,9 +267,31 @@ export default function Barriers() {
               />
             </DetailSection>
 
-            <DetailSection title="Related CRO">
-              <DetailItem label="CRO ID" value={selectedBarrier.cro_id} />
-              <DetailItem label="CRO Description" value={selectedBarrier.cro_description} />
+            <DetailSection title="Related CROs">
+              {crosLoading ? (
+                <p className="text-sm text-gray-500">Loading CROs...</p>
+              ) : barrierCros.length === 0 ? (
+                <p className="text-sm text-gray-500">No CROs linked to this barrier</p>
+              ) : (
+                <div className="space-y-3">
+                  {barrierCros.map((bc) => (
+                    <div
+                      key={bc.id}
+                      className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                    >
+                      <div className="flex items-start justify-between">
+                        <span className="font-medium text-blue-700">{bc.cro_id}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{bc.cro_description}</p>
+                      {bc.relationship_notes && (
+                        <p className="text-xs text-gray-500 mt-2 italic">
+                          {bc.relationship_notes}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </DetailSection>
           </DetailPanel>
         </>
