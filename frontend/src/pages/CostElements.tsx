@@ -470,27 +470,27 @@ export default function CostElements() {
             <span className="font-medium">Selected:</span>
             {selectedCEs.size > 0 && (
               <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-xs">
-                {selectedCEs.size} CE{selectedCEs.size > 1 ? 's' : ''}
+                {selectedCEs.size} L1
               </span>
             )}
             {selectedLevel1s.size > 0 && (
               <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-xs">
-                → {selectedLevel1s.size} L1
+                → {selectedLevel1s.size} L2
               </span>
             )}
             {selectedLevel2s.size > 0 && (
               <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-xs">
-                → {selectedLevel2s.size} L2
+                → {selectedLevel2s.size} L3
               </span>
             )}
             {selectedLevel3s.size > 0 && (
               <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-xs">
-                → {selectedLevel3s.size} L3
+                → {selectedLevel3s.size} L4
               </span>
             )}
             {selectedLevel4s.size > 0 && (
               <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-xs">
-                → {selectedLevel4s.size} L4
+                → {selectedLevel4s.size} L5
               </span>
             )}
           </span>
@@ -508,9 +508,9 @@ export default function CostElements() {
         <div className="text-center py-8 text-gray-500">Loading data...</div>
       ) : (
         <div className="grid grid-cols-5 gap-3" style={{ height: 'calc(100vh - 240px)' }}>
-          {/* Cost Elements Column */}
+          {/* Level 1 Column (top-level Cost Elements) */}
           <ExplorerColumn
-            title="Cost Elements"
+            title="CE Level 1"
             count={filteredCostElements.length}
             totalCount={costElements.length}
             hasItems={filteredCostElements.length > 0}
@@ -530,9 +530,9 @@ export default function CostElements() {
             ))}
           </ExplorerColumn>
 
-          {/* Level 1 Column */}
+          {/* Level 2 Column */}
           <ExplorerColumn
-            title="CE Level 1"
+            title="CE Level 2"
             count={level1Items.length}
             totalCount={totalLevel1Count}
             hasItems={level1Items.length > 0}
@@ -542,7 +542,7 @@ export default function CostElements() {
           >
             {level1Items.length === 0 ? (
               <div className="text-xs text-gray-400 p-2 italic">
-                Select a Cost Element
+                Select a Level 1 item
               </div>
             ) : (
               level1Items.map((item) => (
@@ -558,9 +558,9 @@ export default function CostElements() {
             )}
           </ExplorerColumn>
 
-          {/* Level 2 Column */}
+          {/* Level 3 Column */}
           <ExplorerColumn
-            title="CE Level 2"
+            title="CE Level 3"
             count={level2Items.length}
             totalCount={totalLevel2Count}
             hasItems={level2Items.length > 0}
@@ -570,7 +570,7 @@ export default function CostElements() {
           >
             {level2Items.length === 0 ? (
               <div className="text-xs text-gray-400 p-2 italic">
-                {selectedCEs.size > 0 ? 'No Level 2 items' : 'Select a Cost Element'}
+                {selectedCEs.size > 0 ? 'No Level 3 items' : 'Select a Level 1 item'}
               </div>
             ) : (
               level2Items.map((item) => (
@@ -586,9 +586,9 @@ export default function CostElements() {
             )}
           </ExplorerColumn>
 
-          {/* Level 3 Column */}
+          {/* Level 4 Column */}
           <ExplorerColumn
-            title="CE Level 3"
+            title="CE Level 4"
             count={level3Items.length}
             totalCount={totalLevel3Count}
             hasItems={level3Items.length > 0}
@@ -598,7 +598,7 @@ export default function CostElements() {
           >
             {level3Items.length === 0 ? (
               <div className="text-xs text-gray-400 p-2 italic">
-                {selectedCEs.size > 0 ? 'No Level 3 items' : 'Select a Cost Element'}
+                {selectedCEs.size > 0 ? 'No Level 4 items' : 'Select a Level 1 item'}
               </div>
             ) : (
               level3Items.map((item) => (
@@ -614,9 +614,9 @@ export default function CostElements() {
             )}
           </ExplorerColumn>
 
-          {/* Level 4 Column */}
+          {/* Level 5 Column */}
           <ExplorerColumn
-            title="CE Level 4"
+            title="CE Level 5"
             count={level4Items.length}
             totalCount={totalLevel4Count}
             hasItems={level4Items.length > 0}
@@ -626,7 +626,7 @@ export default function CostElements() {
           >
             {level4Items.length === 0 ? (
               <div className="text-xs text-gray-400 p-2 italic">
-                {selectedCEs.size > 0 ? 'No Level 4 items' : 'Select a Cost Element'}
+                {selectedCEs.size > 0 ? 'No Level 5 items' : 'Select a Level 1 item'}
               </div>
             ) : (
               level4Items.map((item) => (
@@ -685,22 +685,22 @@ export default function CostElements() {
                       >
                         <div className="flex flex-wrap gap-x-4 gap-y-1">
                           <span className="text-gray-700">
-                            <span className="font-medium text-gray-500">L1:</span>{' '}
+                            <span className="font-medium text-gray-500">L2:</span>{' '}
                             <span className="font-mono text-xs">{l1Code?.code}</span> {item.level1_name}
                           </span>
                           <span className="text-gray-700">
-                            <span className="font-medium text-gray-500">L2:</span>{' '}
+                            <span className="font-medium text-gray-500">L3:</span>{' '}
                             <span className="font-mono text-xs">{l2Code?.code}</span> {item.level2_name}
                           </span>
                           {item.level3_name && l3Code && (
                             <span className="text-gray-700">
-                              <span className="font-medium text-gray-500">L3:</span>{' '}
+                              <span className="font-medium text-gray-500">L4:</span>{' '}
                               <span className="font-mono text-xs">{l3Code.code}</span> {item.level3_name}
                             </span>
                           )}
                           {item.level4_name && l4Code && (
                             <span className="text-gray-700">
-                              <span className="font-medium text-gray-500">L4:</span>{' '}
+                              <span className="font-medium text-gray-500">L5:</span>{' '}
                               <span className="font-mono text-xs">{l4Code.code}</span> {item.level4_name}
                             </span>
                           )}
