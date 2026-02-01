@@ -150,7 +150,37 @@ The `ce_drilldown` table stores a hierarchical breakdown of cost elements with u
 - **level3_name, level4_name:** Optional deeper levels
 - **cost_component:** 'Total', 'Material', 'Labor', or 'Sub-O+P'
 - **1,001 rows** loaded from `Housing-Affordability-Framework-CostElement-drilldown.xlsx`
-- Note: `B07-HardCosts` in drilldown Excel maps to `B07-HardMatl` in database
+- Note: `B07-HardCosts` in drilldown Excel maps to `B07-BuildCost` in database
+
+### Cost Elements (L1)
+
+```
+B01-Land - Land acquisition & assemblage
+B02-PreDev - Pre-development & entitlement
+B03-LandCarry - Land holding, time, and uncertainty costs
+B04a-PermitsAdmin - Permits & administrative fees
+B04b-UtilityFees - Utility connection & capacity fees
+B05-SiteInfra - Physical site & infrastructure construction
+B06-SoftCosts - Professional & administrative soft costs
+B07-BuildCost - Hard construction - materials and labor
+B09-TempIndirect - Temporary, indirect, and jobsite costs
+B10-RiskIns - Construction insurance & bonding (3rd-party)
+B11-Finance - Development financing & capital costs
+B12-Overhead - Developer overhead and marketing
+B13-Contingtic - Warranty and litigation contingency
+B14-Return - Required developer return
+O01-Utilities - Operating utilities
+O02-Maint - Maintenance, repairs, and capital reserves
+O03-PropInsurance - Operating property insurance
+O04-Taxes - Property taxes & special assessments
+O05-HOA - HOA fees and assessments
+F01-Principal - Mortgage principal payment (monthly)
+F02-Interest - Mortgage interest payment (monthly)
+F03-PMI - Private mortgage insurance (PMI) (monthly)
+F04-ClosingCosts - Buyer closing costs (one-time)
+```
+
+Note: B08 gap intentionally left after consolidating B07-HardMatl + B08-HardLabor into B07-BuildCost
 
 ### Scenario Architecture
 
@@ -172,11 +202,14 @@ Scenarios allow modeling different cost assumptions:
 ### Data Counts
 | Entity | Count |
 |--------|-------|
-| Cost Elements | 24 |
+| Cost Elements | 23 (B08 gap intentional) |
 | CROs | 22 |
 | Barriers | 71 |
+| Levers | 5 |
 | Actor-CE mappings | 43 |
 | CRO-CE mappings | 55 |
+| Barrier-CRO mappings | 71 |
+| Barrier-Lever mappings | 71 |
 | CE Drilldown entries | 1,001 |
 
 ---

@@ -4,6 +4,31 @@
 
 ---
 
+## 2026-02-01 (Session 9) - Cost Element Consolidation, Explorer Fixes
+
+### Database Changes
+- Consolidated B07-HardMatl + B08-HardLabor into B07-BuildCost
+  - Combined estimate: $247,500 ($125,000 materials + $122,500 labor)
+  - Description: "Hard construction - materials and labor"
+  - B08 gap intentionally left for future use
+- Migrated all foreign key references (cro_ce_map, ce_actor_map, ce_drilldown)
+- Migration: `20260201070000_rename_b07_remove_b08.sql`
+
+### Frontend Changes
+- Added `vercel.json` for SPA routing (fixes 404 on direct URL access/refresh)
+- Fixed Explorer Barrier cards to show `description` instead of `short_name`
+  - Line 1: barrier_id (monospace)
+  - Line 2: description (human-readable)
+
+### Cost Elements (23 total, B08 gap intentional)
+- Build stage: B01-B07, B09-B14 (13 elements)
+- Operate stage: O01-O05 (5 elements)
+- Finance stage: F01-F04 (4 elements)
+
+### Deployed: Yes (via git push to Vercel)
+
+---
+
 ## 2026-02-01 (Session 8) - Barrier-CRO Many-to-Many, Simplified Barrier IDs, Models Rename
 
 ### Database Changes
