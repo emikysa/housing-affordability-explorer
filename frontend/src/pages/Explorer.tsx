@@ -6,6 +6,8 @@ import {
   useActors,
   useCroImpacts,
   useActorControls,
+  useLevers,
+  useBarrierLevers,
 } from '../hooks/useData'
 import type {
   CostElement,
@@ -14,10 +16,12 @@ import type {
   Actor,
   CroImpact,
   ActorControl,
+  Lever,
+  BarrierLever,
 } from '../types/database'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
 
-type SelectionType = 'ce' | 'cro' | 'barrier' | 'actor' | null
+type SelectionType = 'ce' | 'cro' | 'barrier' | 'lever' | 'actor' | null
 type SelectedItem = {
   type: SelectionType
   id: string
@@ -26,21 +30,23 @@ type SelectedItem = {
 type SortMode = 'alpha' | 'value'
 
 // Semantic color types for Explorer columns
-type ColumnColorType = 'ce' | 'cro' | 'barrier' | 'actor'
+type ColumnColorType = 'ce' | 'cro' | 'barrier' | 'lever' | 'actor'
 
 export default function Explorer() {
   const { data: costElements, loading: ceLoading } = useCostElements()
   const { data: cros, loading: croLoading } = useCostReductionOpportunities()
   const { data: barriers, loading: barrierLoading } = useBarriers()
+  const { data: levers, loading: leverLoading } = useLevers()
   const { data: actors, loading: actorLoading } = useActors()
   const { data: croImpacts } = useCroImpacts()
   const { data: actorControls } = useActorControls()
+  const { data: barrierLevers } = useBarrierLevers()
 
   const [selected, setSelected] = useState<SelectedItem | null>(null)
   const [sortMode, setSortMode] = useState<SortMode>('alpha')
   const [detailItem, setDetailItem] = useState<{
     type: SelectionType
-    data: CostElement | CostReductionOpportunity | Barrier | Actor
+    data: CostElement | CostReductionOpportunity | Barrier | Lever | Actor
   } | null>(null)
 
   // Build lookup maps for efficient filtering
@@ -99,6 +105,25 @@ export default function Explorer() {
     return map
   }, [actorControls])
 
+  // Barrier-Lever relationship maps
+  const barrierToLevers = useMemo(() => {
+    const map = new Map<string, Set<string>>()
+    barrierLevers.forEach((bl) => {
+      if (!map.has(bl.barrier_id)) map.set(bl.barrier_id, new Set())
+      map.get(bl.barrier_id)!.add(bl.lever_id)
+    })
+    return map
+  }, [barrierLevers])
+
+  const leverToBarriers = useMemo(() => {
+    const map = new Map<string, Set<string>>()
+    barrierLevers.forEach((bl) => {
+      if (!map.has(bl.lever_id)) map.set(bl.lever_id, new Set())
+      map.get(bl.lever_id)!.add(bl.barrier_id)
+    })
+    return map
+  }, [barrierLevers])
+
   // Compute filtered data based on selection
   const filteredData = useMemo(() => {
     if (!selected) {
@@ -106,6 +131,7 @@ export default function Explorer() {
         ces: costElements,
         cros: cros,
         barriers: barriers,
+        levers: levers,
         actors: actors,
       }
     }
@@ -113,11 +139,20 @@ export default function Explorer() {
     let filteredCes = new Set<string>()
     let filteredCros = new Set<string>()
     let filteredBarriers = new Set<string>()
+    let filteredLevers = new Set<string>()
     let filteredActors = new Set<string>()
+
+    // Helper to add levers for a set of barriers
+    const addLeversForBarriers = (barrierIds: Set<string>) => {
+      barrierIds.forEach((bid) => {
+        const leverIds = barrierToLevers.get(bid) || new Set()
+        leverIds.forEach((lid) => filteredLevers.add(lid))
+      })
+    }
 
     switch (selected.type) {
       case 'ce': {
-        // CE selected: show related CROs, their barriers, and related actors
+        // CE selected: show related CROs, their barriers, levers for those barriers, and related actors
         filteredCes.add(selected.id)
         const relatedCros = ceToCros.get(selected.id) || new Set()
         relatedCros.forEach((croId) => {
@@ -125,12 +160,13 @@ export default function Explorer() {
           const croBarriers = croToBarriers.get(croId) || new Set()
           croBarriers.forEach((b) => filteredBarriers.add(b))
         })
+        addLeversForBarriers(filteredBarriers)
         const relatedActors = ceToActors.get(selected.id) || new Set()
         relatedActors.forEach((a) => filteredActors.add(a))
         break
       }
       case 'cro': {
-        // CRO selected: show related CEs, barriers for this CRO, actors for those CEs
+        // CRO selected: show related CEs, barriers for this CRO, levers, actors for those CEs
         filteredCros.add(selected.id)
         const relatedCes = croToCes.get(selected.id) || new Set()
         relatedCes.forEach((ceId) => {
@@ -140,11 +176,14 @@ export default function Explorer() {
         })
         const croBarriers = croToBarriers.get(selected.id) || new Set()
         croBarriers.forEach((b) => filteredBarriers.add(b))
+        addLeversForBarriers(filteredBarriers)
         break
       }
       case 'barrier': {
-        // Barrier selected: show its CRO, CRO's CEs, and actors for those CEs
+        // Barrier selected: show its CRO, CRO's CEs, levers for this barrier, actors for those CEs
         filteredBarriers.add(selected.id)
+        const barrierLevers = barrierToLevers.get(selected.id) || new Set()
+        barrierLevers.forEach((lid) => filteredLevers.add(lid))
         const croId = barrierToCro.get(selected.id)
         if (croId) {
           filteredCros.add(croId)
@@ -160,8 +199,27 @@ export default function Explorer() {
         }
         break
       }
+      case 'lever': {
+        // Lever selected: show barriers it addresses, their CROs, CRO's CEs, and actors
+        filteredLevers.add(selected.id)
+        const relatedBarriers = leverToBarriers.get(selected.id) || new Set()
+        relatedBarriers.forEach((barrierId) => {
+          filteredBarriers.add(barrierId)
+          const croId = barrierToCro.get(barrierId)
+          if (croId) {
+            filteredCros.add(croId)
+            const relatedCes = croToCes.get(croId) || new Set()
+            relatedCes.forEach((ceId) => {
+              filteredCes.add(ceId)
+              const ceActors = ceToActors.get(ceId) || new Set()
+              ceActors.forEach((a) => filteredActors.add(a))
+            })
+          }
+        })
+        break
+      }
       case 'actor': {
-        // Actor selected: show CEs they control, CROs for those CEs, barriers for those CROs
+        // Actor selected: show CEs they control, CROs for those CEs, barriers, levers for those CROs
         filteredActors.add(selected.id)
         const relatedCes = actorToCes.get(selected.id) || new Set()
         relatedCes.forEach((ceId) => {
@@ -173,6 +231,7 @@ export default function Explorer() {
             croBarriers.forEach((b) => filteredBarriers.add(b))
           })
         })
+        addLeversForBarriers(filteredBarriers)
         break
       }
     }
@@ -181,6 +240,7 @@ export default function Explorer() {
       ces: costElements.filter((ce) => filteredCes.has(ce.ce_id)),
       cros: cros.filter((cro) => filteredCros.has(cro.cro_id)),
       barriers: barriers.filter((b) => filteredBarriers.has(b.barrier_id)),
+      levers: levers.filter((l) => filteredLevers.has(l.lever_id)),
       actors: actors.filter((a) => filteredActors.has(a.actor_id)),
     }
   }, [
@@ -188,11 +248,14 @@ export default function Explorer() {
     costElements,
     cros,
     barriers,
+    levers,
     actors,
     ceToCros,
     croToCes,
     croToBarriers,
     barrierToCro,
+    barrierToLevers,
+    leverToBarriers,
     ceToActors,
     actorToCes,
   ])
@@ -217,6 +280,7 @@ export default function Explorer() {
         ces: sortAlpha(filteredData.ces, 'ce_id'),
         cros: sortAlpha(filteredData.cros, 'cro_id'),
         barriers: sortAlpha(filteredData.barriers, 'barrier_id'),
+        levers: sortAlpha(filteredData.levers, 'lever_id'),
         actors: sortAlpha(filteredData.actors, 'actor_id'),
       }
     } else {
@@ -225,6 +289,7 @@ export default function Explorer() {
         ces: sortByValue(filteredData.ces, 'estimate'),
         cros: sortByValue(filteredData.cros, 'estimate'),
         barriers: sortAlpha(filteredData.barriers, 'barrier_id'), // Barriers don't have values
+        levers: sortByValue(filteredData.levers, 'barrier_count'), // Levers sorted by barrier count
         actors: sortAlpha(filteredData.actors, 'actor_id'), // Actors don't have values
       }
     }
@@ -241,7 +306,7 @@ export default function Explorer() {
 
   const handleDetailClick = (
     type: SelectionType,
-    data: CostElement | CostReductionOpportunity | Barrier | Actor
+    data: CostElement | CostReductionOpportunity | Barrier | Lever | Actor
   ) => {
     setDetailItem({ type, data })
   }
@@ -255,7 +320,7 @@ export default function Explorer() {
     }).format(value)
   }
 
-  const loading = ceLoading || croLoading || barrierLoading || actorLoading
+  const loading = ceLoading || croLoading || barrierLoading || leverLoading || actorLoading
 
   const isSelected = (type: SelectionType, id: string) =>
     selected?.type === type && selected?.id === id
@@ -275,6 +340,9 @@ export default function Explorer() {
 
   const getRelatedCesForActor = (actorId: string) =>
     actorControls.filter((ac) => ac.actor_id === actorId)
+
+  const getRelatedBarriersForLever = (leverId: string) =>
+    barrierLevers.filter((bl) => bl.lever_id === leverId)
 
   return (
     <div className="space-y-4">
@@ -339,10 +407,10 @@ export default function Explorer() {
 
       {/* Multi-column layout */}
       {!loading && (
-        <div className="grid grid-cols-4 gap-3" style={{ height: 'calc(100vh - 280px)' }}>
+        <div className="grid grid-cols-5 gap-3" style={{ height: 'calc(100vh - 280px)' }}>
           {/* Cost Elements Column - Gray (Neutral) */}
           <ExplorerColumn
-            title="Cost Elements"
+            title="Costs"
             count={sortedData.ces.length}
             totalCount={costElements.length}
             colorType="ce"
@@ -361,7 +429,7 @@ export default function Explorer() {
 
           {/* CROs Column - Green (Opportunity) */}
           <ExplorerColumn
-            title="Reduction Opportunities"
+            title="Opportunities"
             count={sortedData.cros.length}
             totalCount={cros.length}
             colorType="cro"
@@ -380,7 +448,7 @@ export default function Explorer() {
 
           {/* Barriers Column - Amber (Friction) */}
           <ExplorerColumn
-            title="Barriers & Levers"
+            title="Barriers"
             count={sortedData.barriers.length}
             totalCount={barriers.length}
             colorType="barrier"
@@ -392,6 +460,24 @@ export default function Explorer() {
                 isSelected={isSelected('barrier', barrier.barrier_id)}
                 onClick={() => handleItemClick('barrier', barrier.barrier_id)}
                 onDetailClick={() => handleDetailClick('barrier', barrier)}
+              />
+            ))}
+          </ExplorerColumn>
+
+          {/* Levers Column - Purple (Solutions) */}
+          <ExplorerColumn
+            title="Levers"
+            count={sortedData.levers.length}
+            totalCount={levers.length}
+            colorType="lever"
+          >
+            {sortedData.levers.map((lever) => (
+              <LeverCard
+                key={lever.lever_id}
+                lever={lever}
+                isSelected={isSelected('lever', lever.lever_id)}
+                onClick={() => handleItemClick('lever', lever.lever_id)}
+                onDetailClick={() => handleDetailClick('lever', lever)}
               />
             ))}
           </ExplorerColumn>
@@ -455,6 +541,12 @@ export default function Explorer() {
             {detailItem.type === 'barrier' && (
               <BarrierDetail barrier={detailItem.data as Barrier} />
             )}
+            {detailItem.type === 'lever' && (
+              <LeverDetail
+                lever={detailItem.data as Lever}
+                relatedBarriers={getRelatedBarriersForLever((detailItem.data as Lever).lever_id)}
+              />
+            )}
             {detailItem.type === 'actor' && (
               <ActorDetail
                 actor={detailItem.data as Actor}
@@ -491,6 +583,13 @@ const columnColors = {
     card: { bg: '#FFFBEB', border: '#F59E0B', primaryText: '#92400E', secondaryText: '#B45309' },
     badge: { bg: '#FDE68A', text: '#78350F', border: '#F59E0B' },
     selected: { border: '#F59E0B' },
+  },
+  // Levers - Purple (Solutions, interventions)
+  lever: {
+    header: { bg: '#EDE9FE', text: '#5B21B6', border: '#A78BFA' },
+    card: { bg: '#F5F3FF', border: '#A78BFA', primaryText: '#6D28D9', secondaryText: '#7C3AED' },
+    badge: { bg: '#DDD6FE', text: '#5B21B6', border: '#A78BFA' },
+    selected: { border: '#A78BFA' },
   },
   // Actors - Blue (Agency, authority, responsibility)
   actor: {
@@ -747,6 +846,65 @@ function BarrierCard({
           >
             {barrier.short_name || barrier.description}
           </div>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onDetailClick()
+          }}
+          className="text-xs hover:underline flex-shrink-0"
+          style={{ color: colors.card.secondaryText }}
+        >
+          Details
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// Compact Lever Card
+function LeverCard({
+  lever,
+  isSelected,
+  onClick,
+  onDetailClick,
+}: {
+  lever: Lever
+  isSelected: boolean
+  onClick: () => void
+  onDetailClick: () => void
+}) {
+  const colors = columnColors.lever
+
+  return (
+    <div
+      className="rounded p-1.5 cursor-pointer transition-all"
+      style={{
+        backgroundColor: '#FFFFFF',
+        borderLeftWidth: '3px',
+        borderLeftColor: colors.card.border,
+        boxShadow: isSelected
+          ? `0 0 0 2px ${colors.selected.border}`
+          : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      }}
+      onClick={onClick}
+    >
+      <div className="flex items-start justify-between gap-1">
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-mono" style={{ color: colors.card.secondaryText }}>
+            {lever.lever_type_id}
+          </div>
+          <div
+            className="text-xs leading-tight line-clamp-2"
+            style={{ color: colors.card.primaryText }}
+          >
+            {lever.name}
+          </div>
+          {lever.barrier_count > 0 && (
+            <div className="text-xs mt-0.5" style={{ color: colors.card.secondaryText }}>
+              {lever.barrier_count} barrier{lever.barrier_count !== 1 ? 's' : ''}
+            </div>
+          )}
         </div>
         <button
           onClick={(e) => {
@@ -1065,6 +1223,79 @@ function BarrierDetail({ barrier }: { barrier: Barrier }) {
           )}
           {barrier.authority && <DetailItem label="Authority" value={barrier.authority} />}
           {barrier.actor_scope && <DetailItem label="Actor Scope" value={barrier.actor_scope} />}
+        </DetailSection>
+      )}
+    </>
+  )
+}
+
+function LeverDetail({
+  lever,
+  relatedBarriers,
+}: {
+  lever: Lever
+  relatedBarriers: BarrierLever[]
+}) {
+  return (
+    <>
+      <DetailSection title="Basic Information">
+        <DetailItem label="ID" value={lever.lever_id} />
+        <DetailItem label="Name" value={lever.name} />
+        <DetailItem
+          label="Type"
+          value={<ExplorerBadge value={lever.lever_type_id} colorType="lever" />}
+        />
+        <DetailItem label="Description" value={lever.lever_type_description} />
+      </DetailSection>
+
+      {(lever.implementation_approach || lever.typical_actors || lever.typical_timeline) && (
+        <DetailSection title="Implementation">
+          {lever.implementation_approach && (
+            <DetailItem label="Approach" value={lever.implementation_approach} />
+          )}
+          {lever.typical_actors && (
+            <DetailItem label="Typical Actors" value={lever.typical_actors} />
+          )}
+          {lever.typical_timeline && (
+            <DetailItem label="Timeline" value={lever.typical_timeline} />
+          )}
+          {lever.feasibility_notes && (
+            <DetailItem label="Feasibility Notes" value={lever.feasibility_notes} />
+          )}
+        </DetailSection>
+      )}
+
+      {relatedBarriers.length > 0 && (
+        <DetailSection title={`Related Barriers (${relatedBarriers.length})`}>
+          <div className="space-y-2">
+            {relatedBarriers.map((bl) => (
+              <div
+                key={bl.barrier_id}
+                className="p-2 rounded"
+                style={{ backgroundColor: columnColors.barrier.card.bg }}
+              >
+                <div className="flex items-center justify-between">
+                  <span
+                    className="font-mono text-xs"
+                    style={{ color: columnColors.barrier.card.secondaryText }}
+                  >
+                    {bl.barrier_short_name || bl.barrier_id}
+                  </span>
+                </div>
+                <p
+                  className="text-sm mt-1"
+                  style={{ color: columnColors.barrier.card.primaryText }}
+                >
+                  {bl.barrier_description}
+                </p>
+                {bl.relationship_notes && (
+                  <p className="text-xs mt-1 italic" style={{ color: columnColors.barrier.card.secondaryText }}>
+                    {bl.relationship_notes}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
         </DetailSection>
       )}
     </>
