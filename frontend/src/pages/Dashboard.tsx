@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   BarChart,
@@ -25,7 +25,7 @@ import { useOccupancy } from '../contexts/OccupancyContext'
 import { useLifestyle } from '../contexts/LifestyleContext'
 import { useUtility } from '../contexts/UtilityContext'
 import { useFinance } from '../contexts/FinanceContext'
-import type { UtilityModel, UtilityRateTier } from '../types/database'
+import type { UtilityRateTier } from '../types/database'
 
 const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6366f1']
 
