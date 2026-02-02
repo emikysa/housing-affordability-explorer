@@ -526,3 +526,46 @@ export interface OccupancyModel {
   created_at: string
   updated_at: string
 }
+
+// Lifestyle Models (Multi-Dimensional Model Architecture - Phase 2)
+export interface LifestyleModel {
+  id: string
+  name: string
+  description: string | null
+  // Per-person weekly frequencies
+  showers_per_week: number
+  baths_per_week: number
+  // Household weekly frequencies
+  laundry_loads_per_week: number
+  dishwasher_loads_per_week: number
+  hand_wash_dishes_per_day: number
+  // Per-person daily frequencies
+  toilet_flushes_per_day: number
+  // Household daily frequencies
+  meals_cooked_per_day: number
+  tv_hours_per_day: number
+  computer_hours_per_day: number
+  lighting_hours_per_day: number
+  // Multipliers for base loads
+  heating_multiplier: number
+  cooling_multiplier: number
+  sort_order: number | null
+  created_at: string
+  updated_at: string
+}
+
+// Consumption Factors (Reference data for resource usage per activity)
+export interface ConsumptionFactor {
+  id: string
+  activity_code: string
+  activity_name: string
+  description: string | null
+  water_gallons: number
+  electric_kwh: number
+  gas_therms: number
+  applies_to: 'per_person' | 'per_household' | 'per_adult' | 'per_child'
+  frequency_unit: 'day' | 'week' | 'month'
+  notes: string | null
+  sort_order: number | null
+  created_at: string
+}

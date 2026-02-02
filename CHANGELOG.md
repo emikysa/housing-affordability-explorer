@@ -4,6 +4,43 @@
 
 ---
 
+## 2026-02-02 (Session 15 continued) - Phase 2: Lifestyle Models
+
+### Database: lifestyle_models table
+Created lifestyle presets for household consumption patterns:
+
+| Name | Showers/wk | Laundry/wk | Heating | Description |
+|------|------------|------------|---------|-------------|
+| Conservative | 5 | 2 | 0.8x | Eco-conscious, minimal usage |
+| Moderate | 7 | 4 | 1.0x | Typical household usage |
+| Comfort-focused | 10 | 6 | 1.2x | Higher comfort, more usage |
+| Work from home | 7 | 5 | 1.1x | Higher daytime usage |
+| Family with young children | 5 | 8 | 1.0x | Extra laundry, baths |
+
+### Database: consumption_factors table
+Reference data for resource usage per activity (14 factors):
+- **Water-intensive:** Shower (17 gal), Bath (36 gal), Laundry (20 gal), Dishwasher (6 gal)
+- **Electric-intensive:** HVAC cooling (150 kWh/mo), Refrigerator (45 kWh/mo)
+- **Gas-intensive:** HVAC heating (30 therms/mo), Water heater (3 therms/mo)
+
+### Frontend
+- `LifestyleContext.tsx` - Global state management
+- `LifestyleSelector.tsx` - Dropdown in header (green background)
+- `useLifestyleModels` + `useConsumptionFactors` hooks
+- TypeScript types: `LifestyleModel`, `ConsumptionFactor`
+
+### UI Header now shows 3 selectors:
+- Cost Model (gray) | Occupancy (blue) | Lifestyle (green)
+
+### Files Created
+- `supabase/migrations/20260202110000_lifestyle_models.sql`
+- `frontend/src/contexts/LifestyleContext.tsx`
+- `frontend/src/components/LifestyleSelector.tsx`
+
+### Deployed: Yes (Vercel auto-deploy)
+
+---
+
 ## 2026-02-02 (Session 15) - Multi-Dimensional Model Architecture Phase 1: Occupancy Models
 
 ### Architecture Design

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { ModelProvider } from './contexts/ModelContext'
 import { OccupancyProvider } from './contexts/OccupancyContext'
+import { LifestyleProvider } from './contexts/LifestyleContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -11,7 +12,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <ModelProvider>
         <OccupancyProvider>
-          <App />
+          <LifestyleProvider>
+            <App />
+          </LifestyleProvider>
         </OccupancyProvider>
       </ModelProvider>
     </BrowserRouter>

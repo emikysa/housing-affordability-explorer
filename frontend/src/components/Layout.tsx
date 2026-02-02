@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import ModelSelector from './ModelSelector'
 import OccupancySelector from './OccupancySelector'
+import LifestyleSelector from './LifestyleSelector'
 
 interface LayoutProps {
   children: ReactNode
@@ -47,12 +48,15 @@ export default function Layout({ children }: LayoutProps) {
 
             {/* Model Selectors - shown on relevant pages with prominent styling */}
             {showHeaderSelector && (
-              <div className="flex items-center gap-4">
-                <div className="bg-gray-100 rounded-lg px-4 py-2 border border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
                   <ModelSelector variant="prominent" label="Cost Model" />
                 </div>
-                <div className="bg-blue-50 rounded-lg px-4 py-2 border border-blue-200">
+                <div className="bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
                   <OccupancySelector variant="prominent" label="Occupancy" />
+                </div>
+                <div className="bg-green-50 rounded-lg px-3 py-2 border border-green-200">
+                  <LifestyleSelector variant="prominent" label="Lifestyle" />
                 </div>
               </div>
             )}

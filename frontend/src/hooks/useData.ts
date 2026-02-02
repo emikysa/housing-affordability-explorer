@@ -19,6 +19,8 @@ import type {
   BarrierLever,
   BarrierCro,
   OccupancyModel,
+  LifestyleModel,
+  ConsumptionFactor,
 } from '../types/database'
 // BASELINE_SCENARIO_ID available if needed for fallback
 
@@ -522,4 +524,14 @@ export function useCrosForCostElement(ceId: string | null) {
 // Occupancy Models (Phase 1 of Multi-Dimensional Model Architecture)
 export function useOccupancyModels() {
   return useSupabaseQuery<OccupancyModel>('v_occupancy_models', 'sort_order')
+}
+
+// Lifestyle Models (Phase 2 of Multi-Dimensional Model Architecture)
+export function useLifestyleModels() {
+  return useSupabaseQuery<LifestyleModel>('v_lifestyle_models', 'sort_order')
+}
+
+// Consumption Factors (Reference data for Phase 2)
+export function useConsumptionFactors() {
+  return useSupabaseQuery<ConsumptionFactor>('consumption_factors', 'sort_order')
 }
