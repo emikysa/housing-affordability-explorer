@@ -257,7 +257,6 @@ export interface Database {
           level5_name: string | null
           cost_component: string
           cost_composition: 'mixed' | 'material' | 'labor' | 'sub_op'
-          uniformat_code: string | null
           sort_order: number | null
           created_at: string
         }
@@ -514,3 +513,16 @@ export type BarrierLeverMap = Database['public']['Tables']['barrier_lever_map'][
 // Barrier-CRO many-to-many types
 export type BarrierCro = Database['public']['Views']['v_barrier_cros']['Row']
 export type BarrierCroMap = Database['public']['Tables']['barrier_cro_map']['Row']
+
+// Occupancy Models (Multi-Dimensional Model Architecture - Phase 1)
+export interface OccupancyModel {
+  id: string
+  name: string
+  description: string | null
+  adults: number
+  children: number
+  total_occupants: number
+  sort_order: number | null
+  created_at: string
+  updated_at: string
+}

@@ -142,7 +142,42 @@ Barriers have a many-to-many relationship with CROs:
 - 71 barriers, 71 barrier-CRO mappings (migrated from original 1:1 relationship)
 - Note: `barriers.cro_id` column is deprecated; use barrier_cro_map for new relationships
 
-### CE Drilldown Hierarchy
+### Unified Cost Elements Table (Updated 2026-02-02)
+
+The `cost_elements_unified` table is the single source of truth for all cost elements at all levels:
+- **ce_id:** Primary key with hierarchical IDs building from the LEFT:
+  - L1: `B07-BuildCost`
+  - L2: `B07a-Substructure`
+  - L3: `B07a01-Foundation`
+  - L4: `B07a01a-Basement`
+  - L5: `B07a01a01-Drilled shafts`
+  - L6: `B07a01a01a-...`
+  - Pattern: alternating letters (a-z) and 2-digit numbers (01-99)
+- **parent_id:** FK to parent element (NULL for L1)
+- **level:** 1-6 indicating hierarchy depth
+- **short_name:** Display name (e.g., "BuildCost", "Substructure", "Roofing")
+- **description:** All L1-L5 elements have descriptions populated (few-word scope clarifier)
+- **stage_id:** Build/Finance/Operate
+- **phase:** acquisition, predesign, entitlement, precon, construction, closeout, operations, occupant_finance, crosscutting
+- **node_class:** system, program, option, regulatory, overhead, finance
+- **sort_order:** Display order within siblings
+- **455 records:** 22 L1 + 54 L2 + 160 L3 + 145 L4 + 51 L5 + 23 L6
+- **No Labor/Material/SubOP nodes:** Cost breakdown captured in `cost_entries` columns, not hierarchy
+
+**Chronological Ordering (updated 2026-02-02):**
+- All IDs sort alphabetically in chronological project order
+- L2-L5 reordered: B02, B05, B06, B07 categories follow construction sequence
+- Example: B07b (Shell) children: Structure → Weather barriers → Roofing → Windows → ... → Deck → Garage
+
+**MECE Structure (validated 2026-02-01):**
+- B05-SiteInfra L2: 7 chronological categories (Site prep → Landscaping)
+- B07-BuildCost L2: 6 system-based categories (Substructure, Shell, Services, Interiors, Special systems, Shared spaces)
+- B06-SoftCosts: Testing split into Field/materials testing + Commissioning
+- No "Total" pseudo-nodes remain
+
+**Export File:** `cost_elements_unified.tsv` in project root (for review/editing)
+
+### CE Drilldown Hierarchy (LEGACY - being replaced)
 
 The `ce_drilldown` table stores a hierarchical breakdown of cost elements with up to 5 levels:
 - **ce_code:** References cost_elements.ce_id
@@ -150,19 +185,9 @@ The `ce_drilldown` table stores a hierarchical breakdown of cost elements with u
 - **level3_name, level4_name, level5_name:** Optional deeper levels
 - **cost_component:** 'Total', 'Material', 'Labor', or 'Sub-O+P'
 - **cost_composition:** 'mixed' (default), 'material', 'labor', or 'sub_op' - for tagging bundled cost breakdown
-- **uniformat_code:** UniFormat II category for B07-BuildCost entries (A=Substructure, B=Shell, C=Interiors, D=Services, E=Equipment, F=Special, Z=Uncategorized)
 - **sort_order:** Display order within CE
 - **1,001 rows** loaded from `Housing-Affordability-Framework-CostElement-drilldown.xlsx`
-
-### UniFormat II Alignment (B07-BuildCost)
-
-Drilldown entries under B07-BuildCost are categorized by UniFormat-like systems:
-- **A - Substructure:** Foundations, footings, basement, slab
-- **B - Shell:** Framing, exterior walls, roofing, windows, doors
-- **C - Interiors:** Partitions, finishes, flooring, ceilings, millwork
-- **D - Services:** Plumbing, HVAC, electrical, fire protection
-- **E - Equipment & Furnishings:** Appliances, fixtures
-- **F - Special Construction:** Demolition, hazmat abatement
+- **Note:** This table only has text names, not IDs for L2-L5. Use `cost_elements_unified` for proper hierarchical IDs.
 
 ### Cost Elements (L1) - Updated 2026-02-01
 
@@ -226,10 +251,11 @@ Scenarios allow modeling different cost assumptions:
 - `get_cro_values_for_scenario(scenario_uuid)` - Returns CRO values with scenario inheritance
 - `get_summary_stats_for_scenario(scenario_uuid)` - Returns totals (one-time, annual, savings)
 
-### Data Counts
+### Data Counts (Updated 2026-02-02)
 | Entity | Count |
 |--------|-------|
-| Cost Elements | 22 (B01-B13, O01-O05, F01-F04) |
+| Cost Elements (L1) | 22 (B01-B13, O01-O05, F01-F04) |
+| Cost Elements Unified (all levels) | 455 (22 L1 + 54 L2 + 160 L3 + 145 L4 + 51 L5 + 23 L6) |
 | CROs | 22 |
 | Barriers | 71 |
 | Levers | 5 |
@@ -237,7 +263,7 @@ Scenarios allow modeling different cost assumptions:
 | CRO-CE mappings | 55 |
 | Barrier-CRO mappings | 71 |
 | Barrier-Lever mappings | 71 |
-| CE Drilldown entries | 1,001 |
+| CE Drilldown entries (legacy) | 1,001 |
 
 ---
 
@@ -287,10 +313,169 @@ Scenarios allow modeling different cost assumptions:
 
 ---
 
+## Multi-Dimensional Model Architecture (Planning - 2026-02-02)
+
+### Vision
+
+Users select one model from each independent dimension to see combined housing costs:
+
+```
+Example user selection:
+├── Build Cost Model: "1400 sf, 3 bed, 2 bath, 1 story, detached carport, passive house"
+├── Water Utility Model: "Fort Collins Loveland Water District"
+├── Electric Utility Model: "Poudre Valley REA Coop"
+├── Gas Utility Model: "Xcel Energy Gas"
+├── Occupancy Model: "2 adults, 1 child"
+├── Lifestyle Model: "Moderate consumption"
+└── Finance Model: "30-year @ 6%, 20% down"
+```
+
+### Model Dimensions
+
+| Dimension | Purpose | Drives |
+|-----------|---------|--------|
+| **Build Cost** | Construction costs mapped to CEs | One-time development costs, home price |
+| **Water Utility** | Water/sewer rate structures | Monthly water bill (O01) |
+| **Electric Utility** | Electric rate structures | Monthly electric bill (O01) |
+| **Gas Utility** | Natural gas rate structures | Monthly gas bill (O01) |
+| **Occupancy** | Household composition | Consumption multipliers |
+| **Lifestyle** | Consumption patterns per person | Base consumption rates |
+| **Finance** | Mortgage terms, down payment | F01-F04 costs |
+
+### Calculation Chain
+
+```
+Occupancy × Lifestyle = Monthly Consumption (gallons, kWh, therms)
+Consumption × Utility Rates = Monthly Utility Costs (O01 breakdown)
+Build Cost × Finance Terms = Monthly Mortgage (F01-F03)
+Sum All Monthly = Total Monthly Housing Cost
+```
+
+### Proposed Schema
+
+#### 1. Occupancy Models (Starting here)
+```sql
+occupancy_models (
+  id uuid PK,
+  name text,                    -- "2 adults, 1 child"
+  description text,
+  adults integer,               -- Number of adults
+  children integer,             -- Number of children
+  created_at timestamp
+)
+```
+
+#### 2. Lifestyle Models
+```sql
+lifestyle_models (
+  id uuid PK,
+  name text,                    -- "Moderate consumption"
+  description text,
+  -- Per-person monthly consumption rates
+  showers_per_week numeric,
+  bath_per_week numeric,
+  laundry_loads_per_month numeric,
+  dishwasher_loads_per_week numeric,
+  -- Can add more consumption drivers as needed
+  created_at timestamp
+)
+```
+
+#### 3. Utility Models (Water/Electric/Gas)
+```sql
+utility_models (
+  id uuid PK,
+  utility_type text,            -- 'water', 'electric', 'gas'
+  provider_name text,           -- "Fort Collins Loveland Water District"
+  description text,
+  -- Base charges
+  base_monthly_fee numeric,
+  -- Rate structure stored as JSONB for flexibility (tiered rates)
+  rate_tiers jsonb,             -- [{max_units: 5000, rate: 0.005}, {max_units: null, rate: 0.008}]
+  unit_name text,               -- 'gallons', 'kWh', 'therms'
+  effective_date date,
+  created_at timestamp
+)
+```
+
+#### 4. Consumption Reference Table
+```sql
+consumption_factors (
+  id uuid PK,
+  activity text,                -- 'shower', 'bath', 'laundry_load', etc.
+  water_gallons numeric,        -- gallons per occurrence
+  electric_kwh numeric,         -- kWh per occurrence (water heating, appliance)
+  gas_therms numeric,           -- therms per occurrence (if gas water heater)
+  notes text
+)
+```
+
+#### 5. Combined Scenario (User's Selection)
+```sql
+scenarios (
+  id uuid PK,
+  name text,
+  build_cost_model_id uuid FK,
+  water_utility_model_id uuid FK,
+  electric_utility_model_id uuid FK,
+  gas_utility_model_id uuid FK,
+  occupancy_model_id uuid FK,
+  lifestyle_model_id uuid FK,
+  finance_model_id uuid FK,
+  created_at timestamp
+)
+```
+
+### Implementation Phases
+
+**Phase 1: Occupancy Models** (Current)
+- Create `occupancy_models` table
+- Seed with sample data (single adult, couple, family with kids, etc.)
+- Add UI selector
+- No calculation impact yet (just data structure)
+
+**Phase 2: Lifestyle Models**
+- Create `lifestyle_models` table
+- Create `consumption_factors` reference table
+- Seed with presets (Low, Moderate, High consumption)
+- Build consumption calculation: Occupancy × Lifestyle → monthly usage
+
+**Phase 3: Utility Models**
+- Create `utility_models` table with tiered rate support
+- Seed with real utility rate data (Fort Collins area)
+- Build cost calculation: consumption × rates → monthly bills
+- Wire to O01-Utilities CE breakdown
+
+**Phase 4: Finance Models Enhancement**
+- Enhance existing `finance_models` table
+- Add mortgage calculator: home price × terms → F01-F03
+- Wire to Finance stage CEs
+
+**Phase 5: UI Integration**
+- Multi-selector component for all dimensions
+- Dashboard shows combined results
+- Scenario comparison view
+
+### Design Decisions
+
+1. **Tiered utility rates** - Use JSONB for flexibility; can model flat, tiered, time-of-use
+2. **Lifestyle as presets** - Admin creates presets; users choose from list (not custom entry)
+3. **Consumption factors** - Reference table allows updating assumptions without schema changes
+4. **Scenarios table** - One row per user scenario, FKs to each model dimension
+
+### Open Questions
+
+- Should utility models include seasonal variations?
+- How to handle homes without gas (all-electric)?
+- Should we model water heating fuel source (affects electric vs gas split)?
+
+---
+
 ## Future Enhancements Discussed
 
 - Custom domain setup (affordabilityexplorer.fcbsb.org)
 - Migration to IONOS if needed
+- **Multi-dimensional model architecture** (see section above)
 
 ---
 
@@ -309,10 +494,17 @@ Scenarios allow modeling different cost assumptions:
 ### Database Changes
 When you create migration SQL files:
 1. **Run the migration** - Use `loader/run_migration.py` or `loader/fix_migration.py` for data changes
-2. **DDL changes** (CREATE TABLE, ALTER TABLE) cannot be done via REST API. Either:
-   - Generate SQL and tell user to run in Supabase SQL Editor, OR
-   - Use `loader/add_new_columns.py` to generate the SQL
+2. **DDL changes** (CREATE TABLE, ALTER TABLE) - Use **Supabase CLI**:
+   ```bash
+   # Create migration file in supabase/migrations/
+   # Then push to remote:
+   supabase db push --linked
+
+   # If migrations were already applied via other means:
+   supabase migration repair --status applied <timestamp> --linked
+   ```
 3. **Verify** - Always verify the migration worked by querying the affected tables
+4. **DO NOT ask user to run SQL in Supabase SQL Editor** - Use CLI instead
 
 ### Frontend Changes
 When you modify frontend code:

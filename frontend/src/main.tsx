@@ -3,13 +3,16 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { ModelProvider } from './contexts/ModelContext'
+import { OccupancyProvider } from './contexts/OccupancyContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
       <ModelProvider>
-        <App />
+        <OccupancyProvider>
+          <App />
+        </OccupancyProvider>
       </ModelProvider>
     </BrowserRouter>
   </React.StrictMode>,

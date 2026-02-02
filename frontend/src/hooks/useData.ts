@@ -18,6 +18,7 @@ import type {
   Lever,
   BarrierLever,
   BarrierCro,
+  OccupancyModel,
 } from '../types/database'
 // BASELINE_SCENARIO_ID available if needed for fallback
 
@@ -512,4 +513,13 @@ export function useCrosForCostElement(ceId: string | null) {
   }, [ceId, selectedModelId, modelLoading])
 
   return state
+}
+
+// ============================================
+// MULTI-DIMENSIONAL MODEL HOOKS
+// ============================================
+
+// Occupancy Models (Phase 1 of Multi-Dimensional Model Architecture)
+export function useOccupancyModels() {
+  return useSupabaseQuery<OccupancyModel>('v_occupancy_models', 'sort_order')
 }
