@@ -451,29 +451,77 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Model Selectors Row */}
-        <div className="bg-white/60 rounded-lg p-4 mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-            <div className="bg-gray-100 rounded px-2 py-1 border border-gray-200">
-              <ModelSelector variant="default" label="Cost" />
+        {/* Model Selectors - Organized by Category */}
+        <div className="bg-white/70 rounded-lg p-5 mb-6 space-y-4">
+          {/* Row 1: Cost Model + Household Profile */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Cost Model */}
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                Cost Model
+              </label>
+              <ModelSelector variant="default" />
             </div>
-            <div className="bg-blue-50 rounded px-2 py-1 border border-blue-200">
-              <OccupancySelector variant="default" label="Household" />
+
+            {/* Occupancy */}
+            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+              <label className="block text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">
+                Household
+              </label>
+              <OccupancySelector variant="default" />
+              {selectedOccupancyModel && (
+                <p className="text-xs text-blue-500 mt-1">
+                  {selectedOccupancyModel.adults} adults, {selectedOccupancyModel.children} children
+                </p>
+              )}
             </div>
-            <div className="bg-green-50 rounded px-2 py-1 border border-green-200">
-              <LifestyleSelector variant="default" label="Lifestyle" />
+
+            {/* Lifestyle */}
+            <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+              <label className="block text-xs font-semibold text-green-600 uppercase tracking-wide mb-2">
+                Lifestyle
+              </label>
+              <LifestyleSelector variant="default" />
             </div>
-            <div className="bg-cyan-50 rounded px-2 py-1 border border-cyan-200">
-              <UtilitySelector utilityType="water" variant="default" label="Water" />
+          </div>
+
+          {/* Row 2: Utilities + Finance */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Water */}
+            <div className="bg-cyan-50 rounded-lg p-3 border border-cyan-200">
+              <label className="block text-xs font-semibold text-cyan-600 uppercase tracking-wide mb-2">
+                Water Utility
+              </label>
+              <UtilitySelector utilityType="water" variant="default" />
             </div>
-            <div className="bg-amber-50 rounded px-2 py-1 border border-amber-200">
-              <UtilitySelector utilityType="electric" variant="default" label="Electric" />
+
+            {/* Electric */}
+            <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
+              <label className="block text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">
+                Electric Utility
+              </label>
+              <UtilitySelector utilityType="electric" variant="default" />
             </div>
-            <div className="bg-orange-50 rounded px-2 py-1 border border-orange-200">
-              <UtilitySelector utilityType="gas" variant="default" label="Gas" />
+
+            {/* Gas */}
+            <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+              <label className="block text-xs font-semibold text-orange-600 uppercase tracking-wide mb-2">
+                Gas Utility
+              </label>
+              <UtilitySelector utilityType="gas" variant="default" />
             </div>
-            <div className="bg-purple-50 rounded px-2 py-1 border border-purple-200">
-              <FinanceSelector variant="default" label="Finance" />
+
+            {/* Finance */}
+            <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+              <label className="block text-xs font-semibold text-purple-600 uppercase tracking-wide mb-2">
+                Finance
+              </label>
+              <FinanceSelector variant="default" />
+              {selectedFinanceModel && selectedFinanceModel.loan_term_years > 0 && (
+                <p className="text-xs text-purple-500 mt-1">
+                  {(selectedFinanceModel.annual_interest_rate * 100).toFixed(2)}% @ {(selectedFinanceModel.down_payment_percent * 100).toFixed(0)}% down
+                </p>
+              )}
             </div>
           </div>
         </div>

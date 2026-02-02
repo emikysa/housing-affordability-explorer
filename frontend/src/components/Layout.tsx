@@ -1,10 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import ModelSelector from './ModelSelector'
-import OccupancySelector from './OccupancySelector'
-import LifestyleSelector from './LifestyleSelector'
-import UtilitySelector from './UtilitySelector'
-import FinanceSelector from './FinanceSelector'
+import ModelSummaryBar from './ModelSummaryBar'
 
 interface LayoutProps {
   children: ReactNode
@@ -22,8 +18,8 @@ const navItems = [
   { path: '/relationships', label: 'Relationships' },
 ]
 
-// Pages where we don't show the header model selector
-// (Dashboard has its own, Models page doesn't need one)
+// Pages where we don't show the header model summary
+// (Dashboard has its own full selectors, Models page doesn't need one)
 const pagesWithoutHeaderSelector = ['/', '/models']
 
 export default function Layout({ children }: LayoutProps) {
@@ -48,38 +44,8 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
 
-            {/* Model Selectors - shown on relevant pages with prominent styling */}
-            {showHeaderSelector && (
-              <div className="flex flex-col gap-2">
-                {/* Row 1: Cost Model, Occupancy, Lifestyle */}
-                <div className="flex items-center gap-2">
-                  <div className="bg-gray-100 rounded px-2 py-1 border border-gray-200">
-                    <ModelSelector variant="default" label="Cost" />
-                  </div>
-                  <div className="bg-blue-50 rounded px-2 py-1 border border-blue-200">
-                    <OccupancySelector variant="default" label="Occupancy" />
-                  </div>
-                  <div className="bg-green-50 rounded px-2 py-1 border border-green-200">
-                    <LifestyleSelector variant="default" label="Lifestyle" />
-                  </div>
-                </div>
-                {/* Row 2: Utility selectors + Finance */}
-                <div className="flex items-center gap-2">
-                  <div className="bg-cyan-50 rounded px-2 py-1 border border-cyan-200">
-                    <UtilitySelector utilityType="water" variant="default" label="Water" />
-                  </div>
-                  <div className="bg-amber-50 rounded px-2 py-1 border border-amber-200">
-                    <UtilitySelector utilityType="electric" variant="default" label="Electric" />
-                  </div>
-                  <div className="bg-orange-50 rounded px-2 py-1 border border-orange-200">
-                    <UtilitySelector utilityType="gas" variant="default" label="Gas" />
-                  </div>
-                  <div className="bg-purple-50 rounded px-2 py-1 border border-purple-200">
-                    <FinanceSelector variant="default" label="Finance" />
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Model Summary Bar - compact display with Configure button */}
+            {showHeaderSelector && <ModelSummaryBar />}
           </div>
         </div>
 
