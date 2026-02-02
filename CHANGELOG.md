@@ -4,6 +4,59 @@
 
 ---
 
+## 2026-02-02 (Session 15 continued) - Phase 4: Occupant Finance Models
+
+### Database: occupant_finance_models table
+Created mortgage presets for end-user housing affordability calculations:
+
+**Conventional Loans:**
+| Name | Code | Term | Rate | Down | PMI |
+|------|------|------|------|------|-----|
+| Conv 30-yr (20% down) | Conv30-20 | 30yr | 6.875% | 20% | None |
+| Conv 30-yr (10% down) | Conv30-10 | 30yr | 7.000% | 10% | 0.50% |
+| Conv 30-yr (5% down) | Conv30-5 | 30yr | 7.125% | 5% | 0.80% |
+| Conv 15-yr (20% down) | Conv15-20 | 15yr | 6.250% | 20% | None |
+| Conv 20-yr (20% down) | Conv20-20 | 20yr | 6.500% | 20% | None |
+
+**Government Loans:**
+| Name | Code | Term | Rate | Down | MIP |
+|------|------|------|------|------|-----|
+| FHA 30-yr (3.5% down) | FHA30 | 30yr | 6.625% | 3.5% | 0.85% |
+| FHA 30-yr (10% down) | FHA30-10 | 30yr | 6.500% | 10% | 0.80% |
+| VA 30-yr (0% down) | VA30 | 30yr | 6.375% | 0% | None |
+| USDA 30-yr (0% down) | USDA30 | 30yr | 6.500% | 0% | 0.35% |
+
+**Other:**
+| Name | Code | Description |
+|------|------|-------------|
+| Cash Purchase | Cash | All-cash, no mortgage |
+
+### Database Function: calculate_mortgage_payment()
+PostgreSQL function that returns:
+- loan_amount, down_payment
+- monthly_principal_interest, monthly_pmi
+- total_monthly_payment
+- closing_costs, total_cash_needed
+
+### Frontend
+- `FinanceContext.tsx` - Global state for finance model selection
+- `FinanceSelector.tsx` - Dropdown in header (purple background)
+- `useOccupantFinanceModels` hook
+- TypeScript types: `OccupantFinanceModel`, `MortgagePaymentResult`
+
+### UI Header - Now 7 selectors in 2 rows:
+Row 1: Cost (gray) | Occupancy (blue) | Lifestyle (green)
+Row 2: Water (cyan) | Electric (amber) | Gas (orange) | Finance (purple)
+
+### Files Created
+- `supabase/migrations/20260202130000_finance_model_presets.sql`
+- `frontend/src/contexts/FinanceContext.tsx`
+- `frontend/src/components/FinanceSelector.tsx`
+
+### Deployed: Yes (Vercel auto-deploy)
+
+---
+
 ## 2026-02-02 (Session 15 continued) - Phase 3: Utility Models
 
 ### Database: utility_models table

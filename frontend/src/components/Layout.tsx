@@ -4,6 +4,7 @@ import ModelSelector from './ModelSelector'
 import OccupancySelector from './OccupancySelector'
 import LifestyleSelector from './LifestyleSelector'
 import UtilitySelector from './UtilitySelector'
+import FinanceSelector from './FinanceSelector'
 
 interface LayoutProps {
   children: ReactNode
@@ -62,7 +63,7 @@ export default function Layout({ children }: LayoutProps) {
                     <LifestyleSelector variant="default" label="Lifestyle" />
                   </div>
                 </div>
-                {/* Row 2: Utility selectors */}
+                {/* Row 2: Utility selectors + Finance */}
                 <div className="flex items-center gap-2">
                   <div className="bg-cyan-50 rounded px-2 py-1 border border-cyan-200">
                     <UtilitySelector utilityType="water" variant="default" label="Water" />
@@ -72,6 +73,9 @@ export default function Layout({ children }: LayoutProps) {
                   </div>
                   <div className="bg-orange-50 rounded px-2 py-1 border border-orange-200">
                     <UtilitySelector utilityType="gas" variant="default" label="Gas" />
+                  </div>
+                  <div className="bg-purple-50 rounded px-2 py-1 border border-purple-200">
+                    <FinanceSelector variant="default" label="Finance" />
                   </div>
                 </div>
               </div>

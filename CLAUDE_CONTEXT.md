@@ -462,14 +462,17 @@ scenarios (
 - ✓ `UtilityContext` + `UtilitySelector` component (cyan/amber/orange backgrounds)
 - ✓ Header now has 2 rows of selectors (6 total)
 
-**Phase 4: Finance Models Enhancement** (Next)
-- Enhance existing `finance_models` table
-- Add mortgage calculator: home price × terms → F01-F03
-- Wire to Finance stage CEs
+**Phase 4: Finance Models Enhancement** (COMPLETE - 2026-02-02)
+- ✓ `occupant_finance_models` table (separate from dev finance_models)
+- ✓ 10 mortgage presets: Conventional (30/20/15-year), FHA, VA, USDA, Cash
+- ✓ `calculate_mortgage_payment()` PostgreSQL function
+- ✓ Includes PMI, down payment, closing costs, loan terms
+- ✓ `FinanceContext` + `FinanceSelector` (purple background)
+- ✓ Header now has 7 selectors in 2 rows
 
-**Phase 5: UI Integration**
+**Phase 5: UI Integration** (Next)
 - Multi-selector component for all dimensions
-- Dashboard shows combined results
+- Dashboard shows combined results from all selected models
 - Scenario comparison view
 
 ### Design Decisions

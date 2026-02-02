@@ -598,3 +598,37 @@ export interface UtilityModel {
   created_at: string
   updated_at: string
 }
+
+// Occupant Finance Models (Multi-Dimensional Model Architecture - Phase 4)
+export interface OccupantFinanceModel {
+  id: string
+  name: string
+  short_code: string | null
+  description: string | null
+  loan_term_years: number
+  annual_interest_rate: number        // Decimal: 0.06875 = 6.875%
+  down_payment_percent: number        // Decimal: 0.20 = 20%
+  min_down_payment_percent: number | null
+  pmi_rate: number                    // Annual PMI rate as decimal
+  pmi_threshold: number               // Equity % where PMI drops off
+  closing_cost_percent: number        // Buyer closing costs as % of price
+  loan_type: 'conventional' | 'fha' | 'va' | 'usda' | 'cash' | string
+  is_adjustable: boolean
+  effective_date: string
+  source_description: string | null
+  notes: string | null
+  sort_order: number | null
+  created_at: string
+  updated_at: string
+}
+
+// Mortgage Payment Calculation Result
+export interface MortgagePaymentResult {
+  loan_amount: number
+  down_payment: number
+  monthly_principal_interest: number
+  monthly_pmi: number
+  total_monthly_payment: number
+  closing_costs: number
+  total_cash_needed: number
+}

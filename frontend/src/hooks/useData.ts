@@ -22,6 +22,7 @@ import type {
   LifestyleModel,
   ConsumptionFactor,
   UtilityModel,
+  OccupantFinanceModel,
 } from '../types/database'
 // BASELINE_SCENARIO_ID available if needed for fallback
 
@@ -552,4 +553,9 @@ export function useGasUtilityModels() {
 
 export function useAllUtilityModels() {
   return useSupabaseQuery<UtilityModel>('v_utility_models', 'sort_order')
+}
+
+// Occupant Finance Models (Phase 4 of Multi-Dimensional Model Architecture)
+export function useOccupantFinanceModels() {
+  return useSupabaseQuery<OccupantFinanceModel>('v_occupant_finance_models', 'sort_order')
 }

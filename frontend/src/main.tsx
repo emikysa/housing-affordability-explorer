@@ -6,6 +6,7 @@ import { ModelProvider } from './contexts/ModelContext'
 import { OccupancyProvider } from './contexts/OccupancyContext'
 import { LifestyleProvider } from './contexts/LifestyleContext'
 import { UtilityProvider } from './contexts/UtilityContext'
+import { FinanceProvider } from './contexts/FinanceContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -15,7 +16,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <OccupancyProvider>
           <LifestyleProvider>
             <UtilityProvider>
-              <App />
+              <FinanceProvider>
+                <App />
+              </FinanceProvider>
             </UtilityProvider>
           </LifestyleProvider>
         </OccupancyProvider>
