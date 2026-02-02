@@ -4,6 +4,58 @@
 
 ---
 
+## 2026-02-02 (Session 15 continued) - Phase 3: Utility Models
+
+### Database: utility_models table
+Created utility rate structures with tiered pricing support:
+
+**Water Utilities:**
+| Provider | Code | Base Fee | Tier 1 Rate |
+|----------|------|----------|-------------|
+| Fort Collins Utilities | FCU-W | $12.50/mo | $0.00425/gal |
+| Fort Collins Loveland WD | FCLWD | $18.00/mo | $0.00475/gal |
+| East Larimer County WD | ELCO | $15.00/mo | $0.00500/gal |
+
+**Electric Utilities:**
+| Provider | Code | Base Fee | Tier 1 Rate |
+|----------|------|----------|-------------|
+| Fort Collins Utilities | FCU-E | $8.50/mo | $0.0725/kWh |
+| Poudre Valley REA | PVREA | $22.00/mo | $0.0850/kWh |
+| Xcel Energy | XCEL-E | $10.25/mo | $0.0795/kWh |
+
+**Gas Utilities:**
+| Provider | Code | Base Fee | Tier 1 Rate |
+|----------|------|----------|-------------|
+| Xcel Energy | XCEL-G | $12.00/mo | $0.65/therm |
+| Atmos Energy | ATMOS | $10.50/mo | $0.68/therm |
+| No Gas Service | NONE | $0 | - |
+
+### Database Function: calculate_utility_cost()
+PostgreSQL function that calculates monthly cost given:
+- Utility model ID
+- Consumption amount
+- Is summer (for seasonal multipliers)
+Handles tiered rates stored as JSONB arrays.
+
+### Frontend
+- `UtilityContext.tsx` - Manages water, electric, gas selections
+- `UtilitySelector.tsx` - Single component for all 3 utility types
+- Hooks: `useWaterUtilityModels`, `useElectricUtilityModels`, `useGasUtilityModels`
+- TypeScript types: `UtilityModel`, `UtilityRateTier`
+
+### UI Header - Now 2 rows of selectors:
+Row 1: Cost (gray) | Occupancy (blue) | Lifestyle (green)
+Row 2: Water (cyan) | Electric (amber) | Gas (orange)
+
+### Files Created
+- `supabase/migrations/20260202120000_utility_models.sql`
+- `frontend/src/contexts/UtilityContext.tsx`
+- `frontend/src/components/UtilitySelector.tsx`
+
+### Deployed: Yes (Vercel auto-deploy)
+
+---
+
 ## 2026-02-02 (Session 15 continued) - Phase 2: Lifestyle Models
 
 ### Database: lifestyle_models table

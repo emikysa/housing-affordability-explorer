@@ -21,6 +21,7 @@ import type {
   OccupancyModel,
   LifestyleModel,
   ConsumptionFactor,
+  UtilityModel,
 } from '../types/database'
 // BASELINE_SCENARIO_ID available if needed for fallback
 
@@ -534,4 +535,21 @@ export function useLifestyleModels() {
 // Consumption Factors (Reference data for Phase 2)
 export function useConsumptionFactors() {
   return useSupabaseQuery<ConsumptionFactor>('consumption_factors', 'sort_order')
+}
+
+// Utility Models (Phase 3 of Multi-Dimensional Model Architecture)
+export function useWaterUtilityModels() {
+  return useSupabaseQuery<UtilityModel>('v_water_utility_models', 'sort_order')
+}
+
+export function useElectricUtilityModels() {
+  return useSupabaseQuery<UtilityModel>('v_electric_utility_models', 'sort_order')
+}
+
+export function useGasUtilityModels() {
+  return useSupabaseQuery<UtilityModel>('v_gas_utility_models', 'sort_order')
+}
+
+export function useAllUtilityModels() {
+  return useSupabaseQuery<UtilityModel>('v_utility_models', 'sort_order')
 }

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import ModelSelector from './ModelSelector'
 import OccupancySelector from './OccupancySelector'
 import LifestyleSelector from './LifestyleSelector'
+import UtilitySelector from './UtilitySelector'
 
 interface LayoutProps {
   children: ReactNode
@@ -48,15 +49,30 @@ export default function Layout({ children }: LayoutProps) {
 
             {/* Model Selectors - shown on relevant pages with prominent styling */}
             {showHeaderSelector && (
-              <div className="flex items-center gap-3">
-                <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
-                  <ModelSelector variant="prominent" label="Cost Model" />
+              <div className="flex flex-col gap-2">
+                {/* Row 1: Cost Model, Occupancy, Lifestyle */}
+                <div className="flex items-center gap-2">
+                  <div className="bg-gray-100 rounded px-2 py-1 border border-gray-200">
+                    <ModelSelector variant="default" label="Cost" />
+                  </div>
+                  <div className="bg-blue-50 rounded px-2 py-1 border border-blue-200">
+                    <OccupancySelector variant="default" label="Occupancy" />
+                  </div>
+                  <div className="bg-green-50 rounded px-2 py-1 border border-green-200">
+                    <LifestyleSelector variant="default" label="Lifestyle" />
+                  </div>
                 </div>
-                <div className="bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
-                  <OccupancySelector variant="prominent" label="Occupancy" />
-                </div>
-                <div className="bg-green-50 rounded-lg px-3 py-2 border border-green-200">
-                  <LifestyleSelector variant="prominent" label="Lifestyle" />
+                {/* Row 2: Utility selectors */}
+                <div className="flex items-center gap-2">
+                  <div className="bg-cyan-50 rounded px-2 py-1 border border-cyan-200">
+                    <UtilitySelector utilityType="water" variant="default" label="Water" />
+                  </div>
+                  <div className="bg-amber-50 rounded px-2 py-1 border border-amber-200">
+                    <UtilitySelector utilityType="electric" variant="default" label="Electric" />
+                  </div>
+                  <div className="bg-orange-50 rounded px-2 py-1 border border-orange-200">
+                    <UtilitySelector utilityType="gas" variant="default" label="Gas" />
+                  </div>
                 </div>
               </div>
             )}

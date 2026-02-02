@@ -453,13 +453,16 @@ scenarios (
 - ✓ `LifestyleContext` + `LifestyleSelector` in header (green background)
 - ✓ `useLifestyleModels` and `useConsumptionFactors` hooks
 
-**Phase 3: Utility Models** (Next)
-- Create `utility_models` table with tiered rate support
-- Seed with real utility rate data (Fort Collins area)
-- Build cost calculation: consumption × rates → monthly bills
-- Wire to O01-Utilities CE breakdown
+**Phase 3: Utility Models** (COMPLETE - 2026-02-02)
+- ✓ `utility_models` table with tiered rate support (JSONB rate_tiers)
+- ✓ Water: FCU, FCLWD, ELCO (3 providers)
+- ✓ Electric: FCU, Poudre Valley REA, Xcel (3 providers)
+- ✓ Gas: Xcel, Atmos, "No Gas Service" option (3 providers)
+- ✓ `calculate_utility_cost()` PostgreSQL function for tiered rate calculation
+- ✓ `UtilityContext` + `UtilitySelector` component (cyan/amber/orange backgrounds)
+- ✓ Header now has 2 rows of selectors (6 total)
 
-**Phase 4: Finance Models Enhancement**
+**Phase 4: Finance Models Enhancement** (Next)
 - Enhance existing `finance_models` table
 - Add mortgage calculator: home price × terms → F01-F03
 - Wire to Finance stage CEs

@@ -569,3 +569,32 @@ export interface ConsumptionFactor {
   sort_order: number | null
   created_at: string
 }
+
+// Utility Rate Tier (for tiered pricing)
+export interface UtilityRateTier {
+  max_units: number | null  // null means unlimited
+  rate: number
+}
+
+// Utility Models (Multi-Dimensional Model Architecture - Phase 3)
+export interface UtilityModel {
+  id: string
+  utility_type: 'water' | 'electric' | 'gas'
+  provider_name: string
+  provider_code: string | null
+  description: string | null
+  service_area: string | null
+  base_monthly_fee: number
+  rate_tiers: UtilityRateTier[]
+  unit_name: string
+  unit_display: string | null
+  has_seasonal_rates: boolean
+  summer_multiplier: number
+  winter_multiplier: number
+  effective_date: string
+  source_url: string | null
+  notes: string | null
+  sort_order: number | null
+  created_at: string
+  updated_at: string
+}

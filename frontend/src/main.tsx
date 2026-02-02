@@ -5,6 +5,7 @@ import App from './App'
 import { ModelProvider } from './contexts/ModelContext'
 import { OccupancyProvider } from './contexts/OccupancyContext'
 import { LifestyleProvider } from './contexts/LifestyleContext'
+import { UtilityProvider } from './contexts/UtilityContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <ModelProvider>
         <OccupancyProvider>
           <LifestyleProvider>
-            <App />
+            <UtilityProvider>
+              <App />
+            </UtilityProvider>
           </LifestyleProvider>
         </OccupancyProvider>
       </ModelProvider>
