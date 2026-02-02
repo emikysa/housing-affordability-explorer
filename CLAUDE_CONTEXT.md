@@ -314,6 +314,7 @@ Scenarios allow modeling different cost assumptions:
 ### Version Stamp
 - **Every page displays a build timestamp** next to the page title (e.g., `Dashboard ver. 2026-02-02-1215T`)
 - Format: `ver. YYYY-MM-DD-HHmmT` (year-month-day-hourminuteT)
+- **Timezone: US Mountain Time (America/Denver)** - configured in `vite.config.ts`
 - Generated at build time via `vite.config.ts` → `import.meta.env.VITE_BUILD_TIME`
 - Component: `frontend/src/components/VersionStamp.tsx`
 - **Purpose:** Helps verify deployments succeeded and cache isn't stale
@@ -322,6 +323,7 @@ Scenarios allow modeling different cost assumptions:
   - Every page must have `<VersionStamp />` after the `<h1>` title
   - When creating new pages, always include the VersionStamp
   - The stamp updates automatically on deploy - no manual version bumping needed
+  - Always use US Mountain Time (America/Denver) for timestamps
 
 ---
 

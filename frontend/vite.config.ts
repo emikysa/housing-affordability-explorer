@@ -1,14 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Generate build timestamp in format: 2026-02-02-1011T
+// Generate build timestamp in format: 2026-02-02-1011T (US Mountain Time)
 function getBuildTime() {
   const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  const hours = String(now.getHours()).padStart(2, '0')
-  const minutes = String(now.getMinutes()).padStart(2, '0')
+  // Convert to Mountain Time (America/Denver)
+  const mountainTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Denver' }))
+  const year = mountainTime.getFullYear()
+  const month = String(mountainTime.getMonth() + 1).padStart(2, '0')
+  const day = String(mountainTime.getDate()).padStart(2, '0')
+  const hours = String(mountainTime.getHours()).padStart(2, '0')
+  const minutes = String(mountainTime.getMinutes()).padStart(2, '0')
   return `${year}-${month}-${day}-${hours}${minutes}T`
 }
 
