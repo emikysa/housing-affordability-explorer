@@ -4,6 +4,7 @@ import DataGrid, { currencyFormatter, BadgeRenderer, BooleanRenderer } from '../
 import FilterBar from '../components/FilterBar'
 import FilterToggle from '../components/FilterToggle'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
+import VersionStamp from '../components/VersionStamp'
 import { useCostReductionOpportunities, useStages, useBarriersByCro, useCroImpacts } from '../hooks/useData'
 import type { CostReductionOpportunity } from '../types/database'
 
@@ -131,7 +132,7 @@ export default function Opportunities() {
       {/* Page Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Cost Reduction Opportunities</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Cost Reduction Opportunities<VersionStamp /></h1>
           <p className="mt-1 text-gray-500">
             Ways to reduce housing costs and their potential impact
           </p>

@@ -15,6 +15,7 @@ import {
 } from 'recharts'
 import StatCard from '../components/StatCard'
 import ModelSelector from '../components/ModelSelector'
+import VersionStamp from '../components/VersionStamp'
 import { useMasterCounts, useSummaryStats, useCostElements, useBarriers } from '../hooks/useData'
 
 const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6366f1']
@@ -201,7 +202,7 @@ export default function Dashboard() {
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard<VersionStamp /></h1>
         <p className="mt-1 text-gray-500">
           Overview of housing costs, reduction opportunities, and barriers
         </p>

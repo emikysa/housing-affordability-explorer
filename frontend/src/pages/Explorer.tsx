@@ -20,6 +20,7 @@ import type {
   BarrierLever,
 } from '../types/database'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
+import VersionStamp from '../components/VersionStamp'
 
 type SelectionType = 'ce' | 'cro' | 'barrier' | 'lever' | 'actor' | null
 type SelectedItem = {
@@ -349,7 +350,7 @@ export default function Explorer() {
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Explorer</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Explorer<VersionStamp /></h1>
           <p className="mt-1 text-gray-500">
             Click any item to filter related elements across all columns. Click again to clear.
           </p>

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import type { ColDef } from 'ag-grid-community'
 import DataGrid, { currencyFormatter, BadgeRenderer } from '../components/DataGrid'
 import FilterBar from '../components/FilterBar'
+import VersionStamp from '../components/VersionStamp'
 import { useCroImpacts, useActorControls } from '../hooks/useData'
 import type { CroImpact, ActorControl } from '../types/database'
 
@@ -144,7 +145,7 @@ export default function Relationships() {
     <div className="space-y-4">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Relationships</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Relationships<VersionStamp /></h1>
         <p className="mt-1 text-gray-500">
           Explore connections between cost elements, reduction opportunities, and actors
         </p>

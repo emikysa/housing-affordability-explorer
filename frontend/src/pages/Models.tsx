@@ -4,6 +4,7 @@ import { useModel } from '../contexts/ModelContext'
 import type { Scenario, CostElement, CostReductionOpportunity } from '../types/database'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
 import { BadgeRenderer } from '../components/DataGrid'
+import VersionStamp from '../components/VersionStamp'
 
 // Model is the user-facing name for what the database calls "scenario"
 type Model = Scenario
@@ -129,7 +130,7 @@ export default function Models() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Models</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Models<VersionStamp /></h1>
         <p className="mt-1 text-gray-500">
           View and compare different housing cost models. Click a model to see its detailed data.
         </p>
