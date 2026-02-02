@@ -1,18 +1,21 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useModel } from '../contexts/ModelContext'
 import { useOccupancy } from '../contexts/OccupancyContext'
 import { useLifestyle } from '../contexts/LifestyleContext'
 import { useUtility } from '../contexts/UtilityContext'
 import { useFinance } from '../contexts/FinanceContext'
+import { useCostElements, useSummaryStats } from '../hooks/useData'
 import type {
   Scenario,
   OccupancyModel,
   LifestyleModel,
   UtilityModel,
   OccupantFinanceModel,
+  CostElement,
 } from '../types/database'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
 import VersionStamp from '../components/VersionStamp'
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 
 // Tab configuration
 type ModelTab = 'cost' | 'occupancy' | 'lifestyle' | 'utility' | 'finance'
@@ -69,6 +72,148 @@ export default function Models() {
     if (value == null) return '-'
     return `$${value.toFixed(decimals)}`
   }
+
+  // Fetch cost elements for the currently selected cost model
+  const { data: costElements } = useCostElements()
+  const { data: summaryStats } = useSummaryStats()
+
+  // Group cost elements by stage
+  const costElementsByStage = useMemo(() => {
+    const grouped: Record<string, CostElement[]> = {}
+    costElements.forEach(ce => {
+      const stage = ce.stage_id || 'Other'
+      if (!grouped[stage]) grouped[stage] = []
+      grouped[stage].push(ce)
+    })
+    // Sort within each stage
+    Object.values(grouped).forEach(arr => arr.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)))
+    return grouped
+  }, [costElements])
+
+  // TSV Export helper
+  const downloadTsv = useCallback((filename: string, headers: string[], rows: (string | number | null | undefined)[][]) => {
+    const escapeField = (field: string | number | null | undefined) => {
+      if (field == null) return ''
+      const str = String(field)
+      // Escape tabs and newlines
+      return str.replace(/\t/g, ' ').replace(/\n/g, ' ')
+    }
+    const tsvContent = [
+      headers.join('\t'),
+      ...rows.map(row => row.map(escapeField).join('\t'))
+    ].join('\n')
+
+    const blob = new Blob([tsvContent], { type: 'text/tab-separated-values' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }, [])
+
+  // Export cost model as TSV
+  const exportCostModelTsv = useCallback(() => {
+    if (!selectedCostModel) return
+    const headers = ['ce_id', 'description', 'stage_id', 'estimate', 'annual_estimate', 'unit', 'cadence', 'notes', 'assumptions']
+    const rows = costElements.map(ce => [
+      ce.ce_id,
+      ce.description,
+      ce.stage_id,
+      ce.estimate,
+      ce.annual_estimate,
+      ce.unit,
+      ce.cadence,
+      ce.notes,
+      ce.assumptions
+    ])
+    downloadTsv(`cost_model_${selectedCostModel.name.replace(/\s+/g, '_')}.tsv`, headers, rows)
+  }, [selectedCostModel, costElements, downloadTsv])
+
+  // Export occupancy model as TSV
+  const exportOccupancyModelTsv = useCallback(() => {
+    if (!selectedOccupancyModel) return
+    const headers = ['field', 'value']
+    const rows = [
+      ['name', selectedOccupancyModel.name],
+      ['description', selectedOccupancyModel.description],
+      ['adults', selectedOccupancyModel.adults],
+      ['children', selectedOccupancyModel.children],
+      ['total_occupants', selectedOccupancyModel.total_occupants],
+    ]
+    downloadTsv(`occupancy_${selectedOccupancyModel.name.replace(/\s+/g, '_')}.tsv`, headers, rows)
+  }, [selectedOccupancyModel, downloadTsv])
+
+  // Export lifestyle model as TSV
+  const exportLifestyleModelTsv = useCallback(() => {
+    if (!selectedLifestyleModel) return
+    const headers = ['field', 'value']
+    const rows = [
+      ['name', selectedLifestyleModel.name],
+      ['description', selectedLifestyleModel.description],
+      ['showers_per_week', selectedLifestyleModel.showers_per_week],
+      ['baths_per_week', selectedLifestyleModel.baths_per_week],
+      ['laundry_loads_per_week', selectedLifestyleModel.laundry_loads_per_week],
+      ['dishwasher_loads_per_week', selectedLifestyleModel.dishwasher_loads_per_week],
+      ['hand_wash_dishes_per_day', selectedLifestyleModel.hand_wash_dishes_per_day],
+      ['toilet_flushes_per_day', selectedLifestyleModel.toilet_flushes_per_day],
+      ['meals_cooked_per_day', selectedLifestyleModel.meals_cooked_per_day],
+      ['tv_hours_per_day', selectedLifestyleModel.tv_hours_per_day],
+      ['computer_hours_per_day', selectedLifestyleModel.computer_hours_per_day],
+      ['lighting_hours_per_day', selectedLifestyleModel.lighting_hours_per_day],
+      ['heating_multiplier', selectedLifestyleModel.heating_multiplier],
+      ['cooling_multiplier', selectedLifestyleModel.cooling_multiplier],
+    ]
+    downloadTsv(`lifestyle_${selectedLifestyleModel.name.replace(/\s+/g, '_')}.tsv`, headers, rows)
+  }, [selectedLifestyleModel, downloadTsv])
+
+  // Export utility model as TSV
+  const exportUtilityModelTsv = useCallback(() => {
+    if (!selectedUtilityModel) return
+    const headers = ['field', 'value']
+    const rows: (string | number | null | undefined)[][] = [
+      ['provider_name', selectedUtilityModel.provider_name],
+      ['provider_code', selectedUtilityModel.provider_code],
+      ['utility_type', selectedUtilityModel.utility_type],
+      ['service_area', selectedUtilityModel.service_area],
+      ['description', selectedUtilityModel.description],
+      ['base_monthly_fee', selectedUtilityModel.base_monthly_fee],
+      ['unit_name', selectedUtilityModel.unit_name],
+      ['has_seasonal_rates', selectedUtilityModel.has_seasonal_rates ? 'true' : 'false'],
+      ['summer_multiplier', selectedUtilityModel.summer_multiplier],
+      ['winter_multiplier', selectedUtilityModel.winter_multiplier],
+    ]
+    // Add tiered rates
+    if (selectedUtilityModel.rate_tiers) {
+      selectedUtilityModel.rate_tiers.forEach((tier, idx) => {
+        rows.push([`tier_${idx + 1}_max_units`, tier.max_units])
+        rows.push([`tier_${idx + 1}_rate`, tier.rate])
+      })
+    }
+    downloadTsv(`utility_${selectedUtilityModel.provider_code || 'model'}.tsv`, headers, rows)
+  }, [selectedUtilityModel, downloadTsv])
+
+  // Export finance model as TSV
+  const exportFinanceModelTsv = useCallback(() => {
+    if (!selectedFinanceModel) return
+    const headers = ['field', 'value']
+    const rows = [
+      ['name', selectedFinanceModel.name],
+      ['short_code', selectedFinanceModel.short_code],
+      ['loan_type', selectedFinanceModel.loan_type],
+      ['description', selectedFinanceModel.description],
+      ['loan_term_years', selectedFinanceModel.loan_term_years],
+      ['annual_interest_rate', selectedFinanceModel.annual_interest_rate],
+      ['down_payment_percent', selectedFinanceModel.down_payment_percent],
+      ['min_down_payment_percent', selectedFinanceModel.min_down_payment_percent],
+      ['pmi_rate', selectedFinanceModel.pmi_rate],
+      ['pmi_threshold', selectedFinanceModel.pmi_threshold],
+      ['closing_cost_percent', selectedFinanceModel.closing_cost_percent],
+    ]
+    downloadTsv(`finance_${selectedFinanceModel.short_code || 'model'}.tsv`, headers, rows)
+  }, [selectedFinanceModel, downloadTsv])
 
   // Get utility models for current sub-tab
   const currentUtilityModels = useMemo(() => {
@@ -557,14 +702,77 @@ export default function Models() {
         <>
           <Backdrop onClick={closeAllPanels} />
           <DetailPanel title={selectedCostModel.name} onClose={closeAllPanels}>
-            <DetailSection title="Cost Model Details">
-              <DetailItem label="Name" value={selectedCostModel.name} />
-              <DetailItem label="Description" value={selectedCostModel.description} />
-              {selectedCostModel.parent_scenario_name && (
-                <DetailItem label="Based On" value={selectedCostModel.parent_scenario_name} />
-              )}
-              <DetailItem label="Baseline" value={selectedCostModel.is_baseline ? 'Yes' : 'No'} />
-            </DetailSection>
+            <div className="flex justify-between items-center mb-4">
+              <DetailSection title="Cost Model Details">
+                <DetailItem label="Name" value={selectedCostModel.name} />
+                <DetailItem label="Description" value={selectedCostModel.description} />
+                {selectedCostModel.parent_scenario_name && (
+                  <DetailItem label="Based On" value={selectedCostModel.parent_scenario_name} />
+                )}
+                <DetailItem label="Baseline" value={selectedCostModel.is_baseline ? 'Yes' : 'No'} />
+              </DetailSection>
+            </div>
+
+            {/* Summary Stats */}
+            {summaryStats && (
+              <DetailSection title="Summary Totals">
+                <div className="grid grid-cols-3 gap-4 mb-2">
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-blue-600 uppercase">One-Time</p>
+                    <p className="text-lg font-bold text-blue-700">{formatCurrency(summaryStats.total_onetime_costs)}</p>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <p className="text-xs text-green-600 uppercase">Annual</p>
+                    <p className="text-lg font-bold text-green-700">{formatCurrency(summaryStats.total_annual_costs)}</p>
+                  </div>
+                  <div className="text-center p-3 bg-amber-50 rounded-lg">
+                    <p className="text-xs text-amber-600 uppercase">CRO Savings</p>
+                    <p className="text-lg font-bold text-amber-700">{formatCurrency(summaryStats.total_potential_savings)}</p>
+                  </div>
+                </div>
+              </DetailSection>
+            )}
+
+            {/* Cost Elements by Stage */}
+            {Object.entries(costElementsByStage).map(([stage, elements]) => (
+              <DetailSection key={stage} title={`${stage} Stage (${elements.length} items)`}>
+                <div className="max-h-64 overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-white">
+                      <tr className="border-b">
+                        <th className="text-left py-1 px-2 font-medium text-gray-600">ID</th>
+                        <th className="text-left py-1 px-2 font-medium text-gray-600">Description</th>
+                        <th className="text-right py-1 px-2 font-medium text-gray-600">Estimate</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {elements.map(ce => (
+                        <tr key={ce.ce_id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-1 px-2 font-mono text-xs text-gray-500">{ce.ce_id}</td>
+                          <td className="py-1 px-2 text-gray-700 truncate max-w-[200px]" title={ce.description}>
+                            {ce.description}
+                          </td>
+                          <td className="py-1 px-2 text-right font-medium">
+                            {ce.estimate ? formatCurrency(ce.estimate) : ce.annual_estimate ? `${formatCurrency(ce.annual_estimate)}/yr` : '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </DetailSection>
+            ))}
+
+            {/* Export Button */}
+            <div className="mt-4 pt-4 border-t">
+              <button
+                onClick={exportCostModelTsv}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                Export as TSV
+              </button>
+            </div>
           </DetailPanel>
         </>
       )}
@@ -580,6 +788,16 @@ export default function Models() {
               <DetailItem label="Children" value={selectedOccupancyModel.children} />
               <DetailItem label="Total Occupants" value={selectedOccupancyModel.total_occupants} />
             </DetailSection>
+            {/* Export Button */}
+            <div className="mt-4 pt-4 border-t">
+              <button
+                onClick={exportOccupancyModelTsv}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                Export as TSV
+              </button>
+            </div>
           </DetailPanel>
         </>
       )}
@@ -597,6 +815,7 @@ export default function Models() {
               <DetailItem label="Baths per week" value={`${selectedLifestyleModel.baths_per_week} per person`} />
               <DetailItem label="Laundry loads/week" value={selectedLifestyleModel.laundry_loads_per_week} />
               <DetailItem label="Dishwasher loads/week" value={selectedLifestyleModel.dishwasher_loads_per_week} />
+              <DetailItem label="Hand wash dishes/day" value={selectedLifestyleModel.hand_wash_dishes_per_day} />
               <DetailItem label="Toilet flushes/day" value={`${selectedLifestyleModel.toilet_flushes_per_day} per person`} />
             </DetailSection>
             <DetailSection title="Energy Usage">
@@ -607,6 +826,16 @@ export default function Models() {
               <DetailItem label="Heating multiplier" value={`${selectedLifestyleModel.heating_multiplier}x`} />
               <DetailItem label="Cooling multiplier" value={`${selectedLifestyleModel.cooling_multiplier}x`} />
             </DetailSection>
+            {/* Export Button */}
+            <div className="mt-4 pt-4 border-t">
+              <button
+                onClick={exportLifestyleModelTsv}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                Export as TSV
+              </button>
+            </div>
           </DetailPanel>
         </>
       )}
@@ -650,6 +879,16 @@ export default function Models() {
                 <DetailItem label="Winter Multiplier" value={`${selectedUtilityModel.winter_multiplier}x`} />
               </DetailSection>
             )}
+            {/* Export Button */}
+            <div className="mt-4 pt-4 border-t">
+              <button
+                onClick={exportUtilityModelTsv}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                Export as TSV
+              </button>
+            </div>
           </DetailPanel>
         </>
       )}
@@ -681,6 +920,16 @@ export default function Models() {
                 <DetailItem label="PMI Drops at" value={formatPercent(selectedFinanceModel.pmi_threshold)} />
               </DetailSection>
             )}
+            {/* Export Button */}
+            <div className="mt-4 pt-4 border-t">
+              <button
+                onClick={exportFinanceModelTsv}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                Export as TSV
+              </button>
+            </div>
           </DetailPanel>
         </>
       )}
