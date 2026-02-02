@@ -451,79 +451,123 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Model Selectors - Organized by Category */}
-        <div className="bg-white/70 rounded-lg p-5 mb-6 space-y-4">
-          {/* Row 1: Cost Model + Household Profile */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Cost Model */}
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Cost Model
-              </label>
-              <ModelSelector variant="default" />
-            </div>
+        {/* Model Selectors Table */}
+        <div className="bg-white rounded-lg border border-gray-200 mb-6 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide w-32">Model</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Selection</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide w-64">Details</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {/* Cost Model */}
+              <tr className="hover:bg-gray-50">
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-gray-700">Cost Model</span>
+                </td>
+                <td className="px-4 py-3">
+                  <ModelSelector variant="default" />
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-500">
+                  {stats ? `$${(stats.total_onetime_costs / 1000).toFixed(0)}k build cost` : 'Loading...'}
+                </td>
+              </tr>
 
-            {/* Occupancy */}
-            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-              <label className="block text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">
-                Household
-              </label>
-              <OccupancySelector variant="default" />
-              {selectedOccupancyModel && (
-                <p className="text-xs text-blue-500 mt-1">
-                  {selectedOccupancyModel.adults} adults, {selectedOccupancyModel.children} children
-                </p>
-              )}
-            </div>
+              {/* Household */}
+              <tr className="hover:bg-blue-50/50 bg-blue-50/30">
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-blue-700">Household</span>
+                </td>
+                <td className="px-4 py-3">
+                  <OccupancySelector variant="default" />
+                </td>
+                <td className="px-4 py-3 text-sm text-blue-600">
+                  {selectedOccupancyModel
+                    ? `${selectedOccupancyModel.adults} adult${selectedOccupancyModel.adults !== 1 ? 's' : ''}, ${selectedOccupancyModel.children} child${selectedOccupancyModel.children !== 1 ? 'ren' : ''}`
+                    : '-'}
+                </td>
+              </tr>
 
-            {/* Lifestyle */}
-            <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-              <label className="block text-xs font-semibold text-green-600 uppercase tracking-wide mb-2">
-                Lifestyle
-              </label>
-              <LifestyleSelector variant="default" />
-            </div>
-          </div>
+              {/* Lifestyle */}
+              <tr className="hover:bg-green-50/50 bg-green-50/30">
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-green-700">Lifestyle</span>
+                </td>
+                <td className="px-4 py-3">
+                  <LifestyleSelector variant="default" />
+                </td>
+                <td className="px-4 py-3 text-sm text-green-600">
+                  {selectedLifestyleModel?.description?.substring(0, 40) || '-'}
+                </td>
+              </tr>
 
-          {/* Row 2: Utilities + Finance */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Water */}
-            <div className="bg-cyan-50 rounded-lg p-3 border border-cyan-200">
-              <label className="block text-xs font-semibold text-cyan-600 uppercase tracking-wide mb-2">
-                Water Utility
-              </label>
-              <UtilitySelector utilityType="water" variant="default" />
-            </div>
+              {/* Water Utility */}
+              <tr className="hover:bg-cyan-50/50 bg-cyan-50/30">
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-cyan-700">Water</span>
+                </td>
+                <td className="px-4 py-3">
+                  <UtilitySelector utilityType="water" variant="default" />
+                </td>
+                <td className="px-4 py-3 text-sm text-cyan-600">
+                  {selectedWaterModel
+                    ? `$${selectedWaterModel.base_monthly_fee.toFixed(2)}/mo + usage`
+                    : '-'}
+                </td>
+              </tr>
 
-            {/* Electric */}
-            <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
-              <label className="block text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">
-                Electric Utility
-              </label>
-              <UtilitySelector utilityType="electric" variant="default" />
-            </div>
+              {/* Electric Utility */}
+              <tr className="hover:bg-amber-50/50 bg-amber-50/30">
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-amber-700">Electric</span>
+                </td>
+                <td className="px-4 py-3">
+                  <UtilitySelector utilityType="electric" variant="default" />
+                </td>
+                <td className="px-4 py-3 text-sm text-amber-600">
+                  {selectedElectricModel
+                    ? `$${selectedElectricModel.base_monthly_fee.toFixed(2)}/mo + usage`
+                    : '-'}
+                </td>
+              </tr>
 
-            {/* Gas */}
-            <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
-              <label className="block text-xs font-semibold text-orange-600 uppercase tracking-wide mb-2">
-                Gas Utility
-              </label>
-              <UtilitySelector utilityType="gas" variant="default" />
-            </div>
+              {/* Gas Utility */}
+              <tr className="hover:bg-orange-50/50 bg-orange-50/30">
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-orange-700">Gas</span>
+                </td>
+                <td className="px-4 py-3">
+                  <UtilitySelector utilityType="gas" variant="default" />
+                </td>
+                <td className="px-4 py-3 text-sm text-orange-600">
+                  {selectedGasModel
+                    ? selectedGasModel.provider_code === 'NONE'
+                      ? 'No gas service'
+                      : `$${selectedGasModel.base_monthly_fee.toFixed(2)}/mo + usage`
+                    : '-'}
+                </td>
+              </tr>
 
-            {/* Finance */}
-            <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-              <label className="block text-xs font-semibold text-purple-600 uppercase tracking-wide mb-2">
-                Finance
-              </label>
-              <FinanceSelector variant="default" />
-              {selectedFinanceModel && selectedFinanceModel.loan_term_years > 0 && (
-                <p className="text-xs text-purple-500 mt-1">
-                  {(selectedFinanceModel.annual_interest_rate * 100).toFixed(2)}% @ {(selectedFinanceModel.down_payment_percent * 100).toFixed(0)}% down
-                </p>
-              )}
-            </div>
-          </div>
+              {/* Finance */}
+              <tr className="hover:bg-purple-50/50 bg-purple-50/30">
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-purple-700">Finance</span>
+                </td>
+                <td className="px-4 py-3">
+                  <FinanceSelector variant="default" />
+                </td>
+                <td className="px-4 py-3 text-sm text-purple-600">
+                  {selectedFinanceModel
+                    ? selectedFinanceModel.loan_term_years === 0
+                      ? 'All-cash purchase'
+                      : `${selectedFinanceModel.loan_term_years}yr @ ${(selectedFinanceModel.annual_interest_rate * 100).toFixed(2)}%, ${(selectedFinanceModel.down_payment_percent * 100).toFixed(0)}% down`
+                    : '-'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         {/* Results Grid */}
