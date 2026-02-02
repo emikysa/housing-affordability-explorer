@@ -311,6 +311,14 @@ Scenarios allow modeling different cost assumptions:
 - Dashboard, Explorer, Models, Costs, Opportunities, Barriers, Levers, Actors, Relationships
 - "Costs" = Cost Elements page, "Opportunities" = CROs page, "Models" = Scenarios page
 
+### Version Stamp
+- **All pages display a build timestamp** next to the page title (e.g., `Dashboard ver. 2026-02-02-1215T`)
+- Format: `ver. YYYY-MM-DD-HHmmT` (year-month-day-hourminuteT)
+- Generated at build time via `vite.config.ts` → `import.meta.env.VITE_BUILD_TIME`
+- Component: `frontend/src/components/VersionStamp.tsx`
+- **Purpose:** Helps verify deployments succeeded and cache isn't stale
+- **IMPORTANT:** When adding new pages, include `<VersionStamp />` after the `<h1>` title
+
 ---
 
 ## Multi-Dimensional Model Architecture (Planning - 2026-02-02)
