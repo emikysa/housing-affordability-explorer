@@ -15,8 +15,17 @@ import {
 } from 'recharts'
 import StatCard from '../components/StatCard'
 import ModelSelector from '../components/ModelSelector'
+import OccupancySelector from '../components/OccupancySelector'
+import LifestyleSelector from '../components/LifestyleSelector'
+import UtilitySelector from '../components/UtilitySelector'
+import FinanceSelector from '../components/FinanceSelector'
 import VersionStamp from '../components/VersionStamp'
-import { useMasterCounts, useSummaryStats, useCostElements, useBarriers } from '../hooks/useData'
+import { useMasterCounts, useSummaryStats, useCostElements, useBarriers, useConsumptionFactors } from '../hooks/useData'
+import { useOccupancy } from '../contexts/OccupancyContext'
+import { useLifestyle } from '../contexts/LifestyleContext'
+import { useUtility } from '../contexts/UtilityContext'
+import { useFinance } from '../contexts/FinanceContext'
+import type { UtilityModel, UtilityRateTier } from '../types/database'
 
 const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6366f1']
 
@@ -28,6 +37,67 @@ const STACKED_COLORS = [
   '#4ade80', '#facc15', '#38bdf8', '#c084fc', '#94a3b8', '#f472b6',
 ]
 
+// Calculate tiered utility cost
+function calculateTieredCost(consumption: number, baseFee: number, rateTiers: UtilityRateTier[]): number {
+  let totalCost = baseFee
+  let remaining = consumption
+  let prevMax = 0
+
+  for (const tier of rateTiers) {
+    if (remaining <= 0) break
+
+    const tierMax = tier.max_units
+    let tierUsage: number
+
+    if (tierMax === null) {
+      // Unlimited tier
+      tierUsage = remaining
+    } else {
+      tierUsage = Math.min(remaining, tierMax - prevMax)
+    }
+
+    totalCost += tierUsage * tier.rate
+    remaining -= tierUsage
+    prevMax = tierMax ?? prevMax
+  }
+
+  return totalCost
+}
+
+// Calculate mortgage payment using standard formula
+function calculateMortgagePayment(
+  purchasePrice: number,
+  downPaymentPercent: number,
+  annualRate: number,
+  termYears: number,
+  pmiRate: number,
+  pmiThreshold: number
+): { principal: number; pmi: number; total: number } {
+  if (termYears === 0 || annualRate === 0) {
+    return { principal: 0, pmi: 0, total: 0 }
+  }
+
+  const loanAmount = purchasePrice * (1 - downPaymentPercent)
+  const monthlyRate = annualRate / 12
+  const numPayments = termYears * 12
+
+  // Standard mortgage formula: M = P * [r(1+r)^n] / [(1+r)^n - 1]
+  const monthlyPI = loanAmount *
+    (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
+    (Math.pow(1 + monthlyRate, numPayments) - 1)
+
+  // PMI if below threshold
+  const monthlyPMI = downPaymentPercent < pmiThreshold && pmiRate > 0
+    ? (loanAmount * pmiRate) / 12
+    : 0
+
+  return {
+    principal: monthlyPI,
+    pmi: monthlyPMI,
+    total: monthlyPI + monthlyPMI,
+  }
+}
+
 export default function Dashboard() {
   // Master counts (framework totals - not scenario-dependent)
   const masterCounts = useMasterCounts()
@@ -36,6 +106,187 @@ export default function Dashboard() {
   const { data: stats, loading: statsLoading } = useSummaryStats()
   const { data: costElements, loading: ceLoading } = useCostElements()
   const { data: barriers, loading: barriersLoading } = useBarriers()
+  const { data: consumptionFactors } = useConsumptionFactors()
+
+  // Multi-dimensional model contexts
+  const { selectedOccupancyModel } = useOccupancy()
+  const { selectedLifestyleModel } = useLifestyle()
+  const { selectedWaterModel, selectedElectricModel, selectedGasModel } = useUtility()
+  const { selectedFinanceModel } = useFinance()
+
+  // Home price from cost model (for mortgage calculation)
+  const homePrice = useMemo(() => {
+    return stats?.total_onetime_costs || 450000 // Default to $450k if no data
+  }, [stats])
+
+  // Calculate monthly consumption based on occupancy and lifestyle
+  const monthlyConsumption = useMemo(() => {
+    if (!selectedOccupancyModel || !selectedLifestyleModel || consumptionFactors.length === 0) {
+      return { water: 0, electric: 0, gas: 0 }
+    }
+
+    const occupants = selectedOccupancyModel.total_occupants
+    const adults = selectedOccupancyModel.adults
+    const lifestyle = selectedLifestyleModel
+
+    // Find consumption factors
+    const getConsumption = (code: string) => consumptionFactors.find(f => f.activity_code === code)
+
+    // Calculate monthly totals
+    let waterGallons = 0
+    let electricKwh = 0
+    let gasTherms = 0
+
+    // Showers: per person × lifestyle frequency × 4.33 weeks/month
+    const shower = getConsumption('shower')
+    if (shower) {
+      const monthlyShowers = occupants * lifestyle.showers_per_week * 4.33
+      waterGallons += monthlyShowers * shower.water_gallons
+      electricKwh += monthlyShowers * shower.electric_kwh
+      gasTherms += monthlyShowers * shower.gas_therms
+    }
+
+    // Baths: per person × lifestyle frequency × 4.33 weeks/month
+    const bath = getConsumption('bath')
+    if (bath) {
+      const monthlyBaths = occupants * lifestyle.baths_per_week * 4.33
+      waterGallons += monthlyBaths * bath.water_gallons
+      electricKwh += monthlyBaths * bath.electric_kwh
+      gasTherms += monthlyBaths * bath.gas_therms
+    }
+
+    // Laundry: household × lifestyle frequency × 4.33 weeks/month
+    const laundry = getConsumption('laundry_load')
+    if (laundry) {
+      const monthlyLoads = lifestyle.laundry_loads_per_week * 4.33
+      waterGallons += monthlyLoads * laundry.water_gallons
+      electricKwh += monthlyLoads * laundry.electric_kwh
+    }
+
+    // Dishwasher: household × lifestyle frequency × 4.33 weeks/month
+    const dishwasher = getConsumption('dishwasher_load')
+    if (dishwasher) {
+      const monthlyLoads = lifestyle.dishwasher_loads_per_week * 4.33
+      waterGallons += monthlyLoads * dishwasher.water_gallons
+      electricKwh += monthlyLoads * dishwasher.electric_kwh
+    }
+
+    // Hand dishes: household × lifestyle frequency × 30 days/month
+    const handDishes = getConsumption('hand_dishes')
+    if (handDishes) {
+      const monthlyTimes = lifestyle.hand_wash_dishes_per_day * 30
+      waterGallons += monthlyTimes * handDishes.water_gallons
+    }
+
+    // Toilet flushes: per person × lifestyle frequency × 30 days/month
+    const toilet = getConsumption('toilet_flush')
+    if (toilet) {
+      const monthlyFlushes = occupants * lifestyle.toilet_flushes_per_day * 30
+      waterGallons += monthlyFlushes * toilet.water_gallons
+    }
+
+    // Cooking: household × lifestyle frequency × 30 days/month
+    const cooking = getConsumption('cooking_meal')
+    if (cooking) {
+      const monthlyMeals = lifestyle.meals_cooked_per_day * 30
+      waterGallons += monthlyMeals * cooking.water_gallons
+      electricKwh += monthlyMeals * cooking.electric_kwh
+      gasTherms += monthlyMeals * cooking.gas_therms
+    }
+
+    // TV: household × lifestyle frequency × 30 days/month
+    const tv = getConsumption('tv_hour')
+    if (tv) {
+      const monthlyHours = lifestyle.tv_hours_per_day * 30
+      electricKwh += monthlyHours * tv.electric_kwh
+    }
+
+    // Computer: per person × lifestyle frequency × 30 days/month
+    const computer = getConsumption('computer_hour')
+    if (computer) {
+      const monthlyHours = adults * lifestyle.computer_hours_per_day * 30
+      electricKwh += monthlyHours * computer.electric_kwh
+    }
+
+    // Lighting: household × lifestyle frequency × 30 days/month
+    const lighting = getConsumption('lighting_hour')
+    if (lighting) {
+      const monthlyHours = lifestyle.lighting_hours_per_day * 30
+      electricKwh += monthlyHours * lighting.electric_kwh
+    }
+
+    // Base loads (monthly)
+    const fridge = getConsumption('refrigerator')
+    if (fridge) {
+      electricKwh += fridge.electric_kwh
+    }
+
+    const waterHeater = getConsumption('water_heater_standby')
+    if (waterHeater) {
+      electricKwh += waterHeater.electric_kwh
+      gasTherms += waterHeater.gas_therms
+    }
+
+    const heating = getConsumption('hvac_heating')
+    if (heating) {
+      electricKwh += heating.electric_kwh * lifestyle.heating_multiplier
+      gasTherms += heating.gas_therms * lifestyle.heating_multiplier
+    }
+
+    const cooling = getConsumption('hvac_cooling')
+    if (cooling) {
+      electricKwh += cooling.electric_kwh * lifestyle.cooling_multiplier
+    }
+
+    return {
+      water: Math.round(waterGallons),
+      electric: Math.round(electricKwh),
+      gas: Math.round(gasTherms * 10) / 10,
+    }
+  }, [selectedOccupancyModel, selectedLifestyleModel, consumptionFactors])
+
+  // Calculate monthly utility costs
+  const utilityCosts = useMemo(() => {
+    const waterCost = selectedWaterModel
+      ? calculateTieredCost(monthlyConsumption.water, selectedWaterModel.base_monthly_fee, selectedWaterModel.rate_tiers || [])
+      : 0
+
+    const electricCost = selectedElectricModel
+      ? calculateTieredCost(monthlyConsumption.electric, selectedElectricModel.base_monthly_fee, selectedElectricModel.rate_tiers || [])
+      : 0
+
+    const gasCost = selectedGasModel
+      ? calculateTieredCost(monthlyConsumption.gas, selectedGasModel.base_monthly_fee, selectedGasModel.rate_tiers || [])
+      : 0
+
+    return {
+      water: Math.round(waterCost * 100) / 100,
+      electric: Math.round(electricCost * 100) / 100,
+      gas: Math.round(gasCost * 100) / 100,
+      total: Math.round((waterCost + electricCost + gasCost) * 100) / 100,
+    }
+  }, [monthlyConsumption, selectedWaterModel, selectedElectricModel, selectedGasModel])
+
+  // Calculate mortgage payment
+  const mortgagePayment = useMemo(() => {
+    if (!selectedFinanceModel) {
+      return { principal: 0, pmi: 0, total: 0 }
+    }
+
+    return calculateMortgagePayment(
+      homePrice,
+      selectedFinanceModel.down_payment_percent,
+      selectedFinanceModel.annual_interest_rate,
+      selectedFinanceModel.loan_term_years,
+      selectedFinanceModel.pmi_rate,
+      selectedFinanceModel.pmi_threshold
+    )
+  }, [homePrice, selectedFinanceModel])
+
+  // Total monthly housing cost
+  const totalMonthlyHousingCost = useMemo(() => {
+    return mortgagePayment.total + utilityCosts.total
+  }, [mortgagePayment, utilityCosts])
 
   // Aggregate cost elements by stage
   const costsByStage = useMemo(() => {
@@ -152,44 +403,20 @@ export default function Dashboard() {
     return [data]
   }, [operateFinanceCostElements])
 
-  // Monthly payment breakdown for the table
-  const monthlyPaymentData = useMemo(() => {
-    // Find principal payment (usually "Mortgage principal payment" or similar)
-    const principalElement = costElements.find(
-      (ce) =>
-        ce.ce_id.toLowerCase().includes('principal') ||
-        ce.description?.toLowerCase().includes('principal')
-    )
-    const principalMonthly = principalElement
-      ? (principalElement.annual_estimate || principalElement.estimate || 0) / 12
-      : 0
-
-    // Calculate total monthly from Operate + Finance
-    const totalMonthly = operateFinanceCostElements.reduce((sum, ce) => sum + ce.value, 0)
-
-    // Non-principal = total - principal
-    const nonPrincipalMonthly = totalMonthly - principalMonthly
-
-    return {
-      principal: principalMonthly,
-      nonPrincipal: nonPrincipalMonthly,
-      total: totalMonthly,
-    }
-  }, [costElements, operateFinanceCostElements])
-
-  // State for notes (editable in future, static for now)
-  const [paymentNotes] = useState({
-    principal: 'Builds equity in the home',
-    nonPrincipal: 'Interest, taxes, insurance, maintenance, utilities',
-    total: 'Total monthly housing cost',
-  })
-
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
+    }).format(value)
+
+  const formatCurrencyDetailed = (value: number) =>
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(value)
 
   const scenarioDataLoading = statsLoading || ceLoading || barriersLoading
@@ -199,7 +426,7 @@ export default function Dashboard() {
   const monthlyTotal = operateFinanceCostElements.reduce((sum, ce) => sum + ce.value, 0)
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard<VersionStamp /></h1>
@@ -209,7 +436,147 @@ export default function Dashboard() {
       </div>
 
       {/* ============================================ */}
-      {/* SECTION 1: FRAMEWORK OVERVIEW (Master Counts) */}
+      {/* SECTION 1: COMBINED HOUSING COST CALCULATOR */}
+      {/* ============================================ */}
+      <div className="bg-gradient-to-br from-primary-50 to-blue-50 rounded-xl border border-primary-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Monthly Housing Cost Calculator</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Combines all selected models to estimate your total monthly housing cost
+            </p>
+          </div>
+          <Link to="/models" className="text-sm text-primary-600 hover:text-primary-800 font-medium">
+            Manage Models →
+          </Link>
+        </div>
+
+        {/* Model Selectors Row */}
+        <div className="bg-white/60 rounded-lg p-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div className="bg-gray-100 rounded px-2 py-1 border border-gray-200">
+              <ModelSelector variant="default" label="Cost" />
+            </div>
+            <div className="bg-blue-50 rounded px-2 py-1 border border-blue-200">
+              <OccupancySelector variant="default" label="Household" />
+            </div>
+            <div className="bg-green-50 rounded px-2 py-1 border border-green-200">
+              <LifestyleSelector variant="default" label="Lifestyle" />
+            </div>
+            <div className="bg-cyan-50 rounded px-2 py-1 border border-cyan-200">
+              <UtilitySelector utilityType="water" variant="default" label="Water" />
+            </div>
+            <div className="bg-amber-50 rounded px-2 py-1 border border-amber-200">
+              <UtilitySelector utilityType="electric" variant="default" label="Electric" />
+            </div>
+            <div className="bg-orange-50 rounded px-2 py-1 border border-orange-200">
+              <UtilitySelector utilityType="gas" variant="default" label="Gas" />
+            </div>
+            <div className="bg-purple-50 rounded px-2 py-1 border border-purple-200">
+              <FinanceSelector variant="default" label="Finance" />
+            </div>
+          </div>
+        </div>
+
+        {/* Results Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Utility Costs Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Monthly Utilities
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="flex items-center text-sm text-gray-600">
+                  <span className="w-6 text-center">💧</span> Water
+                </span>
+                <span className="font-medium">{formatCurrencyDetailed(utilityCosts.water)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center text-sm text-gray-600">
+                  <span className="w-6 text-center">⚡</span> Electric
+                </span>
+                <span className="font-medium">{formatCurrencyDetailed(utilityCosts.electric)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center text-sm text-gray-600">
+                  <span className="w-6 text-center">🔥</span> Gas
+                </span>
+                <span className="font-medium">{formatCurrencyDetailed(utilityCosts.gas)}</span>
+              </div>
+              <div className="border-t pt-2 flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-700">Total Utilities</span>
+                <span className="text-lg font-bold text-cyan-600">{formatCurrencyDetailed(utilityCosts.total)}</span>
+              </div>
+            </div>
+            <div className="mt-3 text-xs text-gray-500">
+              Based on {monthlyConsumption.water.toLocaleString()} gal, {monthlyConsumption.electric.toLocaleString()} kWh, {monthlyConsumption.gas} therms
+            </div>
+          </div>
+
+          {/* Mortgage Payment Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Monthly Mortgage
+            </h3>
+            {selectedFinanceModel?.loan_term_years === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-gray-600">All-cash purchase</p>
+                <p className="text-sm text-gray-500 mt-1">No monthly mortgage payment</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Principal & Interest</span>
+                  <span className="font-medium">{formatCurrencyDetailed(mortgagePayment.principal)}</span>
+                </div>
+                {mortgagePayment.pmi > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">PMI</span>
+                    <span className="font-medium text-amber-600">{formatCurrencyDetailed(mortgagePayment.pmi)}</span>
+                  </div>
+                )}
+                <div className="border-t pt-2 flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700">Total Mortgage</span>
+                  <span className="text-lg font-bold text-purple-600">{formatCurrencyDetailed(mortgagePayment.total)}</span>
+                </div>
+              </div>
+            )}
+            <div className="mt-3 text-xs text-gray-500">
+              Home price: {formatCurrency(homePrice)} • {selectedFinanceModel?.short_code || 'No finance model'}
+            </div>
+          </div>
+
+          {/* Total Monthly Cost Card */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg shadow-sm border border-green-200 p-5">
+            <h3 className="text-sm font-semibold text-green-700 uppercase tracking-wide mb-3">
+              Total Monthly Housing Cost
+            </h3>
+            <div className="text-center py-4">
+              <p className="text-4xl font-bold text-green-600">
+                {formatCurrency(totalMonthlyHousingCost)}
+              </p>
+              <p className="text-sm text-green-700 mt-2">per month</p>
+            </div>
+            <div className="border-t border-green-200 pt-3 space-y-1 text-sm">
+              <div className="flex justify-between text-gray-600">
+                <span>Mortgage + PMI</span>
+                <span>{formatCurrency(mortgagePayment.total)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Utilities</span>
+                <span>{formatCurrency(utilityCosts.total)}</span>
+              </div>
+            </div>
+            <div className="mt-3 text-xs text-gray-500">
+              * Does not include property taxes, insurance, HOA, or maintenance
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================ */}
+      {/* SECTION 2: FRAMEWORK OVERVIEW (Master Counts) */}
       {/* ============================================ */}
       <div>
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Framework Overview</h2>
@@ -250,12 +617,12 @@ export default function Dashboard() {
       </div>
 
       {/* ============================================ */}
-      {/* SECTION 2: MODEL ANALYSIS */}
+      {/* SECTION 3: MODEL ANALYSIS */}
       {/* ============================================ */}
       <div className="pt-4 border-t border-gray-200">
         {/* Model Selector */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-700">Model Analysis</h2>
+          <h2 className="text-lg font-semibold text-gray-700">Cost Model Analysis</h2>
           <ModelSelector variant="prominent" label="Viewing" />
         </div>
 
@@ -396,28 +763,36 @@ export default function Dashboard() {
 
               {/* Monthly Payment Summary Table */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Payment Summary</h3>
-                <div className="space-y-4">
-                  <div className="border-b border-gray-100 pb-4">
-                    <div className="text-sm text-gray-600">Principal Payment</div>
-                    <div className="text-xl font-semibold text-blue-600 mt-1">
-                      {formatCurrency(monthlyPaymentData.principal)}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">{paymentNotes.principal}</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Calculation Summary</h3>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <p className="text-gray-500 mb-1">Household</p>
+                    <p className="font-medium">{selectedOccupancyModel?.name || '-'}</p>
                   </div>
-                  <div className="border-b border-gray-100 pb-4">
-                    <div className="text-sm text-gray-600">Excluding Principal</div>
-                    <div className="text-xl font-semibold text-orange-600 mt-1">
-                      {formatCurrency(monthlyPaymentData.nonPrincipal)}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">{paymentNotes.nonPrincipal}</div>
+                  <div>
+                    <p className="text-gray-500 mb-1">Lifestyle</p>
+                    <p className="font-medium">{selectedLifestyleModel?.name || '-'}</p>
                   </div>
-                  <div className="bg-gray-50 -mx-6 -mb-6 px-6 py-4 rounded-b-lg">
-                    <div className="text-sm font-medium text-gray-700">Total Monthly</div>
-                    <div className="text-2xl font-bold text-green-600 mt-1">
-                      {formatCurrency(monthlyPaymentData.total)}
+                  <div>
+                    <p className="text-gray-500 mb-1">Finance</p>
+                    <p className="font-medium">{selectedFinanceModel?.name || '-'}</p>
+                  </div>
+                  <div className="border-t pt-3">
+                    <p className="text-gray-500 mb-1">Est. Monthly Consumption</p>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="bg-cyan-50 p-2 rounded text-center">
+                        <p className="font-bold text-cyan-700">{monthlyConsumption.water.toLocaleString()}</p>
+                        <p className="text-cyan-600">gallons</p>
+                      </div>
+                      <div className="bg-amber-50 p-2 rounded text-center">
+                        <p className="font-bold text-amber-700">{monthlyConsumption.electric.toLocaleString()}</p>
+                        <p className="text-amber-600">kWh</p>
+                      </div>
+                      <div className="bg-orange-50 p-2 rounded text-center">
+                        <p className="font-bold text-orange-700">{monthlyConsumption.gas}</p>
+                        <p className="text-orange-600">therms</p>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-400 mt-1">{paymentNotes.total}</div>
                   </div>
                 </div>
               </div>
