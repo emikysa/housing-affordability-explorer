@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import FilterToggle from '../components/FilterToggle'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
 import { BadgeRenderer } from '../components/DataGrid'
-import VersionStamp from '../components/VersionStamp'
 import { useCostElements, useStages, useCrosForCostElement, useCEDrilldown } from '../hooks/useData'
 import type { CostElement, CEDrilldown } from '../types/database'
 
@@ -475,7 +474,7 @@ export default function CostElements() {
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Cost Elements<VersionStamp /></h1>
+          <h1 className="text-2xl font-bold text-gray-900">Cost Elements</h1>
           <p className="mt-1 text-gray-500">
             Click items to select/deselect. Use "Select all" / "Deselect all" in column headers.
           </p>

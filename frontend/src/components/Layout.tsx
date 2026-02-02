@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import ModelSummaryBar from './ModelSummaryBar'
+import VersionStamp from './VersionStamp'
 
 interface LayoutProps {
   children: ReactNode
@@ -39,8 +40,16 @@ export default function Layout({ children }: LayoutProps) {
                 <path d="M50 20L20 45V80H40V60H60V80H80V45L50 20Z" fill="white" />
               </svg>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Housing Affordability Explorer</h1>
-                <p className="text-xs text-gray-500">Understanding costs, opportunities, and barriers</p>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold text-gray-900">Housing Affordability Explorer</h1>
+                  <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 rounded-full border border-amber-300">
+                    Beta
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Understanding costs, opportunities, and barriers
+                  <VersionStamp className="ml-1" />
+                </p>
               </div>
             </div>
 

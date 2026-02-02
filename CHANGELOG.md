@@ -36,6 +36,11 @@ Extended the Multi-Dimensional Model Architecture to include sewer/wastewater as
 
 **Note:** Sewer costs calculated based on water consumption (industry standard - most sewer utilities base charges on winter water average or direct water usage).
 
+### Deployed: Yes
+- Frontend: Vercel auto-deploy via git push
+- Database: Migration applied via `supabase db push --linked`
+- Verified: 4 sewer providers in utility_models table
+
 ### Files Created
 - `supabase/migrations/20260202140000_sewer_utility_type.sql`
 

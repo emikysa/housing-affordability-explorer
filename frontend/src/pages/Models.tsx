@@ -14,7 +14,6 @@ import type {
   CostElement,
 } from '../types/database'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
-import VersionStamp from '../components/VersionStamp'
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 
 // Tab configuration
@@ -258,7 +257,7 @@ export default function Models() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Models<VersionStamp /></h1>
+        <h1 className="text-2xl font-bold text-gray-900">Models</h1>
         <p className="mt-1 text-gray-500">
           View and manage all model types. Click any model to see details, or set it as active.
         </p>

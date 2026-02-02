@@ -3,7 +3,6 @@ import type { ColDef } from 'ag-grid-community'
 import DataGrid, { BadgeRenderer } from '../components/DataGrid'
 import FilterBar from '../components/FilterBar'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
-import VersionStamp from '../components/VersionStamp'
 import { useLevers, useLeverTypes, useBarriersForLever } from '../hooks/useData'
 import type { Lever } from '../types/database'
 
@@ -94,7 +93,7 @@ export default function Levers() {
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Levers<VersionStamp /></h1>
+          <h1 className="text-2xl font-bold text-gray-900">Levers</h1>
           <p className="mt-1 text-gray-500">
             Policy levers and interventions that can address housing affordability barriers
           </p>

@@ -3,7 +3,6 @@ import type { ColDef } from 'ag-grid-community'
 import DataGrid, { currencyFormatter, BadgeRenderer } from '../components/DataGrid'
 import FilterBar from '../components/FilterBar'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
-import VersionStamp from '../components/VersionStamp'
 import { useActors, useActorControls } from '../hooks/useData'
 import type { Actor } from '../types/database'
 
@@ -142,7 +141,7 @@ export default function Actors() {
     <div className="space-y-4">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Actors<VersionStamp /></h1>
+        <h1 className="text-2xl font-bold text-gray-900">Actors</h1>
         <p className="mt-1 text-gray-500">
           Who controls housing costs and their policy levers
         </p>

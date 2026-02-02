@@ -19,7 +19,6 @@ import OccupancySelector from '../components/OccupancySelector'
 import LifestyleSelector from '../components/LifestyleSelector'
 import UtilitySelector from '../components/UtilitySelector'
 import FinanceSelector from '../components/FinanceSelector'
-import VersionStamp from '../components/VersionStamp'
 import { useMasterCounts, useSummaryStats, useCostElements, useBarriers, useConsumptionFactors } from '../hooks/useData'
 import { useOccupancy } from '../contexts/OccupancyContext'
 import { useLifestyle } from '../contexts/LifestyleContext'
@@ -435,7 +434,7 @@ export default function Dashboard() {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard<VersionStamp /></h1>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-gray-500">
           Overview of housing costs, reduction opportunities, and barriers
         </p>
@@ -462,19 +461,19 @@ export default function Dashboard() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide w-32">Model</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Selection</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide w-64">Details</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide w-24">Model</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide w-52">Selection</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {/* Cost Model */}
               <tr className="hover:bg-gray-50">
                 <td className="px-4 py-3">
-                  <span className="text-sm font-medium text-gray-700">Cost Model</span>
+                  <span className="text-sm font-medium text-gray-700">Cost</span>
                 </td>
                 <td className="px-4 py-3">
-                  <ModelSelector variant="default" />
+                  <ModelSelector variant="default" label="" />
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-500">
                   {stats ? `$${(stats.total_onetime_costs / 1000).toFixed(0)}k build cost` : 'Loading...'}
@@ -487,7 +486,7 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-blue-700">Household</span>
                 </td>
                 <td className="px-4 py-3">
-                  <OccupancySelector variant="default" />
+                  <OccupancySelector variant="default" label="" />
                 </td>
                 <td className="px-4 py-3 text-sm text-blue-600">
                   {selectedOccupancyModel
@@ -502,10 +501,10 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-green-700">Lifestyle</span>
                 </td>
                 <td className="px-4 py-3">
-                  <LifestyleSelector variant="default" />
+                  <LifestyleSelector variant="default" label="" />
                 </td>
                 <td className="px-4 py-3 text-sm text-green-600">
-                  {selectedLifestyleModel?.description?.substring(0, 40) || '-'}
+                  {selectedLifestyleModel?.description?.substring(0, 50) || '-'}
                 </td>
               </tr>
 
@@ -515,11 +514,11 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-cyan-700">Water</span>
                 </td>
                 <td className="px-4 py-3">
-                  <UtilitySelector utilityType="water" variant="default" />
+                  <UtilitySelector utilityType="water" variant="default" label="" />
                 </td>
                 <td className="px-4 py-3 text-sm text-cyan-600">
                   {selectedWaterModel
-                    ? `$${selectedWaterModel.base_monthly_fee.toFixed(2)}/mo + usage`
+                    ? `${selectedWaterModel.service_area || ''} - $${selectedWaterModel.base_monthly_fee.toFixed(2)}/mo base + usage`
                     : '-'}
                 </td>
               </tr>
@@ -530,13 +529,13 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-teal-700">Sewer</span>
                 </td>
                 <td className="px-4 py-3">
-                  <UtilitySelector utilityType="sewer" variant="default" />
+                  <UtilitySelector utilityType="sewer" variant="default" label="" />
                 </td>
                 <td className="px-4 py-3 text-sm text-teal-600">
                   {selectedSewerModel
                     ? selectedSewerModel.provider_code === 'SEPTIC'
-                      ? 'Septic system'
-                      : `$${selectedSewerModel.base_monthly_fee.toFixed(2)}/mo + usage`
+                      ? 'Private septic system - periodic pumping required'
+                      : `${selectedSewerModel.service_area || ''} - $${selectedSewerModel.base_monthly_fee.toFixed(2)}/mo base + usage (based on water)`
                     : '-'}
                 </td>
               </tr>
@@ -547,11 +546,11 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-amber-700">Electric</span>
                 </td>
                 <td className="px-4 py-3">
-                  <UtilitySelector utilityType="electric" variant="default" />
+                  <UtilitySelector utilityType="electric" variant="default" label="" />
                 </td>
                 <td className="px-4 py-3 text-sm text-amber-600">
                   {selectedElectricModel
-                    ? `$${selectedElectricModel.base_monthly_fee.toFixed(2)}/mo + usage`
+                    ? `${selectedElectricModel.service_area || ''} - $${selectedElectricModel.base_monthly_fee.toFixed(2)}/mo base + usage`
                     : '-'}
                 </td>
               </tr>
@@ -562,13 +561,13 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-orange-700">Gas</span>
                 </td>
                 <td className="px-4 py-3">
-                  <UtilitySelector utilityType="gas" variant="default" />
+                  <UtilitySelector utilityType="gas" variant="default" label="" />
                 </td>
                 <td className="px-4 py-3 text-sm text-orange-600">
                   {selectedGasModel
                     ? selectedGasModel.provider_code === 'NONE'
-                      ? 'No gas service'
-                      : `$${selectedGasModel.base_monthly_fee.toFixed(2)}/mo + usage`
+                      ? 'No gas service - all-electric home'
+                      : `${selectedGasModel.service_area || ''} - $${selectedGasModel.base_monthly_fee.toFixed(2)}/mo base + usage`
                     : '-'}
                 </td>
               </tr>
@@ -579,13 +578,13 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-purple-700">Finance</span>
                 </td>
                 <td className="px-4 py-3">
-                  <FinanceSelector variant="default" />
+                  <FinanceSelector variant="default" label="" />
                 </td>
                 <td className="px-4 py-3 text-sm text-purple-600">
                   {selectedFinanceModel
                     ? selectedFinanceModel.loan_term_years === 0
-                      ? 'All-cash purchase'
-                      : `${selectedFinanceModel.loan_term_years}yr @ ${(selectedFinanceModel.annual_interest_rate * 100).toFixed(2)}%, ${(selectedFinanceModel.down_payment_percent * 100).toFixed(0)}% down`
+                      ? 'All-cash purchase - no mortgage'
+                      : `${selectedFinanceModel.loan_term_years}-year term @ ${(selectedFinanceModel.annual_interest_rate * 100).toFixed(2)}% APR, ${(selectedFinanceModel.down_payment_percent * 100).toFixed(0)}% down payment`
                     : '-'}
                 </td>
               </tr>
