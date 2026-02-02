@@ -34,8 +34,14 @@ A public web application that helps people understand housing costs, cost reduct
 ├── frontend/
 │   ├── src/
 │   │   ├── components/         # Reusable UI components
-│   │   │   ├── Layout.tsx      # Main layout with nav, header, scenario selector
-│   │   │   ├── ModelSelector.tsx      # Dropdown for model selection
+│   │   │   ├── Layout.tsx      # Main layout with nav, header, ModelSummaryBar
+│   │   │   ├── ModelSelector.tsx      # Dropdown for cost model selection
+│   │   │   ├── ModelSummaryBar.tsx    # Compact chip display with Configure button
+│   │   │   ├── ModelConfigModal.tsx   # Full modal for all 8 model selectors
+│   │   │   ├── OccupancySelector.tsx  # Dropdown for occupancy model
+│   │   │   ├── LifestyleSelector.tsx  # Dropdown for lifestyle model
+│   │   │   ├── UtilitySelector.tsx    # Dropdown for water/sewer/electric/gas
+│   │   │   ├── FinanceSelector.tsx    # Dropdown for finance model
 │   │   │   ├── FilterToggle.tsx      # "Populated only / Show all" toggle
 │   │   │   └── DetailPanel.tsx       # Slide-out detail panels
 │   │   ├── contexts/
@@ -327,7 +333,7 @@ Scenarios allow modeling different cost assumptions:
 
 ---
 
-## Multi-Dimensional Model Architecture (Planning - 2026-02-02)
+## Multi-Dimensional Model Architecture (Updated 2026-02-02)
 
 ### Vision
 
@@ -337,6 +343,7 @@ Users select one model from each independent dimension to see combined housing c
 Example user selection:
 ├── Build Cost Model: "1400 sf, 3 bed, 2 bath, 1 story, detached carport, passive house"
 ├── Water Utility Model: "Fort Collins Loveland Water District"
+├── Sewer Utility Model: "Fort Collins Utilities - Sewer"
 ├── Electric Utility Model: "Poudre Valley REA Coop"
 ├── Gas Utility Model: "Xcel Energy Gas"
 ├── Occupancy Model: "2 adults, 1 child"
@@ -344,12 +351,13 @@ Example user selection:
 └── Finance Model: "30-year @ 6%, 20% down"
 ```
 
-### Model Dimensions
+### Model Dimensions (8 Dimensions)
 
 | Dimension | Purpose | Drives |
 |-----------|---------|--------|
 | **Build Cost** | Construction costs mapped to CEs | One-time development costs, home price |
-| **Water Utility** | Water/sewer rate structures | Monthly water bill (O01) |
+| **Water Utility** | Water rate structures | Monthly water bill (O01) |
+| **Sewer Utility** | Sewer/wastewater rate structures | Monthly sewer bill (O01) - based on water consumption |
 | **Electric Utility** | Electric rate structures | Monthly electric bill (O01) |
 | **Gas Utility** | Natural gas rate structures | Monthly gas bill (O01) |
 | **Occupancy** | Household composition | Consumption multipliers |
@@ -395,11 +403,11 @@ lifestyle_models (
 )
 ```
 
-#### 3. Utility Models (Water/Electric/Gas)
+#### 3. Utility Models (Water/Sewer/Electric/Gas)
 ```sql
 utility_models (
   id uuid PK,
-  utility_type text,            -- 'water', 'electric', 'gas'
+  utility_type text,            -- 'water', 'sewer', 'electric', 'gas'
   provider_name text,           -- "Fort Collins Loveland Water District"
   description text,
   -- Base charges
@@ -411,6 +419,12 @@ utility_models (
   created_at timestamp
 )
 ```
+**Utility Views:**
+- `v_utility_models` - All utilities
+- `v_water_utility_models` - Water providers only
+- `v_sewer_utility_models` - Sewer/wastewater providers (incl. septic)
+- `v_electric_utility_models` - Electric providers only
+- `v_gas_utility_models` - Gas providers only
 
 #### 4. Consumption Reference Table
 ```sql
@@ -470,10 +484,27 @@ scenarios (
 - ✓ `FinanceContext` + `FinanceSelector` (purple background)
 - ✓ Header now has 7 selectors in 2 rows
 
-**Phase 5: UI Integration** (Next)
-- Multi-selector component for all dimensions
-- Dashboard shows combined results from all selected models
-- Scenario comparison view
+**Phase 5: UI Integration** (COMPLETE - 2026-02-02)
+- ✓ Models page redesigned as comprehensive hub for all model types
+  - Tabbed interface: Cost, Occupancy, Lifestyle, Utilities (sub-tabs), Finance
+  - Detail panels for each model type with full data display
+  - TSV export button for all model types (easy variant creation)
+  - "Currently Active Models" summary at bottom
+- ✓ Dashboard Monthly Housing Cost Calculator
+  - All 7 model selectors in table format (Model | Selection | Details)
+  - Color-coded rows: blue (Occupancy), green (Lifestyle), cyan (Water), amber (Electric), orange (Gas), purple (Finance)
+  - Calculates monthly consumption from occupancy × lifestyle × consumption factors
+  - Tiered utility rate calculation for water/electric/gas
+  - Mortgage payment calculation with PMI
+  - Shows total monthly housing cost breakdown
+
+**Phase 5b: UX Improvements** (COMPLETE - 2026-02-02)
+- ✓ Model selector UX overhaul for non-Dashboard pages
+  - `ModelSummaryBar` - Compact chip display with Configure button
+  - `ModelConfigModal` - Full modal with organized sections (HeadlessUI)
+- ✓ Dashboard keeps full table-format selectors (no modal)
+- ✓ Cost Model detail panel shows all cost elements grouped by stage
+- ✓ Added dependencies: `@headlessui/react`, `@heroicons/react`
 
 ### Design Decisions
 

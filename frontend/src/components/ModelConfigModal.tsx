@@ -21,7 +21,7 @@ export default function ModelConfigModal({ isOpen, onClose }: ModelConfigModalPr
   const { selectedModel } = useModel()
   const { selectedOccupancyModel } = useOccupancy()
   const { selectedLifestyleModel } = useLifestyle()
-  const { selectedWaterModel, selectedElectricModel, selectedGasModel } = useUtility()
+  const { selectedWaterModel, selectedElectricModel, selectedGasModel, selectedSewerModel } = useUtility()
   const { selectedFinanceModel } = useFinance()
 
   return (
@@ -139,7 +139,7 @@ export default function ModelConfigModal({ isOpen, onClose }: ModelConfigModalPr
                     <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
                       Utility Providers
                     </h4>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       {/* Water */}
                       <div className="bg-cyan-50 rounded-lg p-4 border border-cyan-200">
                         <h4 className="font-medium text-gray-900 mb-2">Water</h4>
@@ -147,6 +147,17 @@ export default function ModelConfigModal({ isOpen, onClose }: ModelConfigModalPr
                         {selectedWaterModel && (
                           <p className="text-xs text-cyan-600 mt-2">
                             ${selectedWaterModel.base_monthly_fee}/mo base
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Sewer */}
+                      <div className="bg-teal-50 rounded-lg p-4 border border-teal-200">
+                        <h4 className="font-medium text-gray-900 mb-2">Sewer</h4>
+                        <UtilitySelector utilityType="sewer" variant="default" />
+                        {selectedSewerModel && (
+                          <p className="text-xs text-teal-600 mt-2">
+                            {selectedSewerModel.provider_code === 'SEPTIC' ? 'Septic system' : `$${selectedSewerModel.base_monthly_fee}/mo base`}
                           </p>
                         )}
                       </div>

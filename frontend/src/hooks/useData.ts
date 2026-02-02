@@ -551,6 +551,10 @@ export function useGasUtilityModels() {
   return useSupabaseQuery<UtilityModel>('v_gas_utility_models', 'sort_order')
 }
 
+export function useSewerUtilityModels() {
+  return useSupabaseQuery<UtilityModel>('v_sewer_utility_models', 'sort_order')
+}
+
 export function useAllUtilityModels() {
   return useSupabaseQuery<UtilityModel>('v_utility_models', 'sort_order')
 }

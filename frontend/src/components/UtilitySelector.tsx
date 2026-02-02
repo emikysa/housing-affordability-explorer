@@ -1,7 +1,7 @@
 import { useUtility } from '../contexts/UtilityContext'
 import type { UtilityModel } from '../types/database'
 
-type UtilityType = 'water' | 'electric' | 'gas'
+type UtilityType = 'water' | 'electric' | 'gas' | 'sewer'
 
 interface UtilitySelectorProps {
   /** Which utility type to select */
@@ -24,6 +24,7 @@ export default function UtilitySelector({
     waterModels, selectedWaterModelId, setSelectedWaterModelId,
     electricModels, selectedElectricModelId, setSelectedElectricModelId,
     gasModels, selectedGasModelId, setSelectedGasModelId,
+    sewerModels, selectedSewerModelId, setSelectedSewerModelId,
     loading,
   } = useUtility()
 
@@ -55,6 +56,13 @@ export default function UtilitySelector({
           selectedId: selectedGasModelId,
           setSelectedId: setSelectedGasModelId,
           defaultLabel: 'Gas',
+        }
+      case 'sewer':
+        return {
+          models: sewerModels,
+          selectedId: selectedSewerModelId,
+          setSelectedId: setSelectedSewerModelId,
+          defaultLabel: 'Sewer',
         }
     }
   }

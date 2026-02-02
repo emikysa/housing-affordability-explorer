@@ -29,7 +29,7 @@ const tabs: { id: ModelTab; label: string; color: string; bgColor: string; borde
 ]
 
 // Utility sub-tabs
-type UtilitySubTab = 'water' | 'electric' | 'gas'
+type UtilitySubTab = 'water' | 'sewer' | 'electric' | 'gas'
 
 export default function Models() {
   const [activeTab, setActiveTab] = useState<ModelTab>('cost')
@@ -41,6 +41,7 @@ export default function Models() {
   const { lifestyleModels, selectedLifestyleModelId, setSelectedLifestyleModelId } = useLifestyle()
   const {
     waterModels, selectedWaterModelId, setSelectedWaterModelId,
+    sewerModels, selectedSewerModelId, setSelectedSewerModelId,
     electricModels, selectedElectricModelId, setSelectedElectricModelId,
     gasModels, selectedGasModelId, setSelectedGasModelId,
   } = useUtility()
@@ -219,26 +220,29 @@ export default function Models() {
   const currentUtilityModels = useMemo(() => {
     switch (utilitySubTab) {
       case 'water': return waterModels
+      case 'sewer': return sewerModels
       case 'electric': return electricModels
       case 'gas': return gasModels
     }
-  }, [utilitySubTab, waterModels, electricModels, gasModels])
+  }, [utilitySubTab, waterModels, sewerModels, electricModels, gasModels])
 
   const currentUtilitySelectedId = useMemo(() => {
     switch (utilitySubTab) {
       case 'water': return selectedWaterModelId
+      case 'sewer': return selectedSewerModelId
       case 'electric': return selectedElectricModelId
       case 'gas': return selectedGasModelId
     }
-  }, [utilitySubTab, selectedWaterModelId, selectedElectricModelId, selectedGasModelId])
+  }, [utilitySubTab, selectedWaterModelId, selectedSewerModelId, selectedElectricModelId, selectedGasModelId])
 
   const setCurrentUtilitySelectedId = useMemo(() => {
     switch (utilitySubTab) {
       case 'water': return setSelectedWaterModelId
+      case 'sewer': return setSelectedSewerModelId
       case 'electric': return setSelectedElectricModelId
       case 'gas': return setSelectedGasModelId
     }
-  }, [utilitySubTab, setSelectedWaterModelId, setSelectedElectricModelId, setSelectedGasModelId])
+  }, [utilitySubTab, setSelectedWaterModelId, setSelectedSewerModelId, setSelectedElectricModelId, setSelectedGasModelId])
 
   const closeAllPanels = () => {
     setSelectedCostModel(null)
@@ -280,7 +284,7 @@ export default function Models() {
                 {tab.id === 'cost' && models.length}
                 {tab.id === 'occupancy' && occupancyModels.length}
                 {tab.id === 'lifestyle' && lifestyleModels.length}
-                {tab.id === 'utility' && (waterModels.length + electricModels.length + gasModels.length)}
+                {tab.id === 'utility' && (waterModels.length + sewerModels.length + electricModels.length + gasModels.length)}
                 {tab.id === 'finance' && financeModels.length}
               </span>
             </button>
@@ -482,6 +486,16 @@ export default function Models() {
                 💧 Water ({waterModels.length})
               </button>
               <button
+                onClick={() => setUtilitySubTab('sewer')}
+                className={`px-4 py-2 text-sm font-medium rounded-t-lg ${
+                  utilitySubTab === 'sewer'
+                    ? 'bg-teal-100 text-teal-700'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                🚰 Sewer ({sewerModels.length})
+              </button>
+              <button
                 onClick={() => setUtilitySubTab('electric')}
                 className={`px-4 py-2 text-sm font-medium rounded-t-lg ${
                   utilitySubTab === 'electric'
@@ -507,6 +521,7 @@ export default function Models() {
               {currentUtilityModels.map((model) => {
                 const isActive = currentUtilitySelectedId === model.id
                 const subTabColor = utilitySubTab === 'water' ? 'cyan'
+                  : utilitySubTab === 'sewer' ? 'teal'
                   : utilitySubTab === 'electric' ? 'amber' : 'orange'
                 return (
                   <div
@@ -519,7 +534,7 @@ export default function Models() {
                     }`}
                     style={{
                       borderColor: isActive
-                        ? (subTabColor === 'cyan' ? '#06b6d4' : subTabColor === 'amber' ? '#f59e0b' : '#f97316')
+                        ? (subTabColor === 'cyan' ? '#06b6d4' : subTabColor === 'teal' ? '#14b8a6' : subTabColor === 'amber' ? '#f59e0b' : '#f97316')
                         : undefined
                     }}
                   >
@@ -533,6 +548,7 @@ export default function Models() {
                       {isActive && (
                         <span className={`px-2 py-0.5 text-xs font-medium rounded ${
                           subTabColor === 'cyan' ? 'bg-cyan-100 text-cyan-700'
+                          : subTabColor === 'teal' ? 'bg-teal-100 text-teal-700'
                           : subTabColor === 'amber' ? 'bg-amber-100 text-amber-700'
                           : 'bg-orange-100 text-orange-700'
                         }`}>
@@ -564,6 +580,7 @@ export default function Models() {
                       className={`mt-3 text-xs font-medium ${
                         isActive ? 'text-gray-400'
                         : subTabColor === 'cyan' ? 'text-cyan-600 hover:text-cyan-800'
+                        : subTabColor === 'teal' ? 'text-teal-600 hover:text-teal-800'
                         : subTabColor === 'amber' ? 'text-amber-600 hover:text-amber-800'
                         : 'text-orange-600 hover:text-orange-800'
                       }`}
@@ -684,6 +701,9 @@ export default function Models() {
           </span>
           <span className="px-3 py-1 text-xs rounded-full bg-cyan-50 border border-cyan-200">
             Water: {waterModels.find(m => m.id === selectedWaterModelId)?.provider_code || '-'}
+          </span>
+          <span className="px-3 py-1 text-xs rounded-full bg-teal-50 border border-teal-200">
+            Sewer: {sewerModels.find(m => m.id === selectedSewerModelId)?.provider_code || '-'}
           </span>
           <span className="px-3 py-1 text-xs rounded-full bg-amber-50 border border-amber-200">
             Electric: {electricModels.find(m => m.id === selectedElectricModelId)?.provider_code || '-'}

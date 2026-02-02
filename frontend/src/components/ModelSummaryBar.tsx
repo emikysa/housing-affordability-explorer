@@ -13,7 +13,7 @@ export default function ModelSummaryBar() {
   const { selectedModel } = useModel()
   const { selectedOccupancyModel } = useOccupancy()
   const { selectedLifestyleModel } = useLifestyle()
-  const { selectedWaterModel, selectedElectricModel, selectedGasModel } = useUtility()
+  const { selectedWaterModel, selectedElectricModel, selectedGasModel, selectedSewerModel } = useUtility()
   const { selectedFinanceModel } = useFinance()
 
   // Build summary parts
@@ -44,11 +44,12 @@ export default function ModelSummaryBar() {
     })
   }
 
-  if (selectedWaterModel && selectedElectricModel && selectedGasModel) {
+  if (selectedWaterModel && selectedElectricModel && selectedGasModel && selectedSewerModel) {
     const utilities = [
       selectedWaterModel.provider_code,
       selectedElectricModel.provider_code,
       selectedGasModel.provider_code,
+      selectedSewerModel.provider_code,
     ].join('/')
     summaryParts.push({
       label: 'Utilities',

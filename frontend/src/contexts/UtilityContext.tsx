@@ -18,6 +18,11 @@ interface UtilityContextType {
   selectedGasModel: UtilityModel | null
   selectedGasModelId: string
   setSelectedGasModelId: (id: string) => void
+  // Sewer
+  sewerModels: UtilityModel[]
+  selectedSewerModel: UtilityModel | null
+  selectedSewerModelId: string
+  setSelectedSewerModelId: (id: string) => void
   // Loading state
   loading: boolean
   error: string | null
@@ -29,15 +34,18 @@ const UtilityContext = createContext<UtilityContextType | undefined>(undefined)
 const DEFAULT_WATER_ID = '00000000-0000-0000-0003-000000000001'  // FCU Water
 const DEFAULT_ELECTRIC_ID = '00000000-0000-0000-0003-000000000011'  // FCU Electric
 const DEFAULT_GAS_ID = '00000000-0000-0000-0003-000000000021'  // Xcel Gas
+const DEFAULT_SEWER_ID = '00000000-0000-0000-0003-000000000031'  // FCU Sewer
 
 export function UtilityProvider({ children }: { children: ReactNode }) {
   const [waterModels, setWaterModels] = useState<UtilityModel[]>([])
   const [electricModels, setElectricModels] = useState<UtilityModel[]>([])
   const [gasModels, setGasModels] = useState<UtilityModel[]>([])
+  const [sewerModels, setSewerModels] = useState<UtilityModel[]>([])
 
   const [selectedWaterModelId, setSelectedWaterModelId] = useState<string>(DEFAULT_WATER_ID)
   const [selectedElectricModelId, setSelectedElectricModelId] = useState<string>(DEFAULT_ELECTRIC_ID)
   const [selectedGasModelId, setSelectedGasModelId] = useState<string>(DEFAULT_GAS_ID)
+  const [selectedSewerModelId, setSelectedSewerModelId] = useState<string>(DEFAULT_SEWER_ID)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -46,23 +54,27 @@ export function UtilityProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function fetchUtilityModels() {
       try {
-        const [waterResult, electricResult, gasResult] = await Promise.all([
+        const [waterResult, electricResult, gasResult, sewerResult] = await Promise.all([
           supabase.from('v_water_utility_models').select('*').order('sort_order'),
           supabase.from('v_electric_utility_models').select('*').order('sort_order'),
           supabase.from('v_gas_utility_models').select('*').order('sort_order'),
+          supabase.from('v_sewer_utility_models').select('*').order('sort_order'),
         ])
 
         if (waterResult.error) throw waterResult.error
         if (electricResult.error) throw electricResult.error
         if (gasResult.error) throw gasResult.error
+        if (sewerResult.error) throw sewerResult.error
 
         const waterData = (waterResult.data || []) as UtilityModel[]
         const electricData = (electricResult.data || []) as UtilityModel[]
         const gasData = (gasResult.data || []) as UtilityModel[]
+        const sewerData = (sewerResult.data || []) as UtilityModel[]
 
         setWaterModels(waterData)
         setElectricModels(electricData)
         setGasModels(gasData)
+        setSewerModels(sewerData)
 
         // Validate selections exist
         if (waterData.length > 0 && !waterData.find(m => m.id === selectedWaterModelId)) {
@@ -74,6 +86,9 @@ export function UtilityProvider({ children }: { children: ReactNode }) {
         if (gasData.length > 0 && !gasData.find(m => m.id === selectedGasModelId)) {
           setSelectedGasModelId(gasData[0].id)
         }
+        if (sewerData.length > 0 && !sewerData.find(m => m.id === selectedSewerModelId)) {
+          setSelectedSewerModelId(sewerData[0].id)
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load utility models')
       } finally {
@@ -82,11 +97,12 @@ export function UtilityProvider({ children }: { children: ReactNode }) {
     }
 
     fetchUtilityModels()
-  }, [selectedWaterModelId, selectedElectricModelId, selectedGasModelId])
+  }, [selectedWaterModelId, selectedElectricModelId, selectedGasModelId, selectedSewerModelId])
 
   const selectedWaterModel = waterModels.find((m) => m.id === selectedWaterModelId) || null
   const selectedElectricModel = electricModels.find((m) => m.id === selectedElectricModelId) || null
   const selectedGasModel = gasModels.find((m) => m.id === selectedGasModelId) || null
+  const selectedSewerModel = sewerModels.find((m) => m.id === selectedSewerModelId) || null
 
   return (
     <UtilityContext.Provider
@@ -103,6 +119,10 @@ export function UtilityProvider({ children }: { children: ReactNode }) {
         selectedGasModel,
         selectedGasModelId,
         setSelectedGasModelId,
+        sewerModels,
+        selectedSewerModel,
+        selectedSewerModelId,
+        setSelectedSewerModelId,
         loading,
         error,
       }}

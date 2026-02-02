@@ -4,6 +4,142 @@
 
 ---
 
+## 2026-02-02 (Session 16) - Phase 6a: Sewer Utility Type
+
+### Sewer Added as Fourth Utility Type
+Extended the Multi-Dimensional Model Architecture to include sewer/wastewater as a separate utility:
+
+**Database Migration (`20260202140000_sewer_utility_type.sql`):**
+- Altered utility_type CHECK constraint to include 'sewer'
+- Added 4 sewer providers:
+  - FCU-S (Fort Collins Utilities - Sewer)
+  - SFCSD (South Fort Collins Sanitation District)
+  - BOXELDER (Boxelder Sanitation District)
+  - SEPTIC (Private septic system - for rural/unserved areas)
+- Created `v_sewer_utility_models` view
+- Sewer rates based on water consumption (standard practice)
+
+**Frontend Changes:**
+- `useData.ts`: Added `useSewerUtilityModels()` hook
+- `UtilityContext.tsx`: Added sewer state (sewerModels, selectedSewerModel, etc.)
+- `UtilitySelector.tsx`: Extended to support sewer type
+- `ModelConfigModal.tsx`: Added sewer selector in 2x2 utilities grid (teal color)
+- `ModelSummaryBar.tsx`: Added sewer to utilities display
+- `Models.tsx`: Added sewer sub-tab in utilities section
+- `Dashboard.tsx`: Added sewer row in model table + sewer cost calculation
+
+**Color Scheme:**
+- Water: cyan
+- Sewer: teal
+- Electric: amber
+- Gas: orange
+
+**Note:** Sewer costs calculated based on water consumption (industry standard - most sewer utilities base charges on winter water average or direct water usage).
+
+### Files Created
+- `supabase/migrations/20260202140000_sewer_utility_type.sql`
+
+### Files Modified
+- `frontend/src/hooks/useData.ts`
+- `frontend/src/contexts/UtilityContext.tsx`
+- `frontend/src/components/UtilitySelector.tsx`
+- `frontend/src/components/ModelConfigModal.tsx`
+- `frontend/src/components/ModelSummaryBar.tsx`
+- `frontend/src/pages/Models.tsx`
+- `frontend/src/pages/Dashboard.tsx`
+
+---
+
+## 2026-02-02 (Session 15 continued) - Phase 5b: UX Improvements
+
+### Model Selector UX Overhaul
+Fixed cramped 7-selector layout with modal + summary bar pattern:
+
+**New Components:**
+- `ModelConfigModal.tsx` - Full modal with organized sections (HeadlessUI Dialog)
+  - Cost Model, Household Profile (Occupancy + Lifestyle), Utility Providers (Water/Electric/Gas), Finance
+- `ModelSummaryBar.tsx` - Compact chip display with "Configure" button
+  - Shows abbreviated values for all 7 selections
+  - Opens modal on click
+
+**Layout Changes:**
+- Non-Dashboard pages: Summary bar + modal replaces inline selectors
+- Dashboard page: Full table-format selectors (no modal)
+  - 7 rows with color-coded backgrounds (blue, green, cyan, amber, orange, purple)
+  - Columns: Model | Selection | Details
+
+### Models Page Enhancements
+- Cost Model detail panel now shows full data:
+  - Summary totals (one-time, annual, CRO savings)
+  - All cost elements grouped by stage in scrollable tables
+- Added TSV export for all 5 model types:
+  - Cost Model: exports all cost elements with values
+  - Occupancy, Lifestyle, Utility, Finance: export model details
+
+### Dependencies Added
+- `@headlessui/react` - Modal dialogs
+- `@heroicons/react` - Icons (Cog6ToothIcon, XMarkIcon)
+
+### Build Fixes
+- Removed unused imports (`useState`, `UtilityModel`) that blocked Vercel build
+- Fixed `short_code` vs `provider_code` property name usage
+
+### Files Created
+- `frontend/src/components/ModelConfigModal.tsx`
+- `frontend/src/components/ModelSummaryBar.tsx`
+
+### Files Modified
+- `frontend/src/components/Layout.tsx` - Uses ModelSummaryBar
+- `frontend/src/pages/Dashboard.tsx` - Table format selectors
+- `frontend/src/pages/Models.tsx` - Enhanced detail panels + TSV export
+
+### Deployed: Yes (Vercel auto-deploy)
+
+---
+
+## 2026-02-02 (Session 15 continued) - Phase 5: UI Integration
+
+### Models Page Redesign
+Complete rewrite of Models.tsx as comprehensive hub for all model types:
+
+**Tabbed Interface:**
+- Cost Models tab - existing scenario/cost models
+- Occupancy tab - household composition presets
+- Lifestyle tab - consumption pattern presets
+- Utilities tab with sub-tabs: Water | Electric | Gas
+- Finance tab - mortgage presets
+
+**Features:**
+- Model cards show key details (rates, terms, composition)
+- Click to expand detail panel
+- "Currently Active Models" summary at bottom shows all 7 selections
+
+### Dashboard Monthly Housing Cost Calculator
+Added new section at top of Dashboard for real-time cost calculation:
+
+**Model Selectors (all 7 inline):**
+- Cost Model (gray) | Occupancy (blue) | Lifestyle (green)
+- Water (cyan) | Electric (amber) | Gas (orange) | Finance (purple)
+
+**Calculations:**
+- Monthly consumption from occupancy × lifestyle × consumption factors
+- Tiered utility rates for water/electric/gas
+- Mortgage payment with PMI (P&I + PMI if <20% down)
+- Total monthly housing cost breakdown
+
+**Helper Functions:**
+- `calculateTieredCost()` - applies tiered utility rates
+- `calculateMortgagePayment()` - standard mortgage formula with PMI
+
+### Files Modified
+- `frontend/src/pages/Models.tsx` - Complete rewrite
+- `frontend/src/pages/Dashboard.tsx` - Major enhancements (431 new lines)
+- `CLAUDE_CONTEXT.md` - Updated Phase 5 status
+
+### Deployed: Yes (Vercel auto-deploy)
+
+---
+
 ## 2026-02-02 (Session 15 continued) - Phase 4: Occupant Finance Models
 
 ### Database: occupant_finance_models table

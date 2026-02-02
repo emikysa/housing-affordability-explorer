@@ -111,7 +111,7 @@ export default function Dashboard() {
   // Multi-dimensional model contexts
   const { selectedOccupancyModel } = useOccupancy()
   const { selectedLifestyleModel } = useLifestyle()
-  const { selectedWaterModel, selectedElectricModel, selectedGasModel } = useUtility()
+  const { selectedWaterModel, selectedSewerModel, selectedElectricModel, selectedGasModel } = useUtility()
   const { selectedFinanceModel } = useFinance()
 
   // Home price from cost model (for mortgage calculation)
@@ -251,6 +251,11 @@ export default function Dashboard() {
       ? calculateTieredCost(monthlyConsumption.water, selectedWaterModel.base_monthly_fee, selectedWaterModel.rate_tiers || [])
       : 0
 
+    // Sewer is typically based on water consumption (often a percentage or same tiers)
+    const sewerCost = selectedSewerModel
+      ? calculateTieredCost(monthlyConsumption.water, selectedSewerModel.base_monthly_fee, selectedSewerModel.rate_tiers || [])
+      : 0
+
     const electricCost = selectedElectricModel
       ? calculateTieredCost(monthlyConsumption.electric, selectedElectricModel.base_monthly_fee, selectedElectricModel.rate_tiers || [])
       : 0
@@ -261,11 +266,12 @@ export default function Dashboard() {
 
     return {
       water: Math.round(waterCost * 100) / 100,
+      sewer: Math.round(sewerCost * 100) / 100,
       electric: Math.round(electricCost * 100) / 100,
       gas: Math.round(gasCost * 100) / 100,
-      total: Math.round((waterCost + electricCost + gasCost) * 100) / 100,
+      total: Math.round((waterCost + sewerCost + electricCost + gasCost) * 100) / 100,
     }
-  }, [monthlyConsumption, selectedWaterModel, selectedElectricModel, selectedGasModel])
+  }, [monthlyConsumption, selectedWaterModel, selectedSewerModel, selectedElectricModel, selectedGasModel])
 
   // Calculate mortgage payment
   const mortgagePayment = useMemo(() => {
@@ -518,6 +524,23 @@ export default function Dashboard() {
                 </td>
               </tr>
 
+              {/* Sewer Utility */}
+              <tr className="hover:bg-teal-50/50 bg-teal-50/30">
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-teal-700">Sewer</span>
+                </td>
+                <td className="px-4 py-3">
+                  <UtilitySelector utilityType="sewer" variant="default" />
+                </td>
+                <td className="px-4 py-3 text-sm text-teal-600">
+                  {selectedSewerModel
+                    ? selectedSewerModel.provider_code === 'SEPTIC'
+                      ? 'Septic system'
+                      : `$${selectedSewerModel.base_monthly_fee.toFixed(2)}/mo + usage`
+                    : '-'}
+                </td>
+              </tr>
+
               {/* Electric Utility */}
               <tr className="hover:bg-amber-50/50 bg-amber-50/30">
                 <td className="px-4 py-3">
@@ -583,6 +606,12 @@ export default function Dashboard() {
                   <span className="w-6 text-center">💧</span> Water
                 </span>
                 <span className="font-medium">{formatCurrencyDetailed(utilityCosts.water)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center text-sm text-gray-600">
+                  <span className="w-6 text-center">🚰</span> Sewer
+                </span>
+                <span className="font-medium">{formatCurrencyDetailed(utilityCosts.sewer)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="flex items-center text-sm text-gray-600">
