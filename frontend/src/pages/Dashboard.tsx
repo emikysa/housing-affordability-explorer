@@ -5,35 +5,26 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
 } from 'recharts'
-import StatCard from '../components/StatCard'
 import ModelSelector from '../components/ModelSelector'
 import OccupancySelector from '../components/OccupancySelector'
 import LifestyleSelector from '../components/LifestyleSelector'
 import UtilitySelector from '../components/UtilitySelector'
 import FinanceSelector from '../components/FinanceSelector'
-import { useMasterCounts, useSummaryStats, useCostElements, useBarriers, useConsumptionFactors } from '../hooks/useData'
+import { useSummaryStats, useCostElements, useConsumptionFactors } from '../hooks/useData'
 import { useOccupancy } from '../contexts/OccupancyContext'
 import { useLifestyle } from '../contexts/LifestyleContext'
 import { useUtility } from '../contexts/UtilityContext'
 import { useFinance } from '../contexts/FinanceContext'
 import type { UtilityRateTier } from '../types/database'
 
-const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6366f1']
-
 // Extended color palette for stacked bars
 const STACKED_COLORS = [
   '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6366f1',
   '#14b8a6', '#f97316', '#ec4899', '#84cc16', '#06b6d4', '#a855f7',
   '#22c55e', '#eab308', '#0ea5e9', '#d946ef', '#64748b', '#fb7185',
-  '#4ade80', '#facc15', '#38bdf8', '#c084fc', '#94a3b8', '#f472b6',
 ]
 
 // Calculate tiered utility cost
@@ -49,7 +40,6 @@ function calculateTieredCost(consumption: number, baseFee: number, rateTiers: Ut
     let tierUsage: number
 
     if (tierMax === null) {
-      // Unlimited tier
       tierUsage = remaining
     } else {
       tierUsage = Math.min(remaining, tierMax - prevMax)
@@ -80,12 +70,10 @@ function calculateMortgagePayment(
   const monthlyRate = annualRate / 12
   const numPayments = termYears * 12
 
-  // Standard mortgage formula: M = P * [r(1+r)^n] / [(1+r)^n - 1]
   const monthlyPI = loanAmount *
     (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
     (Math.pow(1 + monthlyRate, numPayments) - 1)
 
-  // PMI if below threshold
   const monthlyPMI = downPaymentPercent < pmiThreshold && pmiRate > 0
     ? (loanAmount * pmiRate) / 12
     : 0
@@ -98,13 +86,9 @@ function calculateMortgagePayment(
 }
 
 export default function Dashboard() {
-  // Master counts (framework totals - not scenario-dependent)
-  const masterCounts = useMasterCounts()
-
   // Scenario-specific data
   const { data: stats, loading: statsLoading } = useSummaryStats()
   const { data: costElements, loading: ceLoading } = useCostElements()
-  const { data: barriers, loading: barriersLoading } = useBarriers()
   const { data: consumptionFactors } = useConsumptionFactors()
 
   // Multi-dimensional model contexts
@@ -115,7 +99,7 @@ export default function Dashboard() {
 
   // Home price from cost model (for mortgage calculation)
   const homePrice = useMemo(() => {
-    return stats?.total_onetime_costs || 450000 // Default to $450k if no data
+    return stats?.total_onetime_costs || 450000
   }, [stats])
 
   // Calculate monthly consumption based on occupancy and lifestyle
@@ -128,15 +112,13 @@ export default function Dashboard() {
     const adults = selectedOccupancyModel.adults
     const lifestyle = selectedLifestyleModel
 
-    // Find consumption factors
     const getConsumption = (code: string) => consumptionFactors.find(f => f.activity_code === code)
 
-    // Calculate monthly totals
     let waterGallons = 0
     let electricKwh = 0
     let gasTherms = 0
 
-    // Showers: per person × lifestyle frequency × 4.33 weeks/month
+    // Showers
     const shower = getConsumption('shower')
     if (shower) {
       const monthlyShowers = occupants * lifestyle.showers_per_week * 4.33
@@ -145,7 +127,7 @@ export default function Dashboard() {
       gasTherms += monthlyShowers * shower.gas_therms
     }
 
-    // Baths: per person × lifestyle frequency × 4.33 weeks/month
+    // Baths
     const bath = getConsumption('bath')
     if (bath) {
       const monthlyBaths = occupants * lifestyle.baths_per_week * 4.33
@@ -154,7 +136,7 @@ export default function Dashboard() {
       gasTherms += monthlyBaths * bath.gas_therms
     }
 
-    // Laundry: household × lifestyle frequency × 4.33 weeks/month
+    // Laundry
     const laundry = getConsumption('laundry_load')
     if (laundry) {
       const monthlyLoads = lifestyle.laundry_loads_per_week * 4.33
@@ -162,7 +144,7 @@ export default function Dashboard() {
       electricKwh += monthlyLoads * laundry.electric_kwh
     }
 
-    // Dishwasher: household × lifestyle frequency × 4.33 weeks/month
+    // Dishwasher
     const dishwasher = getConsumption('dishwasher_load')
     if (dishwasher) {
       const monthlyLoads = lifestyle.dishwasher_loads_per_week * 4.33
@@ -170,21 +152,21 @@ export default function Dashboard() {
       electricKwh += monthlyLoads * dishwasher.electric_kwh
     }
 
-    // Hand dishes: household × lifestyle frequency × 30 days/month
+    // Hand dishes
     const handDishes = getConsumption('hand_dishes')
     if (handDishes) {
       const monthlyTimes = lifestyle.hand_wash_dishes_per_day * 30
       waterGallons += monthlyTimes * handDishes.water_gallons
     }
 
-    // Toilet flushes: per person × lifestyle frequency × 30 days/month
+    // Toilet flushes
     const toilet = getConsumption('toilet_flush')
     if (toilet) {
       const monthlyFlushes = occupants * lifestyle.toilet_flushes_per_day * 30
       waterGallons += monthlyFlushes * toilet.water_gallons
     }
 
-    // Cooking: household × lifestyle frequency × 30 days/month
+    // Cooking
     const cooking = getConsumption('cooking_meal')
     if (cooking) {
       const monthlyMeals = lifestyle.meals_cooked_per_day * 30
@@ -193,28 +175,28 @@ export default function Dashboard() {
       gasTherms += monthlyMeals * cooking.gas_therms
     }
 
-    // TV: household × lifestyle frequency × 30 days/month
+    // TV
     const tv = getConsumption('tv_hour')
     if (tv) {
       const monthlyHours = lifestyle.tv_hours_per_day * 30
       electricKwh += monthlyHours * tv.electric_kwh
     }
 
-    // Computer: per person × lifestyle frequency × 30 days/month
+    // Computer
     const computer = getConsumption('computer_hour')
     if (computer) {
       const monthlyHours = adults * lifestyle.computer_hours_per_day * 30
       electricKwh += monthlyHours * computer.electric_kwh
     }
 
-    // Lighting: household × lifestyle frequency × 30 days/month
+    // Lighting
     const lighting = getConsumption('lighting_hour')
     if (lighting) {
       const monthlyHours = lifestyle.lighting_hours_per_day * 30
       electricKwh += monthlyHours * lighting.electric_kwh
     }
 
-    // Base loads (monthly)
+    // Base loads
     const fridge = getConsumption('refrigerator')
     if (fridge) {
       electricKwh += fridge.electric_kwh
@@ -250,7 +232,6 @@ export default function Dashboard() {
       ? calculateTieredCost(monthlyConsumption.water, selectedWaterModel.base_monthly_fee, selectedWaterModel.rate_tiers || [])
       : 0
 
-    // Sewer is typically based on water consumption (often a percentage or same tiers)
     const sewerCost = selectedSewerModel
       ? calculateTieredCost(monthlyConsumption.water, selectedSewerModel.base_monthly_fee, selectedSewerModel.rate_tiers || [])
       : 0
@@ -293,69 +274,7 @@ export default function Dashboard() {
     return mortgagePayment.total + utilityCosts.total
   }, [mortgagePayment, utilityCosts])
 
-  // Aggregate cost elements by stage
-  const costsByStage = useMemo(() => {
-    const grouped = costElements.reduce(
-      (acc, ce) => {
-        const stage = ce.stage_id || 'Other'
-        if (!acc[stage]) acc[stage] = 0
-        acc[stage] += ce.estimate || 0
-        return acc
-      },
-      {} as Record<string, number>
-    )
-
-    return Object.entries(grouped)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-  }, [costElements])
-
-  // Aggregate barriers by type
-  const barriersByType = useMemo(() => {
-    const grouped = barriers.reduce(
-      (acc, b) => {
-        const type = b.barrier_type || 'Other'
-        if (!acc[type]) acc[type] = 0
-        acc[type]++
-        return acc
-      },
-      {} as Record<string, number>
-    )
-
-    return Object.entries(grouped).map(([name, value]) => ({ name, value }))
-  }, [barriers])
-
-  // Aggregate barriers by scope
-  const barriersByScope = useMemo(() => {
-    const grouped = barriers.reduce(
-      (acc, b) => {
-        const scope = b.barrier_scope || 'Other'
-        if (!acc[scope]) acc[scope] = 0
-        acc[scope]++
-        return acc
-      },
-      {} as Record<string, number>
-    )
-
-    return Object.entries(grouped).map(([name, value]) => ({ name, value }))
-  }, [barriers])
-
-  // Aggregate barriers by feasibility horizon
-  const barriersByHorizon = useMemo(() => {
-    const grouped = barriers.reduce(
-      (acc, b) => {
-        const horizon = b.feasibility_horizon || 'Unknown'
-        if (!acc[horizon]) acc[horizon] = 0
-        acc[horizon]++
-        return acc
-      },
-      {} as Record<string, number>
-    )
-
-    return Object.entries(grouped).map(([name, value]) => ({ name, value }))
-  }, [barriers])
-
-  // Build cost elements (one-time) - sorted by value descending
+  // Build cost elements (one-time)
   const buildCostElements = useMemo(() => {
     return costElements
       .filter((ce) => ce.stage_id === 'Build' && (ce.estimate || 0) > 0)
@@ -367,7 +286,7 @@ export default function Dashboard() {
       .sort((a, b) => b.value - a.value)
   }, [costElements])
 
-  // Stacked bar data for Build costs (vertical)
+  // Stacked bar data for Build costs
   const buildStackedData = useMemo(() => {
     const data: Record<string, number | string> = { category: 'Build' }
     buildCostElements.forEach((ce) => {
@@ -385,7 +304,6 @@ export default function Dashboard() {
           (ce.annual_estimate || ce.estimate || 0) > 0
       )
       .map((ce) => {
-        // Convert annual to monthly, or use estimate if it's a monthly figure
         const monthlyValue = ce.annual_estimate
           ? ce.annual_estimate / 12
           : (ce.estimate || 0) / 12
@@ -399,7 +317,7 @@ export default function Dashboard() {
       .sort((a, b) => b.value - a.value)
   }, [costElements])
 
-  // Stacked bar data for Operate + Finance costs (vertical)
+  // Stacked bar data for Operate + Finance costs
   const operateFinanceStackedData = useMemo(() => {
     const data: Record<string, number | string> = { category: 'Monthly' }
     operateFinanceCostElements.forEach((ce) => {
@@ -424,9 +342,8 @@ export default function Dashboard() {
       maximumFractionDigits: 2,
     }).format(value)
 
-  const scenarioDataLoading = statsLoading || ceLoading || barriersLoading
+  const scenarioDataLoading = statsLoading || ceLoading
 
-  // Calculate totals for the vertical bars
   const buildTotal = buildCostElements.reduce((sum, ce) => sum + ce.value, 0)
   const monthlyTotal = operateFinanceCostElements.reduce((sum, ce) => sum + ce.value, 0)
 
@@ -436,7 +353,7 @@ export default function Dashboard() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-gray-500">
-          Overview of housing costs, reduction opportunities, and barriers
+          Calculate your monthly housing cost based on your selections
         </p>
       </div>
 
@@ -696,51 +613,9 @@ export default function Dashboard() {
       </div>
 
       {/* ============================================ */}
-      {/* SECTION 2: FRAMEWORK OVERVIEW (Master Counts) */}
-      {/* ============================================ */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Framework Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Link to="/cost-elements">
-            <StatCard
-              title="Cost Elements"
-              value={masterCounts.loading ? '...' : masterCounts.costElements}
-              subtitle="Build, Operate, Finance"
-              color="blue"
-            />
-          </Link>
-          <Link to="/opportunities">
-            <StatCard
-              title="Reduction Opportunities"
-              value={masterCounts.loading ? '...' : masterCounts.cros}
-              subtitle="Ways to reduce costs"
-              color="green"
-            />
-          </Link>
-          <Link to="/barriers">
-            <StatCard
-              title="Barriers"
-              value={masterCounts.loading ? '...' : masterCounts.barriers}
-              subtitle="Blocking cost reductions"
-              color="yellow"
-            />
-          </Link>
-          <Link to="/actors">
-            <StatCard
-              title="Actors"
-              value={masterCounts.loading ? '...' : masterCounts.actors}
-              subtitle="Who controls costs"
-              color="purple"
-            />
-          </Link>
-        </div>
-      </div>
-
-      {/* ============================================ */}
-      {/* SECTION 3: MODEL ANALYSIS */}
+      {/* SECTION 2: COST MODEL ANALYSIS */}
       {/* ============================================ */}
       <div className="pt-4 border-t border-gray-200">
-        {/* Model Selector */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-700">Cost Model Analysis</h2>
           <ModelSelector variant="prominent" label="Viewing" />
@@ -777,13 +652,11 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Cost Breakdown Section: Two Vertical Bar Charts + Monthly Payment Summary */}
+            {/* Cost Breakdown Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Build Cost Element Breakdown (Vertical Stacked Bar) */}
+              {/* Build Costs */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Build Costs
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Build Costs</h3>
                 <p className="text-sm text-gray-500 mb-4">One-time • {formatCurrency(buildTotal)}</p>
                 <div className="flex justify-center">
                   <ResponsiveContainer width={120} height={280}>
@@ -830,11 +703,9 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Operate + Finance Cost Element Breakdown (Vertical Stacked Bar) */}
+              {/* Monthly Costs */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Monthly Costs
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Monthly Costs</h3>
                 <p className="text-sm text-gray-500 mb-4">Operate + Finance • {formatCurrency(monthlyTotal)}/mo</p>
                 <div className="flex justify-center">
                   <ResponsiveContainer width={120} height={280}>
@@ -881,7 +752,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Monthly Payment Summary Table */}
+              {/* Calculation Summary */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Calculation Summary</h3>
                 <div className="space-y-3 text-sm">
@@ -917,127 +788,48 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-
-            {/* Charts Row 1 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-              {/* Costs by Stage */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Costs by Stage</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={costsByStage} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                    <YAxis dataKey="name" type="category" width={80} />
-                    <Tooltip
-                      formatter={(value: number) => formatCurrency(value)}
-                      labelStyle={{ fontWeight: 'bold' }}
-                    />
-                    <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Barriers by Type */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Barriers by Type</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={barriersByType}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {barriersByType.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Charts Row 2 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              {/* Barriers by Scope */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Barriers by Scope</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={barriersByScope}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} interval={0} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Barriers by Feasibility Horizon */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Barriers by Feasibility Horizon</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={barriersByHorizon}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      paddingAngle={5}
-                      dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}`}
-                    >
-                      <Cell fill="#10b981" /> {/* Near - Green */}
-                      <Cell fill="#f59e0b" /> {/* Medium - Yellow */}
-                      <Cell fill="#ef4444" /> {/* Long - Red */}
-                      <Cell fill="#6b7280" /> {/* Unknown - Gray */}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
           </>
         )}
       </div>
 
       {/* Quick Links */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Explore the Framework</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Explore Further</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Link
+            to="/overview"
+            className="p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
+          >
+            <h4 className="font-medium text-gray-900">Learn More</h4>
+            <p className="text-sm text-gray-500 mt-1">
+              Understand the framework
+            </p>
+          </Link>
+          <Link
+            to="/explorer"
+            className="p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
+          >
+            <h4 className="font-medium text-gray-900">Explorer</h4>
+            <p className="text-sm text-gray-500 mt-1">
+              Interactive relationships view
+            </p>
+          </Link>
           <Link
             to="/cost-elements"
             className="p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
           >
-            <h4 className="font-medium text-gray-900">Cost Elements</h4>
+            <h4 className="font-medium text-gray-900">Costs</h4>
             <p className="text-sm text-gray-500 mt-1">
-              Explore all cost components across Build, Operate, and Finance stages
+              Drill into cost breakdown
             </p>
           </Link>
           <Link
             to="/opportunities"
             className="p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
           >
-            <h4 className="font-medium text-gray-900">Reduction Opportunities</h4>
+            <h4 className="font-medium text-gray-900">Opportunities</h4>
             <p className="text-sm text-gray-500 mt-1">
-              Discover ways to reduce housing costs and their potential savings
-            </p>
-          </Link>
-          <Link
-            to="/barriers"
-            className="p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
-          >
-            <h4 className="font-medium text-gray-900">Barriers</h4>
-            <p className="text-sm text-gray-500 mt-1">
-              Understand what blocks cost reductions and how to overcome them
+              Ways to reduce costs
             </p>
           </Link>
         </div>

@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
+import Overview from './pages/Overview'
 import Dashboard from './pages/Dashboard'
 import CostElements from './pages/CostElements'
 import Opportunities from './pages/Opportunities'
@@ -15,6 +16,7 @@ function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/overview" element={<Overview />} />
         <Route path="/cost-elements" element={<CostElements />} />
         <Route path="/opportunities" element={<Opportunities />} />
         <Route path="/barriers" element={<Barriers />} />

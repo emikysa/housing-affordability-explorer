@@ -8,6 +8,7 @@ interface LayoutProps {
 }
 
 const navItems = [
+  { path: '/overview', label: 'Overview' },
   { path: '/', label: 'Dashboard' },
   { path: '/explorer', label: 'Explorer' },
   { path: '/models', label: 'Models' },
@@ -20,8 +21,8 @@ const navItems = [
 ]
 
 // Pages where we don't show the header model summary
-// (Dashboard has its own full selectors, Models page doesn't need one)
-const pagesWithoutHeaderSelector = ['/', '/models']
+// (Dashboard has its own full selectors, Models page doesn't need one, Overview is educational)
+const pagesWithoutHeaderSelector = ['/', '/models', '/overview']
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
