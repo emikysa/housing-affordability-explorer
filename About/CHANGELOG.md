@@ -4,6 +4,46 @@
 
 ---
 
+## 2026-02-06 (BPF Session 3) - Rename, Early Preview, SVG Icons, Left-Align, FC BSB Links
+
+### Rename: "Housing Affordability Explorer" → "Housing Affordability Framework"
+- Renamed across 8 files for consistency with BPF naming convention
+- Files updated: Layout.tsx, Overview.tsx, index.html, package.json, README.md, CONTEXT.md, CHANGELOG.md, SETUP_GUIDE.md
+- Vercel project renamed to `affordability-framework` (no code changes needed)
+
+### "Early Preview" Disclaimer
+- Replaced small "Beta" badge with prominent amber pill in header
+- Text: **Early Preview** — under active development. Content is incomplete, features may not work, and data may change.
+
+### Custom SVG Icons on Overview
+- Replaced emoji icons (💰💡🚧🔧👥) with clean line-art SVGs matching BPF's icon style:
+  - **Cost Elements:** Dollar sign in circle
+  - **Opportunities:** Lightbulb with plus sign
+  - **Barriers:** Octagonal stop sign with horizontal bar (brick wall replaced — walls are positive in construction)
+  - **Levers:** Lever balanced on fulcrum
+  - **Actors:** Two people silhouettes
+- Icons use `currentColor` to inherit container color
+
+### Overview & Dashboard Left-Aligned
+- Removed `mx-auto` from Overview (`max-w-5xl`) and Dashboard (`max-w-6xl`)
+- Pages now left-align to match other full-width tabs
+
+### FC BSB Series Link
+- Added "This tool supports the **Affordability Series** of monthly FC BSB meetings" paragraph
+- Links to fcbsb.org/affordability (opens in new tab)
+
+### Files Modified
+- `frontend/src/components/Layout.tsx` — Rename, Early Preview pill
+- `frontend/src/pages/Overview.tsx` — Rename, FrameworkIcon SVGs, FC BSB link, left-align
+- `frontend/src/pages/Dashboard.tsx` — Left-align
+- `frontend/index.html` — Title rename
+- `frontend/package.json` — Package name rename
+- `README.md`, `About/CONTEXT.md`, `About/CHANGELOG.md`, `SETUP_GUIDE.md` — Rename
+
+### Deployed: Yes (Vercel auto-deploy via git push)
+
+---
+
 ## 2026-02-02 (Session 16 continued) - UX: Overview Page + Dashboard Streamline
 
 ### New Overview Page

@@ -9,6 +9,10 @@
 A public web application that helps people understand housing costs, cost reduction opportunities (CROs), barriers, and the actors who control them. Data originated from an Excel workbook and is now hosted as a live database-backed web app.
 
 **Live Site:** Hosted on Vercel (auto-deploys from GitHub)
+**Custom Domain:** affordabilityframework.fcbsb.org
+**GitHub:** https://github.com/emikysa/housing-affordability-explorer
+**Sister project:** Building Performance Framework at `/Users/emikysa/Claude/BuildingPerformanceFramework/`
+**Shared database:** Same Supabase project as BPF (BPF tables use `bpf_` prefix; HAF tables have no prefix)
 
 ---
 
@@ -286,10 +290,11 @@ Scenarios allow modeling different cost assumptions:
 ### Navigation Tabs
 Overview, Dashboard, Explorer, Models, Costs, Opportunities, Barriers, Levers, Actors, Relationships
 
-### Overview Page (NEW - 2026-02-02)
-Educational landing page explaining the framework:
-- **What is this tool?** - Framework explanation
-- **Visual chain diagram** - Costs → Opportunities → Barriers → Levers → Actors
+### Overview Page (Updated 2026-02-06)
+Educational landing page explaining the framework (left-aligned, max-w-5xl):
+- **What is this tool?** - Framework explanation + FC BSB Affordability Series link
+- **Visual chain diagram** - Costs → Opportunities → Barriers → Levers → Actors with custom SVG icons
+  - Cost Elements: dollar sign in circle; Opportunities: lightbulb; Barriers: octagonal stop sign; Levers: lever on fulcrum; Actors: two people
 - **Framework counts** - StatCards showing CEs, CROs, Barriers, Levers, Actors
 - **Tab descriptions** - Explains what each page does
 - **Beta notice** - Warning that data is artificial/WIP
@@ -335,7 +340,7 @@ Streamlined to focus on the Monthly Housing Cost Calculator:
 - Component: `frontend/src/components/VersionStamp.tsx`
 - **Purpose:** Helps verify deployments succeeded and cache isn't stale
 - **Automatic updates:** The timestamp updates on every `git push` since Vercel rebuilds the app
-- **Beta badge** displayed next to main title to indicate work-in-progress
+- **"Early Preview" disclaimer** — Prominent amber pill in header warns users that content is incomplete and features may not work
 
 ---
 
@@ -529,8 +534,7 @@ scenarios (
 
 ## Future Enhancements Discussed
 
-- Custom domain setup (affordabilityexplorer.fcbsb.org)
-- Migration to IONOS if needed
+- ~~Custom domain setup~~ ✓ Done: affordabilityframework.fcbsb.org
 - **Multi-dimensional model architecture** (see section above)
 
 ---
