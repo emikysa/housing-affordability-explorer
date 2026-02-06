@@ -43,8 +43,13 @@ export default function Layout({ children }: LayoutProps) {
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-xl font-bold text-gray-900">Housing Affordability Explorer</h1>
-                  <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 rounded-full border border-amber-300">
-                    Beta
+                  <span className="relative group">
+                    <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 rounded-full border border-amber-300 cursor-help">
+                      Early Preview
+                    </span>
+                    <span className="absolute left-0 top-full mt-1.5 z-50 hidden group-hover:block w-72 p-3 text-xs text-gray-600 bg-white rounded-lg shadow-lg border border-gray-200 leading-relaxed">
+                      This tool is under active development. Content is incomplete, some features may not work as expected, and data may change without notice. Feedback is welcome.
+                    </span>
                   </span>
                 </div>
                 <p className="text-xs text-gray-500">
