@@ -29,6 +29,13 @@ export default function Overview() {
             Use this tool to explore how different choices affect total housing costs, identify where
             cost savings are possible, and understand what stands in the way of more affordable housing.
           </p>
+          <p className="text-gray-600 leading-relaxed mt-4">
+            This tool supports the <strong>Affordability Series</strong> of monthly FC BSB meetings.
+            Explore the full series at{' '}
+            <a href="https://fcbsb.org/affordability" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+              fcbsb.org/affordability
+            </a>.
+          </p>
         </div>
       </div>
 
