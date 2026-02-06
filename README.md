@@ -1,4 +1,4 @@
-# Housing Affordability Framework Explorer
+# Housing Affordability Framework
 
 A web application for exploring housing cost elements, reduction opportunities, barriers, and the actors who control them.
 

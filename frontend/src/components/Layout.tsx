@@ -42,7 +42,7 @@ export default function Layout({ children }: LayoutProps) {
               </svg>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-gray-900">Housing Affordability Explorer</h1>
+                  <h1 className="text-xl font-bold text-gray-900">Housing Affordability Framework</h1>
                   <span className="px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 rounded-full border border-amber-300">
                     <strong>Early Preview</strong> — under active development. Content is incomplete, features may not work, and data may change.
                   </span>
@@ -90,7 +90,7 @@ export default function Layout({ children }: LayoutProps) {
       <footer className="bg-white border-t border-gray-200 mt-auto">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <p className="text-center text-sm text-gray-500">
-            Housing Affordability Framework Explorer
+            Housing Affordability Framework
           </p>
         </div>
       </footer>

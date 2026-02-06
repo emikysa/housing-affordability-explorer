@@ -20,7 +20,7 @@ export default function Overview() {
         <h2 className="text-xl font-bold text-gray-900 mb-4">What is this tool?</h2>
         <div className="prose prose-gray max-w-none">
           <p className="text-gray-600 leading-relaxed">
-            The Housing Affordability Explorer helps you understand the full picture of housing costs—from
+            The Housing Affordability Framework helps you understand the full picture of housing costs—from
             land acquisition through construction, financing, and ongoing operations. It maps out the
             opportunities to reduce these costs, the barriers that prevent those reductions, and the
             actors who have the power to make changes.

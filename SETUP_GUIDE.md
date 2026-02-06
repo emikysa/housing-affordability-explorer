@@ -1,6 +1,6 @@
 # Step-by-Step Setup Guide
 
-This guide walks you through setting up the Housing Affordability Explorer from scratch.
+This guide walks you through setting up the Housing Affordability Framework from scratch.
 
 ---
 
@@ -218,7 +218,7 @@ git init
 git add .
 
 # Commit
-git commit -m "Initial commit: Housing Affordability Explorer"
+git commit -m "Initial commit: Housing Affordability Framework"
 
 # Create repo on GitHub, then:
 git remote add origin https://github.com/YOUR_USERNAME/housing-affordability-explorer.git
