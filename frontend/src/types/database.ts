@@ -622,6 +622,26 @@ export interface OccupantFinanceModel {
   updated_at: string
 }
 
+// Risk Models (Multi-Dimensional Model Architecture - Phase 5)
+export interface RiskModel {
+  id: string
+  name: string
+  description: string | null
+  // R1: Schedule Uncertainty
+  schedule_variance_pct: number
+  // R2: Cost-of-Capital Risk Premium
+  rate_premium_bps: number
+  // R3: Scope and Cost Uncertainty
+  design_contingency_pct: number
+  construction_contingency_pct: number
+  // R4: Market Absorption / Exit Risk
+  marketing_multiplier: number
+  sales_period_months: number
+  sort_order: number | null
+  created_at: string
+  updated_at: string
+}
+
 // Mortgage Payment Calculation Result
 export interface MortgagePaymentResult {
   loan_amount: number

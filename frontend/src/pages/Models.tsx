@@ -4,6 +4,7 @@ import { useOccupancy } from '../contexts/OccupancyContext'
 import { useLifestyle } from '../contexts/LifestyleContext'
 import { useUtility } from '../contexts/UtilityContext'
 import { useFinance } from '../contexts/FinanceContext'
+import { useRisk } from '../contexts/RiskContext'
 import { useCostElements, useSummaryStats } from '../hooks/useData'
 import type {
   Scenario,
@@ -11,13 +12,14 @@ import type {
   LifestyleModel,
   UtilityModel,
   OccupantFinanceModel,
+  RiskModel,
   CostElement,
 } from '../types/database'
 import DetailPanel, { Backdrop, DetailItem, DetailSection } from '../components/DetailPanel'
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 
 // Tab configuration
-type ModelTab = 'cost' | 'occupancy' | 'lifestyle' | 'utility' | 'finance'
+type ModelTab = 'cost' | 'occupancy' | 'lifestyle' | 'utility' | 'finance' | 'risk'
 
 const tabs: { id: ModelTab; label: string; color: string; bgColor: string; borderColor: string }[] = [
   { id: 'cost', label: 'Cost Models', color: 'text-gray-700', bgColor: 'bg-gray-100', borderColor: 'border-gray-300' },
@@ -25,6 +27,7 @@ const tabs: { id: ModelTab; label: string; color: string; bgColor: string; borde
   { id: 'lifestyle', label: 'Lifestyle', color: 'text-green-700', bgColor: 'bg-green-50', borderColor: 'border-green-300' },
   { id: 'utility', label: 'Utilities', color: 'text-cyan-700', bgColor: 'bg-cyan-50', borderColor: 'border-cyan-300' },
   { id: 'finance', label: 'Finance', color: 'text-purple-700', bgColor: 'bg-purple-50', borderColor: 'border-purple-300' },
+  { id: 'risk', label: 'Risk', color: 'text-red-700', bgColor: 'bg-red-50', borderColor: 'border-red-300' },
 ]
 
 // Utility sub-tabs
@@ -45,6 +48,7 @@ export default function Models() {
     gasModels, selectedGasModelId, setSelectedGasModelId,
   } = useUtility()
   const { financeModels, selectedFinanceModelId, setSelectedFinanceModelId } = useFinance()
+  const { riskModels, selectedRiskModelId, setSelectedRiskModelId } = useRisk()
 
   // Detail panel state
   const [selectedCostModel, setSelectedCostModel] = useState<Scenario | null>(null)
@@ -52,6 +56,7 @@ export default function Models() {
   const [selectedLifestyleModel, setSelectedLifestyleModel] = useState<LifestyleModel | null>(null)
   const [selectedUtilityModel, setSelectedUtilityModel] = useState<UtilityModel | null>(null)
   const [selectedFinanceModel, setSelectedFinanceModel] = useState<OccupantFinanceModel | null>(null)
+  const [selectedRiskModel, setSelectedRiskModel] = useState<RiskModel | null>(null)
 
   const formatCurrency = (value: number | null | undefined) => {
     if (value == null) return '-'
@@ -249,6 +254,7 @@ export default function Models() {
     setSelectedLifestyleModel(null)
     setSelectedUtilityModel(null)
     setSelectedFinanceModel(null)
+    setSelectedRiskModel(null)
   }
 
   const activeTabConfig = tabs.find(t => t.id === activeTab)!
@@ -285,6 +291,7 @@ export default function Models() {
                 {tab.id === 'lifestyle' && lifestyleModels.length}
                 {tab.id === 'utility' && (waterModels.length + sewerModels.length + electricModels.length + gasModels.length)}
                 {tab.id === 'finance' && financeModels.length}
+                {tab.id === 'risk' && riskModels.length}
               </span>
             </button>
           ))}
@@ -593,6 +600,71 @@ export default function Models() {
           </div>
         )}
 
+        {/* Risk Models Tab */}
+        {activeTab === 'risk' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-gray-900">Risk Models</h2>
+              <p className="text-sm text-gray-600">
+                How uncertainty affects project costs through R1-R4 parameters
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {riskModels.map((model) => {
+                const isActive = selectedRiskModelId === model.id
+                return (
+                  <div
+                    key={model.id}
+                    onClick={() => setSelectedRiskModel(model)}
+                    className={`bg-white rounded-lg border-2 p-4 cursor-pointer hover:shadow-md transition-all ${
+                      isActive ? 'border-red-500 ring-2 ring-red-200' : 'border-red-200'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-medium text-gray-900">{model.name}</h3>
+                      {isActive && (
+                        <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <div className="flex justify-between">
+                        <span>Schedule:</span>
+                        <span className="font-medium">+{model.schedule_variance_pct}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Rate premium:</span>
+                        <span className="font-medium">+{model.rate_premium_bps} bps</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Contingency:</span>
+                        <span className="font-medium">{model.design_contingency_pct}%/{model.construction_contingency_pct}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Marketing:</span>
+                        <span className="font-medium">{model.marketing_multiplier}x</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedRiskModelId(model.id)
+                      }}
+                      disabled={isActive}
+                      className={`mt-3 text-xs font-medium ${
+                        isActive ? 'text-gray-400' : 'text-red-600 hover:text-red-800'
+                      }`}
+                    >
+                      {isActive ? 'Currently Active' : 'Set as Active'}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Finance Models Tab */}
         {activeTab === 'finance' && (
           <div className="space-y-4">
@@ -712,6 +784,9 @@ export default function Models() {
           </span>
           <span className="px-3 py-1 text-xs rounded-full bg-purple-50 border border-purple-200">
             Finance: {financeModels.find(m => m.id === selectedFinanceModelId)?.short_code || '-'}
+          </span>
+          <span className="px-3 py-1 text-xs rounded-full bg-red-50 border border-red-200">
+            Risk: {riskModels.find(m => m.id === selectedRiskModelId)?.name || '-'}
           </span>
         </div>
       </div>
@@ -949,6 +1024,32 @@ export default function Models() {
                 Export as TSV
               </button>
             </div>
+          </DetailPanel>
+        </>
+      )}
+
+      {selectedRiskModel && (
+        <>
+          <Backdrop onClick={closeAllPanels} />
+          <DetailPanel title={selectedRiskModel.name} onClose={closeAllPanels}>
+            <DetailSection title="Risk Model Details">
+              <DetailItem label="Name" value={selectedRiskModel.name} />
+              <DetailItem label="Description" value={selectedRiskModel.description} />
+            </DetailSection>
+            <DetailSection title="R1 — Schedule Uncertainty">
+              <DetailItem label="Schedule Variance" value={`+${selectedRiskModel.schedule_variance_pct}%`} />
+            </DetailSection>
+            <DetailSection title="R2 — Cost-of-Capital">
+              <DetailItem label="Rate Premium" value={`+${selectedRiskModel.rate_premium_bps} basis points`} />
+            </DetailSection>
+            <DetailSection title="R3 — Scope & Cost Uncertainty">
+              <DetailItem label="Design Contingency" value={`${selectedRiskModel.design_contingency_pct}%`} />
+              <DetailItem label="Construction Contingency" value={`${selectedRiskModel.construction_contingency_pct}%`} />
+            </DetailSection>
+            <DetailSection title="R4 — Market Absorption">
+              <DetailItem label="Marketing Multiplier" value={`${selectedRiskModel.marketing_multiplier}x`} />
+              <DetailItem label="Sales Period" value={`${selectedRiskModel.sales_period_months} months`} />
+            </DetailSection>
           </DetailPanel>
         </>
       )}

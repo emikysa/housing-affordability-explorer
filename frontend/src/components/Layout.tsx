@@ -18,11 +18,12 @@ const navItems = [
   { path: '/levers', label: 'Levers' },
   { path: '/actors', label: 'Actors' },
   { path: '/relationships', label: 'Relationships' },
+  { path: '/risk', label: 'Risk' },
 ]
 
 // Pages where we don't show the header model summary
 // (Dashboard has its own full selectors, Models page doesn't need one, Overview is educational)
-const pagesWithoutHeaderSelector = ['/', '/models', '/overview']
+const pagesWithoutHeaderSelector = ['/', '/models', '/overview', '/risk']
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()

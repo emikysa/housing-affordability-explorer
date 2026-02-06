@@ -10,6 +10,7 @@ import Actors from './pages/Actors'
 import Relationships from './pages/Relationships'
 import Explorer from './pages/Explorer'
 import Models from './pages/Models'
+import Risk from './pages/Risk'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/relationships" element={<Relationships />} />
         <Route path="/explorer" element={<Explorer />} />
         <Route path="/models" element={<Models />} />
+        <Route path="/risk" element={<Risk />} />
       </Routes>
     </Layout>
   )

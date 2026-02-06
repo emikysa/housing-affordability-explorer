@@ -13,11 +13,13 @@ import OccupancySelector from '../components/OccupancySelector'
 import LifestyleSelector from '../components/LifestyleSelector'
 import UtilitySelector from '../components/UtilitySelector'
 import FinanceSelector from '../components/FinanceSelector'
+import RiskSelector from '../components/RiskSelector'
 import { useSummaryStats, useCostElements, useConsumptionFactors } from '../hooks/useData'
 import { useOccupancy } from '../contexts/OccupancyContext'
 import { useLifestyle } from '../contexts/LifestyleContext'
 import { useUtility } from '../contexts/UtilityContext'
 import { useFinance } from '../contexts/FinanceContext'
+import { useRisk } from '../contexts/RiskContext'
 import type { UtilityRateTier } from '../types/database'
 
 // Extended color palette for stacked bars
@@ -96,6 +98,7 @@ export default function Dashboard() {
   const { selectedLifestyleModel } = useLifestyle()
   const { selectedWaterModel, selectedSewerModel, selectedElectricModel, selectedGasModel } = useUtility()
   const { selectedFinanceModel } = useFinance()
+  const { selectedRiskModel } = useRisk()
 
   // Home price from cost model (for mortgage calculation)
   const homePrice = useMemo(() => {
@@ -253,26 +256,80 @@ export default function Dashboard() {
     }
   }, [monthlyConsumption, selectedWaterModel, selectedSewerModel, selectedElectricModel, selectedGasModel])
 
-  // Calculate mortgage payment
+  // Calculate risk-adjusted costs
+  const riskAdjustments = useMemo(() => {
+    if (!selectedRiskModel) {
+      return {
+        ratePremium: 0,
+        scheduleCarryCost: 0,
+        contingencyCost: 0,
+        marketingAddon: 0,
+        totalMonthlyImpact: 0,
+      }
+    }
+
+    // R2: Rate premium (basis points → decimal annual rate)
+    const ratePremium = selectedRiskModel.rate_premium_bps / 10000
+
+    // R1: Schedule variance → additional months of construction interest carry
+    // Approximate: if base construction is 12 months, variance extends it
+    const baseConstructionMonths = 12
+    const extraMonths = baseConstructionMonths * (selectedRiskModel.schedule_variance_pct / 100)
+    const constructionLoanRate = (selectedFinanceModel?.annual_interest_rate || 0.065) + ratePremium
+    const scheduleCarryCost = extraMonths > 0
+      ? (homePrice * 0.7 * constructionLoanRate / 12) * extraMonths
+      : 0
+
+    // R3: Contingency costs (% of home price, amortized to monthly over 30 years)
+    const contingencyTotal = homePrice * (
+      (selectedRiskModel.design_contingency_pct + selectedRiskModel.construction_contingency_pct) / 100
+    )
+
+    // R4: Marketing cost addon (multiplier on estimated 2% marketing cost)
+    const baseMarketingMonthly = (homePrice * 0.02) / 12
+    const marketingAddon = baseMarketingMonthly * (selectedRiskModel.marketing_multiplier - 1)
+
+    // R4: Additional sales carry months
+    const salesCarryCost = selectedRiskModel.sales_period_months > 0
+      ? (homePrice * 0.7 * constructionLoanRate / 12) * selectedRiskModel.sales_period_months
+      : 0
+
+    // Total one-time risk costs, amortized to monthly (over loan term or 30 years)
+    const loanTermMonths = (selectedFinanceModel?.loan_term_years || 30) * 12
+    const totalOneTimeRisk = scheduleCarryCost + contingencyTotal + salesCarryCost
+    const monthlyRiskAmortized = totalOneTimeRisk / loanTermMonths
+
+    return {
+      ratePremium,
+      scheduleCarryCost,
+      contingencyCost: contingencyTotal,
+      marketingAddon,
+      totalMonthlyImpact: monthlyRiskAmortized + marketingAddon,
+    }
+  }, [selectedRiskModel, selectedFinanceModel, homePrice])
+
+  // Calculate mortgage payment (with R2 risk rate premium)
   const mortgagePayment = useMemo(() => {
     if (!selectedFinanceModel) {
       return { principal: 0, pmi: 0, total: 0 }
     }
 
+    const riskAdjustedRate = selectedFinanceModel.annual_interest_rate + riskAdjustments.ratePremium
+
     return calculateMortgagePayment(
       homePrice,
       selectedFinanceModel.down_payment_percent,
-      selectedFinanceModel.annual_interest_rate,
+      riskAdjustedRate,
       selectedFinanceModel.loan_term_years,
       selectedFinanceModel.pmi_rate,
       selectedFinanceModel.pmi_threshold
     )
-  }, [homePrice, selectedFinanceModel])
+  }, [homePrice, selectedFinanceModel, riskAdjustments.ratePremium])
 
-  // Total monthly housing cost
+  // Total monthly housing cost (includes risk amortization)
   const totalMonthlyHousingCost = useMemo(() => {
-    return mortgagePayment.total + utilityCosts.total
-  }, [mortgagePayment, utilityCosts])
+    return mortgagePayment.total + utilityCosts.total + riskAdjustments.totalMonthlyImpact
+  }, [mortgagePayment, utilityCosts, riskAdjustments])
 
   // Build cost elements (one-time)
   const buildCostElements = useMemo(() => {
@@ -505,6 +562,21 @@ export default function Dashboard() {
                     : '-'}
                 </td>
               </tr>
+
+              {/* Risk */}
+              <tr className="hover:bg-red-50/50 bg-red-50/30">
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-red-700">Risk</span>
+                </td>
+                <td className="px-4 py-3">
+                  <RiskSelector variant="default" label="" />
+                </td>
+                <td className="px-4 py-3 text-sm text-red-600">
+                  {selectedRiskModel
+                    ? `R1 +${selectedRiskModel.schedule_variance_pct}% schedule, R2 +${selectedRiskModel.rate_premium_bps}bps, R3 ${selectedRiskModel.construction_contingency_pct}% contingency, R4 ${selectedRiskModel.marketing_multiplier}x mktg`
+                    : '-'}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -581,6 +653,9 @@ export default function Dashboard() {
             )}
             <div className="mt-3 text-xs text-gray-500">
               Home price: {formatCurrency(homePrice)} • {selectedFinanceModel?.short_code || 'No finance model'}
+              {riskAdjustments.ratePremium > 0 && (
+                <span className="text-red-500"> • +{(riskAdjustments.ratePremium * 100).toFixed(2)}% risk premium</span>
+              )}
             </div>
           </div>
 
@@ -604,6 +679,12 @@ export default function Dashboard() {
                 <span>Utilities</span>
                 <span>{formatCurrency(utilityCosts.total)}</span>
               </div>
+              {riskAdjustments.totalMonthlyImpact > 0 && (
+                <div className="flex justify-between text-red-600">
+                  <span>Risk Costs</span>
+                  <span>+{formatCurrency(riskAdjustments.totalMonthlyImpact)}</span>
+                </div>
+              )}
             </div>
             <div className="mt-3 text-xs text-gray-500">
               * Does not include property taxes, insurance, HOA, or maintenance
@@ -767,6 +848,13 @@ export default function Dashboard() {
                   <div>
                     <p className="text-gray-500 mb-1">Finance</p>
                     <p className="font-medium">{selectedFinanceModel?.name || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 mb-1">Risk</p>
+                    <p className="font-medium">{selectedRiskModel?.name || '-'}</p>
+                    {riskAdjustments.totalMonthlyImpact > 0 && (
+                      <p className="text-xs text-red-600 mt-0.5">+{formatCurrencyDetailed(riskAdjustments.totalMonthlyImpact)}/mo impact</p>
+                    )}
                   </div>
                   <div className="border-t pt-3">
                     <p className="text-gray-500 mb-1">Est. Monthly Consumption</p>

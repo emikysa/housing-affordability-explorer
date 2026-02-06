@@ -6,11 +6,13 @@ import OccupancySelector from './OccupancySelector'
 import LifestyleSelector from './LifestyleSelector'
 import UtilitySelector from './UtilitySelector'
 import FinanceSelector from './FinanceSelector'
+import RiskSelector from './RiskSelector'
 import { useModel } from '../contexts/ModelContext'
 import { useOccupancy } from '../contexts/OccupancyContext'
 import { useLifestyle } from '../contexts/LifestyleContext'
 import { useUtility } from '../contexts/UtilityContext'
 import { useFinance } from '../contexts/FinanceContext'
+import { useRisk } from '../contexts/RiskContext'
 
 interface ModelConfigModalProps {
   isOpen: boolean
@@ -23,6 +25,7 @@ export default function ModelConfigModal({ isOpen, onClose }: ModelConfigModalPr
   const { selectedLifestyleModel } = useLifestyle()
   const { selectedWaterModel, selectedElectricModel, selectedGasModel, selectedSewerModel } = useUtility()
   const { selectedFinanceModel } = useFinance()
+  const { selectedRiskModel } = useRisk()
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -204,6 +207,26 @@ export default function ModelConfigModal({ isOpen, onClose }: ModelConfigModalPr
                         {selectedFinanceModel.loan_term_years > 0
                           ? `${selectedFinanceModel.loan_term_years}-year @ ${(selectedFinanceModel.annual_interest_rate * 100).toFixed(3)}%, ${(selectedFinanceModel.down_payment_percent * 100).toFixed(0)}% down`
                           : 'All-cash purchase'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Risk Section */}
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 mr-4">
+                        <h4 className="font-medium text-gray-900">Risk</h4>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Uncertainty multipliers (R1-R4)
+                        </p>
+                      </div>
+                      <div className="w-48">
+                        <RiskSelector variant="default" />
+                      </div>
+                    </div>
+                    {selectedRiskModel && (
+                      <p className="text-xs text-red-600 mt-2">
+                        R1: +{selectedRiskModel.schedule_variance_pct}% schedule, R2: +{selectedRiskModel.rate_premium_bps}bps, R3: {selectedRiskModel.design_contingency_pct}%/{selectedRiskModel.construction_contingency_pct}%, R4: {selectedRiskModel.marketing_multiplier}x
                       </p>
                     )}
                   </div>

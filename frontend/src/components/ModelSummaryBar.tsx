@@ -6,6 +6,7 @@ import { useOccupancy } from '../contexts/OccupancyContext'
 import { useLifestyle } from '../contexts/LifestyleContext'
 import { useUtility } from '../contexts/UtilityContext'
 import { useFinance } from '../contexts/FinanceContext'
+import { useRisk } from '../contexts/RiskContext'
 
 export default function ModelSummaryBar() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -15,6 +16,7 @@ export default function ModelSummaryBar() {
   const { selectedLifestyleModel } = useLifestyle()
   const { selectedWaterModel, selectedElectricModel, selectedGasModel, selectedSewerModel } = useUtility()
   const { selectedFinanceModel } = useFinance()
+  const { selectedRiskModel } = useRisk()
 
   // Build summary parts
   const summaryParts: { label: string; value: string; color: string }[] = []
@@ -63,6 +65,14 @@ export default function ModelSummaryBar() {
       label: 'Finance',
       value: selectedFinanceModel.short_code || 'Conv30',
       color: 'bg-purple-50 text-purple-700 border-purple-200',
+    })
+  }
+
+  if (selectedRiskModel) {
+    summaryParts.push({
+      label: 'Risk',
+      value: selectedRiskModel.name.substring(0, 10),
+      color: 'bg-red-50 text-red-700 border-red-200',
     })
   }
 
