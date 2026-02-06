@@ -43,9 +43,8 @@ export default function Layout({ children }: LayoutProps) {
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-xl font-bold text-gray-900">Housing Affordability Explorer</h1>
-                  <span className="text-xs text-gray-500">
-                    <span className="font-semibold text-amber-700">Early Preview</span>
-                    {' — under active development. Content is incomplete, features may not work, and data may change.'}
+                  <span className="px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 rounded-full border border-amber-300">
+                    <strong>Early Preview</strong> — under active development. Content is incomplete, features may not work, and data may change.
                   </span>
                 </div>
                 <p className="text-xs text-gray-500">
