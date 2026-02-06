@@ -24,12 +24,11 @@ function FrameworkIcon({ type, className = 'w-10 h-10' }: { type: string; classN
           <path d="M16 12v4M13 14h6" strokeWidth="1.5" />
         </svg>
       )
-    case 'barriers': // Brick wall
+    case 'barriers': // Stop sign (octagon)
       return (
         <svg {...props}>
-          <rect x="3" y="6" width="26" height="20" rx="1" />
-          <path d="M3 12h26M3 18h26M3 24h26" />
-          <path d="M16 6v6M9 12v6M23 12v6M16 18v6" />
+          <polygon points="16,2 26,7 30,16 26,25 16,30 6,25 2,16 6,7" fill="currentColor" fillOpacity="0.1" />
+          <path d="M10 16h12" strokeWidth="3" />
         </svg>
       )
     case 'levers': // Lever on fulcrum
