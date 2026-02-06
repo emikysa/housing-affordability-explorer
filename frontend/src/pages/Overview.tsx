@@ -59,7 +59,7 @@ export default function Overview() {
   const masterCounts = useMasterCounts()
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-5xl space-y-8">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Overview</h1>

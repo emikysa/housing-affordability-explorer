@@ -348,7 +348,7 @@ export default function Dashboard() {
   const monthlyTotal = operateFinanceCostElements.reduce((sum, ce) => sum + ce.value, 0)
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl space-y-8">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
