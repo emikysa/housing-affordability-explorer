@@ -1,0 +1,10 @@
+phase,annual_rate,compound_annually,notes
+acquisition,0.06,true,Land holding cost - equity rate
+predesign,0.07,true,Early planning - moderate risk
+entitlement,0.08,true,Entitlement risk - uncertain timeline
+precon,0.09,true,Pre-construction - committed capital
+construction,0.10,true,Construction loan rate
+closeout,0.09,true,Project completion phase
+operations,0.06,true,Stabilized - permanent debt rate
+occupant_finance,0.07,true,Mortgage/consumer finance
+crosscutting,0.08,true,Default rate for items spanning phases

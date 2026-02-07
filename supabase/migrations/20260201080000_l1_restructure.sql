@@ -1,13 +1,12 @@
 -- ============================================
--- Migration: L1 Cost Element Restructure + UniFormat II Alignment
+-- Migration: L1 Cost Element Restructure
 -- Date: 2026-02-01
 -- Purpose:
 --   1. Remove a/b suffixes from L1 codes
 --   2. Remove B03-LandCarry as L1 (migrate content)
 --   3. Renumber B-codes cleanly B01-B13
 --   4. Rename B13-Contingtic to B12-Contingency
---   5. Add UniFormat II level 2 structure to ce_drilldown for B07-BuildCost
---   6. Add cost_composition tag field to ce_drilldown
+--   5. Add cost_composition tag field to ce_drilldown
 -- ============================================
 
 -- ============================================
@@ -71,21 +70,7 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_ce_drilldown_level5 ON ce_drilldown(level5_name);
 
 -- ============================================
--- STEP 3: Add uniformat_code column to ce_drilldown
--- (for UniFormat II system code reference)
--- ============================================
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'ce_drilldown' AND column_name = 'uniformat_code'
-    ) THEN
-        ALTER TABLE ce_drilldown ADD COLUMN uniformat_code VARCHAR(20);
-    END IF;
-END $$;
-
--- ============================================
--- STEP 4: Add sort_order column to ce_drilldown
+-- STEP 3: Add sort_order column to ce_drilldown
 -- ============================================
 DO $$
 BEGIN
@@ -334,113 +319,7 @@ INSERT INTO ce_code_alias (old_code, new_code, notes) VALUES
 ON CONFLICT (old_code) DO NOTHING;
 
 -- ============================================
--- STEP 6: UniFormat II Level 2 Structure for B07-BuildCost
--- Create/Update ce_drilldown entries with UniFormat-like structure
--- ============================================
-
--- Update existing B07-BuildCost drilldown entries with UniFormat codes where applicable
--- This maps existing Level 1 names to UniFormat categories
-
--- Substructure (A) - Foundations, basement
-UPDATE ce_drilldown
-SET uniformat_code = 'A', sort_order = 10
-WHERE ce_code = 'B07-BuildCost'
-AND (
-    lower(level1_name) LIKE '%foundation%'
-    OR lower(level1_name) LIKE '%substructure%'
-    OR lower(level1_name) LIKE '%basement%'
-    OR lower(level1_name) LIKE '%footing%'
-    OR lower(level1_name) LIKE '%slab%'
-);
-
--- Shell (B) - Superstructure, exterior enclosure, roofing
-UPDATE ce_drilldown
-SET uniformat_code = 'B', sort_order = 20
-WHERE ce_code = 'B07-BuildCost'
-AND (
-    lower(level1_name) LIKE '%shell%'
-    OR lower(level1_name) LIKE '%superstructure%'
-    OR lower(level1_name) LIKE '%framing%'
-    OR lower(level1_name) LIKE '%structural%'
-    OR lower(level1_name) LIKE '%exterior%'
-    OR lower(level1_name) LIKE '%roof%'
-    OR lower(level1_name) LIKE '%window%'
-    OR lower(level1_name) LIKE '%door%'
-    OR lower(level1_name) LIKE '%cladding%'
-    OR lower(level1_name) LIKE '%siding%'
-    OR lower(level1_name) LIKE '%wall%'
-    OR lower(level1_name) LIKE '%insulation%'
-);
-
--- Interiors (C) - Partitions, finishes, casework
-UPDATE ce_drilldown
-SET uniformat_code = 'C', sort_order = 30
-WHERE ce_code = 'B07-BuildCost'
-AND (
-    lower(level1_name) LIKE '%interior%'
-    OR lower(level1_name) LIKE '%partition%'
-    OR lower(level1_name) LIKE '%finish%'
-    OR lower(level1_name) LIKE '%flooring%'
-    OR lower(level1_name) LIKE '%ceiling%'
-    OR lower(level1_name) LIKE '%drywall%'
-    OR lower(level1_name) LIKE '%paint%'
-    OR lower(level1_name) LIKE '%trim%'
-    OR lower(level1_name) LIKE '%millwork%'
-    OR lower(level1_name) LIKE '%cabinet%'
-    OR lower(level1_name) LIKE '%casework%'
-    OR lower(level1_name) LIKE '%counter%'
-);
-
--- Services (D) - MEP (Mechanical, Electrical, Plumbing)
-UPDATE ce_drilldown
-SET uniformat_code = 'D', sort_order = 40
-WHERE ce_code = 'B07-BuildCost'
-AND (
-    lower(level1_name) LIKE '%service%'
-    OR lower(level1_name) LIKE '%plumbing%'
-    OR lower(level1_name) LIKE '%hvac%'
-    OR lower(level1_name) LIKE '%mechanical%'
-    OR lower(level1_name) LIKE '%electrical%'
-    OR lower(level1_name) LIKE '%fire%'
-    OR lower(level1_name) LIKE '%communication%'
-    OR lower(level1_name) LIKE '%low voltage%'
-    OR lower(level1_name) LIKE '%wiring%'
-    OR lower(level1_name) LIKE '%heating%'
-    OR lower(level1_name) LIKE '%cooling%'
-    OR lower(level1_name) LIKE '%ventilat%'
-    OR lower(level1_name) LIKE '%sprinkler%'
-);
-
--- Equipment & Furnishings (E)
-UPDATE ce_drilldown
-SET uniformat_code = 'E', sort_order = 50
-WHERE ce_code = 'B07-BuildCost'
-AND (
-    lower(level1_name) LIKE '%equipment%'
-    OR lower(level1_name) LIKE '%furnish%'
-    OR lower(level1_name) LIKE '%appliance%'
-    OR lower(level1_name) LIKE '%fixture%'
-);
-
--- Special Construction & Demolition (F)
-UPDATE ce_drilldown
-SET uniformat_code = 'F', sort_order = 60
-WHERE ce_code = 'B07-BuildCost'
-AND (
-    lower(level1_name) LIKE '%special%'
-    OR lower(level1_name) LIKE '%demolition%'
-    OR lower(level1_name) LIKE '%hazmat%'
-    OR lower(level1_name) LIKE '%abatement%'
-);
-
--- Default: if no UniFormat code assigned, use 'Z' for uncategorized
-UPDATE ce_drilldown
-SET uniformat_code = 'Z', sort_order = 99
-WHERE ce_code = 'B07-BuildCost'
-AND uniformat_code IS NULL;
-
--- ============================================
--- STEP 7: Update v_ce_drilldown_hierarchy view to include new columns
+-- STEP 6: Update v_ce_drilldown_hierarchy view to include new columns
 -- ============================================
 CREATE OR REPLACE VIEW v_ce_drilldown_hierarchy AS
 SELECT DISTINCT
@@ -452,7 +331,6 @@ SELECT DISTINCT
     level5_name,
     cost_component,
     cost_composition,
-    uniformat_code,
     sort_order
 FROM ce_drilldown
 ORDER BY ce_code, sort_order, level1_name, level2_name, level3_name, level4_name, level5_name;
@@ -461,7 +339,7 @@ ORDER BY ce_code, sort_order, level1_name, level2_name, level3_name, level4_name
 GRANT SELECT ON v_ce_drilldown_hierarchy TO anon, authenticated;
 
 -- ============================================
--- STEP 8: Update the v_cost_elements view (already exists, just refresh)
+-- STEP 7: Update the v_cost_elements view (already exists, just refresh)
 -- ============================================
 CREATE OR REPLACE VIEW v_cost_elements AS
 SELECT
@@ -495,9 +373,6 @@ ORDER BY s.sort_order, ce.sort_order;
 
 -- Check alias table:
 -- SELECT * FROM ce_code_alias ORDER BY old_code;
-
--- Check UniFormat assignments for B07:
--- SELECT uniformat_code, COUNT(*) FROM ce_drilldown WHERE ce_code = 'B07-BuildCost' GROUP BY uniformat_code ORDER BY uniformat_code;
 
 -- Check total count matches expected:
 -- SELECT COUNT(*) FROM cost_elements WHERE ce_id LIKE 'B%';  -- Should be 13

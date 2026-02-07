@@ -1,4 +1,36 @@
-loader/.env
+# Dependencies
+node_modules/
+
+# Build output
+frontend/dist/
+
+# Environment files (contain secrets)
+.env
 frontend/.env
 loader/.env
-frontend/.env
+
+# Python
+__pycache__/
+*.pyc
+loader/venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Supabase local state
+supabase/.temp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup files (development artifacts)
+*.backup.*.tsv
+*_backup_*.tsv
+
+# Reports (development artifacts, not app code)
+migration_report.txt
+cost-elements-validation-report.md

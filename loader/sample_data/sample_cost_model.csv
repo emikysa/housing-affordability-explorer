@@ -1,0 +1,40 @@
+ce_id,date_paid,amount_total,amount_material,labor_hours,labor_rate,amount_labor,amount_op_other,notes
+B01a04b-Purchase price,2023-01-15,150000,,,,,,Land purchase - 0.25 acre lot
+B01a01a-Commission,2023-01-15,4500,,,,,,Broker commission 3%
+B01a03a-Closing costs,2023-01-20,2500,,,,,,Title and closing costs
+B02e01-Civil preliminary,2023-03-01,3500,,,,,,Civil preliminary engineering
+B02b02-Geotechnical report,2023-03-15,4000,,,,,,Geotechnical report
+B02a01-Boundary survey,2023-04-01,1800,,,,,,Boundary survey
+B02a02-Topographic survey,2023-04-01,2200,,,,,,Topographic survey
+B02g01-Community meetings,2023-06-01,1500,,,,,,Community meeting prep
+B02f01-Entitlement counsel,2023-07-01,8000,,,,,,Entitlement legal counsel
+B03-Permits,2023-09-01,12500,,,,,,Building permit fees
+B04-Utilities,2023-09-15,8500,,,,,,Water/sewer tap fees
+B05a-Site preparation,2023-10-01,3500,2000,20,75,1500,,Site clearing and prep
+B05b-Earthwork & grading,2023-10-15,15000,8000,80,75,6000,1000,Grading and earthwork
+B05c-Stormwater & drainage,2023-11-01,8000,5000,30,75,2250,750,Storm drainage
+B05d-Site utilities (wet + dry),2023-11-15,12000,7000,50,75,3750,1250,Utility connections
+B07a-Substructure,2023-12-01,28000,18000,100,80,8000,2000,Foundation and slab
+B07b-Shell,2024-01-15,85000,55000,300,80,24000,6000,Framing and shell
+B07b-Shell,2024-02-15,22000,15000,70,80,5600,1400,Roofing
+B07b-Shell,2024-03-01,18000,12000,60,80,4800,1200,Windows and doors
+B07c-Services,2024-03-15,35000,20000,150,80,12000,3000,Plumbing rough-in
+B07c-Services,2024-04-01,28000,16000,120,80,9600,2400,Electrical rough-in
+B07c-Services,2024-04-15,32000,18000,140,80,11200,2800,HVAC installation
+B07d-Interiors,2024-05-01,15000,10000,50,80,4000,1000,Insulation
+B07d-Interiors,2024-05-15,18000,12000,60,80,4800,1200,Drywall
+B07d-Interiors,2024-06-01,12000,6000,60,80,4800,1200,Interior paint
+B07d-Interiors,2024-06-15,22000,15000,70,80,5600,1400,Flooring
+B07d-Interiors,2024-07-01,18000,14000,40,80,3200,800,Cabinets and counters
+B07c-Services,2024-07-15,8000,5000,30,80,2400,600,Plumbing fixtures
+B07c-Services,2024-08-01,6000,4000,20,80,1600,400,Electrical fixtures
+B07e-Special systems & options,2024-08-15,4500,3000,15,80,1200,300,Appliances
+B05f-Site improvements & amenities,2024-09-01,8000,5000,30,75,2250,750,Driveway and walkways
+B05g-Landscaping & irrigation,2024-09-15,6000,4000,20,75,1500,500,Landscaping
+B06-SoftCosts,2024-01-01,15000,,,,,,Architecture and design fees
+B06-SoftCosts,2024-06-01,5000,,,,,,Inspections and testing
+B08-TempIndirect,2024-03-01,12000,,,,,,Temporary facilities and utilities
+B09-RiskIns,2023-10-01,8500,,,,,,Builder's risk insurance
+B10-Finance,2023-09-01,4500,,,,,,Loan origination fee (1.5%)
+B11-Overhead,2024-09-30,18000,,,,,,Developer overhead 3%
+B12-Contingency,2024-09-30,15000,,,,,,Contingency reserve

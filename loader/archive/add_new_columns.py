@@ -64,7 +64,6 @@ INSERT INTO ce_code_alias (old_code, new_code, notes) VALUES""")
     print("""-- Add new columns to ce_drilldown
 ALTER TABLE ce_drilldown ADD COLUMN IF NOT EXISTS level5_name VARCHAR(200);
 ALTER TABLE ce_drilldown ADD COLUMN IF NOT EXISTS cost_composition VARCHAR(20) DEFAULT 'mixed';
-ALTER TABLE ce_drilldown ADD COLUMN IF NOT EXISTS uniformat_code VARCHAR(20);
 ALTER TABLE ce_drilldown ADD COLUMN IF NOT EXISTS sort_order INTEGER;
 
 -- Add constraint
@@ -73,7 +72,6 @@ ALTER TABLE ce_drilldown ADD CONSTRAINT chk_cost_composition
 
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_ce_drilldown_level5 ON ce_drilldown(level5_name);
-CREATE INDEX IF NOT EXISTS idx_ce_drilldown_uniformat ON ce_drilldown(uniformat_code);
 
 -- Update view
 CREATE OR REPLACE VIEW v_ce_drilldown_hierarchy AS
@@ -86,7 +84,6 @@ SELECT DISTINCT
     level5_name,
     cost_component,
     cost_composition,
-    uniformat_code,
     sort_order
 FROM ce_drilldown
 ORDER BY ce_code, sort_order, level1_name, level2_name, level3_name, level4_name, level5_name;
@@ -94,48 +91,6 @@ ORDER BY ce_code, sort_order, level1_name, level2_name, level3_name, level4_name
 GRANT SELECT ON v_ce_drilldown_hierarchy TO anon, authenticated;
 ```""")
 
-    print("\n\nUniFormat tagging for B07-BuildCost:")
-    print("```sql")
-    print("""-- Tag B07-BuildCost drilldown with UniFormat codes
-UPDATE ce_drilldown SET uniformat_code = 'A', sort_order = 10
-WHERE ce_code = 'B07-BuildCost' AND (
-    lower(level1_name) LIKE '%foundation%' OR lower(level1_name) LIKE '%substructure%'
-    OR lower(level1_name) LIKE '%basement%' OR lower(level1_name) LIKE '%footing%'
-    OR lower(level1_name) LIKE '%slab%'
-);
-
-UPDATE ce_drilldown SET uniformat_code = 'B', sort_order = 20
-WHERE ce_code = 'B07-BuildCost' AND (
-    lower(level1_name) LIKE '%shell%' OR lower(level1_name) LIKE '%framing%'
-    OR lower(level1_name) LIKE '%structural%' OR lower(level1_name) LIKE '%exterior%'
-    OR lower(level1_name) LIKE '%roof%' OR lower(level1_name) LIKE '%window%'
-    OR lower(level1_name) LIKE '%door%' OR lower(level1_name) LIKE '%wall%'
-);
-
-UPDATE ce_drilldown SET uniformat_code = 'C', sort_order = 30
-WHERE ce_code = 'B07-BuildCost' AND (
-    lower(level1_name) LIKE '%interior%' OR lower(level1_name) LIKE '%partition%'
-    OR lower(level1_name) LIKE '%finish%' OR lower(level1_name) LIKE '%flooring%'
-    OR lower(level1_name) LIKE '%ceiling%' OR lower(level1_name) LIKE '%drywall%'
-    OR lower(level1_name) LIKE '%cabinet%' OR lower(level1_name) LIKE '%millwork%'
-);
-
-UPDATE ce_drilldown SET uniformat_code = 'D', sort_order = 40
-WHERE ce_code = 'B07-BuildCost' AND (
-    lower(level1_name) LIKE '%plumbing%' OR lower(level1_name) LIKE '%hvac%'
-    OR lower(level1_name) LIKE '%mechanical%' OR lower(level1_name) LIKE '%electrical%'
-    OR lower(level1_name) LIKE '%fire%' OR lower(level1_name) LIKE '%wiring%'
-);
-
-UPDATE ce_drilldown SET uniformat_code = 'E', sort_order = 50
-WHERE ce_code = 'B07-BuildCost' AND (
-    lower(level1_name) LIKE '%equipment%' OR lower(level1_name) LIKE '%appliance%'
-    OR lower(level1_name) LIKE '%fixture%'
-);
-
-UPDATE ce_drilldown SET uniformat_code = 'Z', sort_order = 99
-WHERE ce_code = 'B07-BuildCost' AND uniformat_code IS NULL;
-```""")
 
     print("\n" + "="*60)
     print("Copy the SQL above and run it in Supabase SQL Editor")

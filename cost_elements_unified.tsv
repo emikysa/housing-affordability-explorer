@@ -1,0 +1,607 @@
+ce_id	parent_id	level	short_name	description	stage_id	sort_order	phase	node_class
+B01-Land		1	Land	Land acquisition & assemblage	Build	1	acquisition	system
+B01a-Land acquisition	B01-Land	2	Land acquisition	Purchasing property	Build	1	acquisition	system
+B01a01-Brokerage	B01a-Land acquisition	3	Brokerage	Real estate broker services	Build	1	acquisition	system
+B01a01a-Commission	B01a01-Brokerage	4	Commission	Broker fees	Build	1	acquisition	system
+B01a02-Due diligence	B01a-Land acquisition	3	Due diligence	Pre-purchase investigation	Build	2	acquisition	system
+B01a02a-Feasibility	B01a02-Due diligence	4	Feasibility	Feasibility analysis	Build	1	acquisition	system
+B01a03-Legal	B01a-Land acquisition	3	Legal	Purchase legal services	Build	3	acquisition	system
+B01a03a-Closing costs	B01a03-Legal	4	Closing costs	Title and escrow fees	Build	1	acquisition	system
+B01a04-Parcel purchase	B01a-Land acquisition	3	Parcel purchase	Land purchase costs	Build	4	acquisition	system
+B01a04a-Option premium	B01a04-Parcel purchase	4	Option premium	Option to purchase fee	Build	1	acquisition	system
+B01a04b-Purchase price	B01a04-Parcel purchase	4	Purchase price	Land purchase amount	Build	2	acquisition	system
+B01b-Land assembly	B01-Land	2	Land assembly	Combining multiple parcels	Build	2	acquisition	system
+B01b01-Easements	B01b-Land assembly	3	Easements	Access rights acquisition	Build	1	acquisition	system
+B01b01a-Acquisition	B01b01-Easements	4	Acquisition	Easement purchase	Build	1	acquisition	system
+B01b02-Multiple parcels	B01b-Land assembly	3	Multiple parcels	Multi-parcel assembly	Build	2	acquisition	system
+B01b02a-Assemblage premium	B01b02-Multiple parcels	4	Assemblage premium	Multi-parcel premium	Build	1	acquisition	system
+B02-PreDev		1	PreDev	Pre-development, entitlement, and approvals	Build	2	entitlement	system
+B02e-Engineering studies	B02-PreDev	2	Engineering studies	Preliminary engineering	Build	5	entitlement	system
+B02e01-Civil preliminary	B02e-Engineering studies	3	Civil preliminary	Preliminary site engineering	Build	1	entitlement	system
+B02e02-Drainage study	B02e-Engineering studies	3	Drainage study	Stormwater analysis	Build	2	entitlement	system
+B02e03-Traffic study	B02e-Engineering studies	3	Traffic study	Traffic impact analysis	Build	3	entitlement	system
+B02c-Environmental	B02-PreDev	2	Environmental	Environmental assessments	Build	3	entitlement	system
+B02c03-Endangered species	B02c-Environmental	3	Endangered species	Wildlife habitat assessment	Build	3	entitlement	system
+B02c01-Phase I ESA	B02c-Environmental	3	Phase I ESA	Environmental records review	Build	1	entitlement	system
+B02c02-Phase II ESA	B02c-Environmental	3	Phase II ESA	Soil/groundwater sampling	Build	2	entitlement	system
+B02c04-Wetland delineation	B02c-Environmental	3	Wetland delineation	Wetland boundary mapping	Build	4	entitlement	system
+B02b-Geotechnical	B02-PreDev	2	Geotechnical	Soil and subsurface analysis	Build	2	entitlement	system
+B02b02-Geotechnical report	B02b-Geotechnical	3	Geotechnical report	Foundation recommendations	Build	2	entitlement	system
+B02b01-Soil investigation	B02b-Geotechnical	3	Soil investigation	Soil boring and testing	Build	1	entitlement	system
+B02f-Legal	B02-PreDev	2	Legal	Pre-development legal	Build	6	entitlement	system
+B02f01-Entitlement counsel	B02f-Legal	3	Entitlement counsel	Approval process attorney	Build	1	entitlement	system
+B02f02-Land use attorney	B02f-Legal	3	Land use attorney	Zoning legal services	Build	2	entitlement	system
+B02d-Planning	B02-PreDev	2	Planning	Project planning studies	Build	4	entitlement	system
+B02d03-Concept design	B02d-Planning	3	Concept design	Preliminary design concepts	Build	3	entitlement	system
+B02d01-Market study	B02d-Planning	3	Market study	Demand analysis	Build	1	entitlement	system
+B02d02-Zoning analysis	B02d-Planning	3	Zoning analysis	Land use evaluation	Build	2	entitlement	system
+B02g-Public process	B02-PreDev	2	Public process	Community engagement	Build	7	entitlement	system
+B02g01-Community meetings	B02g-Public process	3	Community meetings	Neighborhood outreach	Build	1	entitlement	system
+B02g02-Government liaison	B02g-Public process	3	Government liaison	Agency coordination	Build	2	entitlement	system
+B02a-Surveys	B02-PreDev	2	Surveys	Site survey services	Build	1	entitlement	system
+B02a01-Boundary survey	B02a-Surveys	3	Boundary survey	Property line survey	Build	1	entitlement	system
+B02a02-Topographic survey	B02a-Surveys	3	Topographic survey	Elevation and contours	Build	2	entitlement	system
+B02a03-Utility locate	B02a-Surveys	3	Utility locate	Underground utility mapping	Build	3	entitlement	system
+B03-Permits		1	Permits	Permits, plan review, and administrative fees	Build	3	entitlement	regulatory
+B04-Utilities		1	Utilities	Utility connection, tap, and capacity fees	Build	4	entitlement	regulatory
+B05-SiteInfra		1	SiteInfra	Site work & infrastructure construction	Build	5	construction	system
+B05a-Site preparation	B05-SiteInfra	2	Site preparation	Clearing and demolition	Build	1	construction	system
+B05b-Earthwork & grading	B05-SiteInfra	2	Earthwork & grading	Earth moving and shaping	Build	2	construction	system
+B05a02-Erosion control	B05a-Site preparation	3	Erosion control	Sediment management	Build	2	construction	system
+B05a02a-Permanent	B05a02-Erosion control	4	Permanent	Long-term erosion control	Build	1	construction	system
+B05a02b-Temporary	B05a02-Erosion control	4	Temporary	Construction-phase control	Build	2	construction	system
+B05b01-Grading	B05b-Earthwork & grading	3	Grading	Site leveling	Build	1	construction	system
+B05b01c-Fine grading	B05b01-Grading	4	Fine grading	Final surface shaping	Build	3	construction	system
+B05b01b-Import/export	B05b01-Grading	4	Import/export	Soil hauling	Build	2	construction	system
+B05b01a-Rough grading	B05b01-Grading	4	Rough grading	Initial earth moving	Build	1	construction	system
+B05a01-Site prep	B05a-Site preparation	3	Site prep	Initial site work	Build	1	construction	system
+B05a01b-Clearing	B05a01-Site prep	4	Clearing	Vegetation removal	Build	2	construction	system
+B05a01a-Demolition	B05a01-Site prep	4	Demolition	Structure removal	Build	1	construction	system
+B05g-Landscaping & irrigation	B05-SiteInfra	2	Landscaping & irrigation	Planting and watering	Build	7	construction	system
+B05g02-Hardscape	B05g-Landscaping & irrigation	3	Hardscape	Paved landscape areas	Build	2	construction	system
+B05g01-Irrigation	B05g-Landscaping & irrigation	3	Irrigation	Landscape watering	Build	1	construction	system
+B05g04-Shrubs and groundcover	B05g-Landscaping & irrigation	3	Shrubs and groundcover	Low plantings	Build	4	construction	system
+B05g05-Sod and seed	B05g-Landscaping & irrigation	3	Sod and seed	Lawn establishment	Build	5	construction	system
+B05g03-Trees	B05g-Landscaping & irrigation	3	Trees	Tree planting	Build	3	construction	system
+B05e07-EV charging	B05e-Paving & transportation	3	EV charging	Electric vehicle stations	Build	7	construction	system
+B05e09-Parking structure	B05e-Paving & transportation	3	Parking structure	Detached parking garages and structures (site work)	Build	9	construction	system
+B05e05-Surface lot	B05e-Paving & transportation	3	Surface lot	At-grade parking	Build	5	construction	system
+B05e-Paving & transportation	B05-SiteInfra	2	Paving & transportation	Roads and parking	Build	5	construction	system
+B05e02-Curb and gutter	B05e-Paving & transportation	3	Curb and gutter	Street edging	Build	2	construction	system
+B05e04-Driveways	B05e-Paving & transportation	3	Driveways	Vehicle access	Build	4	construction	system
+B05e03-Paving	B05e-Paving & transportation	3	Paving	Asphalt or concrete surface	Build	3	construction	system
+B05e06-Sidewalks	B05e-Paving & transportation	3	Sidewalks	Pedestrian paths	Build	6	construction	system
+B05e08-Striping and signage	B05e-Paving & transportation	3	Striping and signage	Pavement markings	Build	8	construction	system
+B05e01-Subgrade and base	B05e-Paving & transportation	3	Subgrade and base	Pavement foundation	Build	1	construction	system
+B05f-Site improvements & amenities	B05-SiteInfra	2	Site improvements & amenities	Site features	Build	6	construction	system
+B05f06-Furniture	B05f-Site improvements & amenities	3	Furniture	Benches and fixtures	Build	6	construction	system
+B05f04-Lighting	B05f-Site improvements & amenities	3	Lighting	Exterior illumination	Build	4	construction	system
+B05f05-Recreation	B05f-Site improvements & amenities	3	Recreation	Play and sport areas	Build	5	construction	system
+B05f03-Structures	B05f-Site improvements & amenities	3	Structures	Site buildings	Build	3	construction	system
+B05c-Stormwater & drainage	B05-SiteInfra	2	Stormwater & drainage	Storm drainage systems	Build	3	construction	system
+B05c01-Detention	B05c-Stormwater & drainage	3	Detention	Stormwater storage	Build	1	construction	system
+B05c02-Water quality	B05c-Stormwater & drainage	3	Water quality	Runoff treatment	Build	2	construction	system
+B05d-Site utilities (wet + dry)	B05-SiteInfra	2	Site utilities (wet + dry)	Underground utilities	Build	4	construction	system
+B05d01-Electric	B05d-Site utilities (wet + dry)	3	Electric	Site electrical service	Build	1	construction	system
+B05d01a-Primary	B05d01-Electric	4	Primary	Main electrical feed	Build	1	construction	system
+B05d01b-Secondary	B05d01-Electric	4	Secondary	Distribution wiring	Build	2	construction	system
+B05d02-Gas	B05d-Site utilities (wet + dry)	3	Gas	Natural gas service	Build	2	construction	system
+B05d02a-Main and service	B05d02-Gas	4	Main and service	Gas line and meter	Build	1	construction	system
+B05d03-Sanitary sewer	B05d-Site utilities (wet + dry)	3	Sanitary sewer	Wastewater piping	Build	3	construction	system
+B05d03a-Main extension	B05d03-Sanitary sewer	4	Main extension	Sewer line extension	Build	1	construction	system
+B05d03b-Service lateral	B05d03-Sanitary sewer	4	Service lateral	Building sewer connection	Build	2	construction	system
+B05d04-Storm sewer	B05d-Site utilities (wet + dry)	3	Storm sewer	Storm drain piping	Build	4	construction	system
+B05d04a-Pipe and structures	B05d04-Storm sewer	4	Pipe and structures	Storm drain system	Build	1	construction	system
+B05d05-Telecom	B05d-Site utilities (wet + dry)	3	Telecom	Communications conduit	Build	5	construction	system
+B05d05a-Conduit	B05d05-Telecom	4	Conduit	Telecom raceway	Build	1	construction	system
+B05d06-Water	B05d-Site utilities (wet + dry)	3	Water	Potable water service	Build	6	construction	system
+B05d06a-Main extension	B05d06-Water	4	Main extension	Water line extension	Build	1	construction	system
+B05d06b-Service lateral	B05d06-Water	4	Service lateral	Building water connection	Build	2	construction	system
+B06-SoftCosts		1	SoftCosts	Professional, consulting, and admin soft costs	Build	6	crosscutting	system
+B06f-Project accounting	B06-SoftCosts	2	Project accounting	Financial management	Build	6	crosscutting	system
+B06f01-Project accounting	B06f-Project accounting	3	Project accounting	Cost tracking	Build	1	crosscutting	system
+B06f02-Tax	B06f-Project accounting	3	Tax	Tax consulting	Build	2	crosscutting	system
+B06a-Architecture	B06-SoftCosts	2	Architecture	Design services	Build	1	crosscutting	system
+B06a05-Construction admin	B06a-Architecture	3	Construction admin	Construction oversight	Build	5	crosscutting	system
+B06a04-Construction documents	B06a-Architecture	3	Construction documents	Permit drawings	Build	4	crosscutting	system
+B06a02-Design development	B06a-Architecture	3	Design development	Detailed design	Build	2	crosscutting	system
+B06a03-Interior design	B06a-Architecture	3	Interior design	Interior finishes design	Build	3	crosscutting	system
+B06a01-Schematic design	B06a-Architecture	3	Schematic design	Concept drawings	Build	1	crosscutting	system
+B06c-Consultants	B06-SoftCosts	2	Consultants	Specialty consultants	Build	3	crosscutting	system
+B06c03-Accessibility	B06c-Consultants	3	Accessibility	ADA compliance	Build	3	crosscutting	system
+B06c04-Acoustical	B06c-Consultants	3	Acoustical	Sound design	Build	4	crosscutting	system
+B06c05-Certifications	B06c-Consultants	3	Certifications	Green building certs	Build	5	crosscutting	system
+B06c06-Commissioning	B06c-Consultants	3	Commissioning	Systems verification	Build	6	crosscutting	system
+B06c02-Energy modeling	B06c-Consultants	3	Energy modeling	Energy analysis	Build	2	crosscutting	system
+B06c01-Landscape architect	B06c-Consultants	3	Landscape architect	Landscape design	Build	1	crosscutting	system
+B06e-Development management	B06-SoftCosts	2	Development management	Project oversight	Build	5	crosscutting	system
+B06e01-Owner rep	B06e-Development management	3	Owner rep	Owner's representative	Build	1	crosscutting	system
+B06b-Engineering	B06-SoftCosts	2	Engineering	Engineering consultants	Build	2	crosscutting	system
+B06b01-Civil	B06b-Engineering	3	Civil	Site engineering	Build	1	crosscutting	system
+B06b02-Electrical	B06b-Engineering	3	Electrical	Electrical design	Build	2	crosscutting	system
+B06b03-Fire protection	B06b-Engineering	3	Fire protection	Fire systems design	Build	3	crosscutting	system
+B06b04-Mechanical	B06b-Engineering	3	Mechanical	HVAC design	Build	4	crosscutting	system
+B06b05-Plumbing	B06b-Engineering	3	Plumbing	Plumbing design	Build	5	crosscutting	system
+B06b06-Structural	B06b-Engineering	3	Structural	Structural design	Build	6	crosscutting	system
+B06d-Legal	B06-SoftCosts	2	Legal	Project legal services	Build	4	crosscutting	system
+B06d02-Contracts	B06d-Legal	3	Contracts	Contract preparation	Build	2	crosscutting	system
+B06d01-Entity formation	B06d-Legal	3	Entity formation	Legal entity setup	Build	1	crosscutting	system
+B06d03-HOA formation	B06d-Legal	3	HOA formation	Association setup	Build	3	crosscutting	system
+B06g-Testing	B06-SoftCosts	2	Testing	Quality assurance	Build	7	crosscutting	system
+B06g02-Commissioning	B06g-Testing	3	Commissioning	Startup verification	Build	2	crosscutting	system
+B06g01-Field / materials testing	B06g-Testing	3	Field / materials testing	Construction testing	Build	1	crosscutting	system
+B06g01a-Geotechnical testing	B06g01-Field / materials testing	4	Geotechnical testing	Soil compaction tests	Build	1	crosscutting	system
+B06g01b-Special inspections	B06g01-Field / materials testing	4	Special inspections	Code inspections	Build	2	crosscutting	system
+B07-BuildCost		1	BuildCost	Hard construction (materials, labor, subcontractor O&P)	Build	7	construction	system
+B07a-Substructure	B07-BuildCost	2	Substructure	Below-grade construction	Build	1	construction	system
+B07b-Shell	B07-BuildCost	2	Shell	Building envelope	Build	2	construction	system
+B07e-Special systems & options	B07-BuildCost	2	Special systems & options	Technology and upgrades	Build	5	construction	option
+B07f-Shared / accessory program spaces	B07-BuildCost	2	Shared / accessory program spaces	Common area construction	Build	6	construction	program
+B07b06-Exterior doors	B07b-Shell	3	Exterior doors	Entry openings	Build	6	construction	system
+B07b06a-Entry	B07b06-Exterior doors	4	Entry	Front door	Build	1	construction	system
+B07b06b-Garage doors	B07b06-Exterior doors	4	Garage doors	Vehicle doors	Build	2	construction	system
+B07b06c-Hardware	B07b06-Exterior doors	4	Hardware	Door hardware	Build	3	construction	system
+B07b06d-Patio	B07b06-Exterior doors	4	Patio	Sliding/french doors	Build	4	construction	system
+B07b07-Insulation	B07b-Shell	3	Insulation	Thermal barrier	Build	7	construction	system
+B07b07e-Attic	B07b07-Insulation	4	Attic	Ceiling insulation	Build	5	construction	system
+B07b07a-Basement	B07b07-Insulation	4	Basement	Below-grade insulation	Build	1	construction	system
+B07b07d-Continuous	B07b07-Insulation	4	Continuous	Exterior insulation	Build	4	construction	system
+B07b07b-Floor	B07b07-Insulation	4	Floor	Floor insulation	Build	2	construction	system
+B07b07c-Walls	B07b07-Insulation	4	Walls	Wall insulation	Build	3	construction	system
+B07b04-Roofing	B07b-Shell	3	Roofing	Roof covering	Build	4	construction	system
+B07b04f-Flashing	B07b04-Roofing	4	Flashing	Roof transitions	Build	6	construction	system
+B07b04e-Flat roof membrane	B07b04-Roofing	4	Flat roof membrane	Low-slope roofing	Build	5	construction	system
+B07b04h-Gutters and downspouts	B07b04-Roofing	4	Gutters and downspouts	Roof drainage	Build	8	construction	system
+B07b04d-Metal roofing	B07b04-Roofing	4	Metal roofing	Metal panels	Build	4	construction	system
+B07b04b-Shingles	B07b04-Roofing	4	Shingles	Asphalt roofing	Build	2	construction	system
+B07b04c-Tile	B07b04-Roofing	4	Tile	Clay/concrete tiles	Build	3	construction	system
+B07b04a-Underlayment	B07b04-Roofing	4	Underlayment	Roof substrate	Build	1	construction	system
+B07b04g-Vents	B07b04-Roofing	4	Vents	Roof ventilation	Build	7	construction	system
+B07b08-Siding	B07b-Shell	3	Siding	Exterior cladding	Build	8	construction	system
+B07b08a-Brick	B07b08-Siding	4	Brick	Brick veneer	Build	1	construction	system
+B07b08b-Engineered wood	B07b08-Siding	4	Engineered wood	Composite siding	Build	2	construction	system
+B07b08c-Fiber cement	B07b08-Siding	4	Fiber cement	Cement board siding	Build	3	construction	system
+B07b08d-Metal	B07b08-Siding	4	Metal	Metal panels	Build	4	construction	system
+B07b08e-Soffit	B07b08-Siding	4	Soffit	Eave covering	Build	5	construction	system
+B07b08f-Stone	B07b08-Siding	4	Stone	Stone veneer	Build	6	construction	system
+B07b08g-Stucco	B07b08-Siding	4	Stucco	Cement plaster	Build	7	construction	system
+B07b08h-Trim	B07b08-Siding	4	Trim	Exterior trim	Build	8	construction	system
+B07b08i-Vinyl	B07b08-Siding	4	Vinyl	Vinyl siding	Build	9	construction	system
+B07b08j-Wood	B07b08-Siding	4	Wood	Wood siding	Build	10	construction	system
+B07b03-Weather barriers	B07b-Shell	3	Weather barriers	Moisture protection	Build	3	construction	system
+B07b03b-Flashing	B07b03-Weather barriers	4	Flashing	Water diversion	Build	2	construction	system
+B07b03a-House wrap	B07b03-Weather barriers	4	House wrap	Weather resistive barrier	Build	1	construction	system
+B07b03d-Rain screen	B07b03-Weather barriers	4	Rain screen	Drainage cavity	Build	4	construction	system
+B07b03c-Sealants	B07b03-Weather barriers	4	Sealants	Joint sealing	Build	3	construction	system
+B07b05-Windows	B07b-Shell	3	Windows	Glazing systems	Build	5	construction	system
+B07b05a-Fiberglass	B07b05-Windows	4	Fiberglass	Fiberglass windows	Build	1	construction	system
+B07b05b-Skylights	B07b05-Windows	4	Skylights	Roof windows	Build	2	construction	system
+B07b05c-Vinyl	B07b05-Windows	4	Vinyl	Vinyl windows	Build	3	construction	system
+B07b05d-Wood	B07b05-Windows	4	Wood	Wood windows	Build	4	construction	system
+B07b11-Deck	B07b-Shell	3	Deck	Exterior platform	Build	11	construction	system
+B07b11b-Decking	B07b11-Deck	4	Decking	Deck surface	Build	2	construction	system
+B07b11c-Railing	B07b11-Deck	4	Railing	Deck guardrail	Build	3	construction	system
+B07b11a-Structure	B07b11-Deck	4	Structure	Deck framing	Build	1	construction	system
+B07b02-Attached garage	B07b-Shell	3	Attached garage	Attached garage construction (building shell)	Build	2	construction	system
+B07b02c-Fire separation	B07b02-Attached garage	4	Fire separation	Fire-rated assembly	Build	3	construction	system
+B07b02a-Slab	B07b02-Attached garage	4	Slab	Garage floor	Build	1	construction	system
+B07b02b-Walls and ceiling	B07b02-Attached garage	4	Walls and ceiling	Garage enclosure	Build	2	construction	system
+B07b09-Paint	B07b-Shell	3	Paint	Exterior coatings	Build	9	construction	system
+B07b09a-Exterior	B07b09-Paint	4	Exterior	Exterior painting	Build	1	construction	system
+B07b10-Porch	B07b-Shell	3	Porch	Covered entry	Build	10	construction	system
+B07b10a-Covered	B07b10-Porch	4	Covered	Roofed porch	Build	1	construction	system
+B07b10b-Screened	B07b10-Porch	4	Screened	Screened enclosure	Build	2	construction	system
+B07d-Interiors	B07-BuildCost	2	Interiors	Interior finishes	Build	4	construction	system
+B07d12-Appliances	B07d-Interiors	3	Appliances	Built-in appliances	Build	12	construction	system
+B07d12a-Kitchen	B07d12-Appliances	4	Kitchen	Kitchen appliances	Build	1	construction	system
+B07d12b-Laundry	B07d12-Appliances	4	Laundry	Washer/dryer	Build	2	construction	system
+B07d11-Bath accessories	B07d-Interiors	3	Bath accessories	Bathroom hardware	Build	11	construction	system
+B07d11a-Hardware	B07d11-Bath accessories	4	Hardware	Bath hardware	Build	1	construction	system
+B07d11b-Mirrors	B07d11-Bath accessories	4	Mirrors	Bath mirrors	Build	2	construction	system
+B07d11c-Shower doors	B07d11-Bath accessories	4	Shower doors	Glass enclosures	Build	3	construction	system
+B07d06-Cabinets	B07d-Interiors	3	Cabinets	Built-in casework	Build	6	construction	system
+B07d06a-Bathroom	B07d06-Cabinets	4	Bathroom	Bath vanities	Build	1	construction	system
+B07d06b-Kitchen	B07d06-Cabinets	4	Kitchen	Kitchen cabinets	Build	2	construction	system
+B07d06c-Laundry	B07d06-Cabinets	4	Laundry	Utility cabinets	Build	3	construction	system
+B07d07-Countertops	B07d-Interiors	3	Countertops	Work surfaces	Build	7	construction	system
+B07d07a-Backsplash	B07d07-Countertops	4	Backsplash	Counter splash guard	Build	1	construction	system
+B07d07b-Bathroom	B07d07-Countertops	4	Bathroom	Bath counters	Build	2	construction	system
+B07d07c-Kitchen	B07d07-Countertops	4	Kitchen	Kitchen counters	Build	3	construction	system
+B07d10-Doors	B07d-Interiors	3	Doors	Interior doors	Build	10	construction	system
+B07d10b-Closet doors	B07d10-Doors	4	Closet doors	Storage doors	Build	2	construction	system
+B07d10c-Hardware	B07d10-Doors	4	Hardware	Door hardware	Build	3	construction	system
+B07d10a-Interior doors	B07d10-Doors	4	Interior doors	Passage doors	Build	1	construction	system
+B07d01-Drywall	B07d-Interiors	3	Drywall	Gypsum board	Build	1	construction	system
+B07d01a-Board and hang	B07d01-Drywall	4	Board and hang	Drywall installation	Build	1	construction	system
+B07d01b-Finish	B07d01-Drywall	4	Finish	Taping and mudding	Build	2	construction	system
+B07d01c-Texture	B07d01-Drywall	4	Texture	Surface texture	Build	3	construction	system
+B07d04-Fireplace	B07d-Interiors	3	Fireplace	Hearth systems	Build	4	construction	system
+B07d08-Flooring	B07d-Interiors	3	Flooring	Floor finishes	Build	8	construction	system
+B07d08f-Carpet	B07d08-Flooring	4	Carpet	Carpet and pad	Build	6	construction	system
+B07d08c-Hardwood	B07d08-Flooring	4	Hardwood	Wood flooring	Build	3	construction	system
+B07d08d-LVP/LVT	B07d08-Flooring	4	LVP/LVT	Luxury vinyl	Build	4	construction	system
+B07d08e-Laminate	B07d08-Flooring	4	Laminate	Laminate flooring	Build	5	construction	system
+B07d08a-Subfloor prep	B07d08-Flooring	4	Subfloor prep	Floor preparation	Build	1	construction	system
+B07d08b-Tile	B07d08-Flooring	4	Tile	Ceramic floor tile	Build	2	construction	system
+B07d08g-Transitions	B07d08-Flooring	4	Transitions	Floor transitions	Build	7	construction	system
+B07d03-Paint	B07d-Interiors	3	Paint	Interior coatings	Build	3	construction	system
+B07d03a-Interior	B07d03-Paint	4	Interior	Interior painting	Build	1	construction	system
+B07d09-Trim	B07d-Interiors	3	Trim	Millwork and molding	Build	9	construction	system
+B07d09a-Baseboard	B07d09-Trim	4	Baseboard	Base molding	Build	1	construction	system
+B07d09b-Casing	B07d09-Trim	4	Casing	Door/window trim	Build	2	construction	system
+B07d09c-Crown molding	B07d09-Trim	4	Crown molding	Ceiling trim	Build	3	construction	system
+B07d09d-Shelving and closets	B07d09-Trim	4	Shelving and closets	Storage systems	Build	4	construction	system
+B07d09e-Stair parts	B07d09-Trim	4	Stair parts	Stair trim	Build	5	construction	system
+B07d05-Wall tile	B07d-Interiors	3	Wall tile	Ceramic wall tile	Build	5	construction	system
+B07d05a-Tub/shower surround	B07d05-Wall tile	4	Tub/shower surround	Wet area tile	Build	1	construction	system
+B07c-Services	B07-BuildCost	2	Services	Mechanical/electrical/plumbing	Build	3	construction	system
+B07c03-Electrical	B07c-Services	3	Electrical	Power and lighting	Build	3	construction	system
+B07c03g-Devices	B07c03-Electrical	4	Devices	Outlets and switches	Build	7	construction	system
+B07c03g01-Receptacles	B07c03g-Devices	5	Receptacles	Power outlets	Build	1	construction	system
+B07c03g02-Switches	B07c03g-Devices	5	Switches	Light switches	Build	2	construction	system
+B07c03d-EV ready	B07c03-Electrical	4	EV ready	EV charging prep	Build	4	construction	system
+B07c03h-Lighting	B07c03-Electrical	4	Lighting	Light fixtures	Build	8	construction	system
+B07c03h01-Ceiling fans	B07c03h-Lighting	5	Ceiling fans	Fan fixtures	Build	1	construction	system
+B07c03h02-Exterior	B07c03h-Lighting	5	Exterior	Outdoor lights	Build	2	construction	system
+B07c03h03-Interior	B07c03h-Lighting	5	Interior	Indoor lights	Build	3	construction	system
+B07c03e-Low voltage	B07c03-Electrical	4	Low voltage	Data and comm	Build	5	construction	system
+B07c03e01-Data/telecom	B07c03e-Low voltage	5	Data/telecom	Network wiring	Build	1	construction	system
+B07c03e02-Doorbell	B07c03e-Low voltage	5	Doorbell	Entry notification	Build	2	construction	system
+B07c03b-Rough	B07c03-Electrical	4	Rough	Wire rough-in	Build	2	construction	system
+B07c03b01-Wire and boxes	B07c03b-Rough	5	Wire and boxes	Branch circuits	Build	1	construction	system
+B07c03f-Safety	B07c03-Electrical	4	Safety	Life safety devices	Build	6	construction	system
+B07c03f01-Smoke/CO detectors	B07c03f-Safety	5	Smoke/CO detectors	Safety alarms	Build	1	construction	system
+B07c03a-Service	B07c03-Electrical	4	Service	Electrical service	Build	1	construction	system
+B07c03a01-Meter and grounding	B07c03a-Service	5	Meter and grounding	Service entrance	Build	1	construction	system
+B07c03a02-Panel	B07c03a-Service	5	Panel	Breaker panel	Build	2	construction	system
+B07c03c-Solar ready	B07c03-Electrical	4	Solar ready	PV prep wiring	Build	3	construction	system
+B07c05-Fire protection	B07c-Services	3	Fire protection	Fire suppression	Build	5	construction	system
+B07c05b-Fire alarm	B07c05-Fire protection	4	Fire alarm	Detection system	Build	2	construction	system
+B07c05a-Sprinkler	B07c05-Fire protection	4	Sprinkler	Fire sprinklers	Build	1	construction	system
+B07c04-HVAC	B07c-Services	3	HVAC	Heating and cooling	Build	4	construction	system
+B07c04e-Controls	B07c04-HVAC	4	Controls	HVAC controls	Build	5	construction	system
+B07c04e01-Thermostat	B07c04e-Controls	5	Thermostat	Temperature control	Build	1	construction	system
+B07c04c-Cooling	B07c04-HVAC	4	Cooling	Air conditioning	Build	3	construction	system
+B07c04c01-Central AC	B07c04c-Cooling	5	Central AC	Central cooling	Build	1	construction	system
+B07c04c02-Minisplit	B07c04c-Cooling	5	Minisplit	Ductless system	Build	2	construction	system
+B07c04a-Distribution	B07c04-HVAC	4	Distribution	Air delivery	Build	1	construction	system
+B07c04a01-Ductwork	B07c04a-Distribution	5	Ductwork	Air ducts	Build	1	construction	system
+B07c04a02-Registers	B07c04a-Distribution	5	Registers	Supply/return grilles	Build	2	construction	system
+B07c04b-Heating	B07c04-HVAC	4	Heating	Heat source	Build	2	construction	system
+B07c04b01-Boiler	B07c04b-Heating	5	Boiler	Hot water heat	Build	1	construction	system
+B07c04b02-Furnace	B07c04b-Heating	5	Furnace	Forced air heat	Build	2	construction	system
+B07c04b03-Heat pump	B07c04b-Heating	5	Heat pump	Heat pump system	Build	3	construction	system
+B07c04b04-Radiant	B07c04b-Heating	5	Radiant	Floor/ceiling heat	Build	4	construction	system
+B07c04d-Ventilation	B07c04-HVAC	4	Ventilation	Air exchange	Build	4	construction	system
+B07c04d01-Bath fans	B07c04d-Ventilation	5	Bath fans	Exhaust fans	Build	1	construction	system
+B07c04d02-Kitchen hood	B07c04d-Ventilation	5	Kitchen hood	Range exhaust	Build	2	construction	system
+B07c04d03-Whole house	B07c04d-Ventilation	5	Whole house	Fresh air system	Build	3	construction	system
+B07c02-Plumbing	B07c-Services	3	Plumbing	Water and waste systems	Build	2	construction	system
+B07c02d-Fixtures	B07c02-Plumbing	4	Fixtures	Plumbing fixtures	Build	4	construction	system
+B07c02d01-Faucets	B07c02d-Fixtures	5	Faucets	Sink/tub faucets	Build	1	construction	system
+B07c02d02-Sinks	B07c02d-Fixtures	5	Sinks	Lavatories and sinks	Build	2	construction	system
+B07c02d03-Toilets	B07c02d-Fixtures	5	Toilets	Water closets	Build	3	construction	system
+B07c02d04-Tubs and showers	B07c02d-Fixtures	5	Tubs and showers	Bathing fixtures	Build	4	construction	system
+B07c02b-Gas piping	B07c02-Plumbing	4	Gas piping	Fuel gas lines	Build	2	construction	system
+B07c02a-Rough	B07c02-Plumbing	4	Rough	Pipe rough-in	Build	1	construction	system
+B07c02a01-DWV piping	B07c02a-Rough	5	DWV piping	Drain/waste/vent	Build	1	construction	system
+B07c02a02-Supply piping	B07c02a-Rough	5	Supply piping	Water supply lines	Build	2	construction	system
+B07c02a03-Venting	B07c02a-Rough	5	Venting	Plumbing vents	Build	3	construction	system
+B07c02c-Water heater	B07c02-Plumbing	4	Water heater	Hot water system	Build	3	construction	system
+B07f01-Access control	B07f-Shared / accessory program spaces	3	Access control	Entry security	Build	1	construction	program
+B07f02-Common areas	B07f-Shared / accessory program spaces	3	Common areas	Shared spaces	Build	2	construction	program
+B07f02a-Clubhouse	B07f02-Common areas	4	Clubhouse	Community building	Build	1	construction	program
+B07f02b-Corridors	B07f02-Common areas	4	Corridors	Common hallways	Build	2	construction	program
+B07f02c-Fitness room	B07f02-Common areas	4	Fitness room	Exercise facility	Build	3	construction	program
+B07f02d-Leasing office	B07f02-Common areas	4	Leasing office	Management office	Build	4	construction	program
+B07f02e-Lobby	B07f02-Common areas	4	Lobby	Entry vestibule	Build	5	construction	program
+B07f03-Mail	B07f-Shared / accessory program spaces	3	Mail	Mail facilities	Build	3	construction	program
+B07f03a-Mailboxes and lockers	B07f03-Mail	4	Mailboxes and lockers	Package storage	Build	1	construction	program
+B07f04-Trash	B07f-Shared / accessory program spaces	3	Trash	Waste handling	Build	4	construction	program
+B07f04a-Compactor and chute	B07f04-Trash	4	Compactor and chute	Trash system	Build	1	construction	program
+B07c09-Vertical transport	B07c-Services	3	Vertical transport	Stairs and elevators	Build	9	construction	system
+B07c09b-Elevators	B07c09-Vertical transport	4	Elevators	Passenger elevators	Build	2	construction	system
+B07c09a-Stairs	B07c09-Vertical transport	4	Stairs	Interior stairs	Build	1	construction	system
+B07e01-Audio/video	B07e-Special systems & options	3	Audio/video	Entertainment systems	Build	1	construction	option
+B07e02-Battery storage	B07e-Special systems & options	3	Battery storage	Energy storage	Build	2	construction	option
+B07c06-Central vacuum	B07c-Services	3	Central vacuum	Built-in vacuum	Build	6	construction	system
+B07c08-Generator	B07c-Services	3	Generator	Backup power	Build	8	construction	system
+B07c01-Radon mitigation	B07c-Services	3	Radon mitigation	Radon venting system	Build	1	construction	system
+B07e03-Security system	B07e-Special systems & options	3	Security system	Security monitoring	Build	3	construction	option
+B07e04-Smart home	B07e-Special systems & options	3	Smart home	Home automation	Build	4	construction	option
+B07e05-Solar PV	B07e-Special systems & options	3	Solar PV	Solar panels	Build	5	construction	option
+B07c07-Water treatment	B07c-Services	3	Water treatment	Water conditioning	Build	7	construction	system
+B07b01-Structure	B07b-Shell	3	Structure	Structural frame	Build	1	construction	system
+B07b01a-Foundation	B07b01-Structure	4	Foundation	Below-grade structure	Build	1	construction	system
+B07b01a01-Basement	B07b01a-Foundation	5	Basement	Full basement	Build	1	construction	system
+B07b01a01a-Drainage	B07b01a01-Basement	6	Drainage	Foundation drainage	Build	1	construction	system
+B07b01a01b-Egress	B07b01a01-Basement	6	Egress	Emergency exit	Build	2	construction	system
+B07b01a01c-Excavation	B07b01a01-Basement	6	Excavation	Basement dig	Build	3	construction	system
+B07b01a01d-Floor slab	B07b01a01-Basement	6	Floor slab	Basement floor	Build	4	construction	system
+B07b01a01e-Walls	B07b01a01-Basement	6	Walls	Basement walls	Build	5	construction	system
+B07b01a01f-Waterproofing	B07b01a01-Basement	6	Waterproofing	Moisture barrier	Build	6	construction	system
+B07b01a02-Crawlspace	B07b01a-Foundation	5	Crawlspace	Ventilated crawl	Build	2	construction	system
+B07b01a03-Deep	B07b01a-Foundation	5	Deep	Deep foundations	Build	3	construction	system
+B07b01a03a-Drilled shafts	B07b01a03-Deep	6	Drilled shafts	Caissons	Build	1	construction	system
+B07b01a03b-Driven piles	B07b01a03-Deep	6	Driven piles	Impact piles	Build	2	construction	system
+B07b01a03c-Helical piles	B07b01a03-Deep	6	Helical piles	Screw piles	Build	3	construction	system
+B07b01a04-Shallow	B07b01a-Foundation	5	Shallow	Spread foundations	Build	4	construction	system
+B07b01a04a-Continuous footings	B07b01a04-Shallow	6	Continuous footings	Strip foundations	Build	1	construction	system
+B07b01a04b-Grade beams	B07b01a04-Shallow	6	Grade beams	Foundation beams	Build	2	construction	system
+B07b01a04c-Spread footings	B07b01a04-Shallow	6	Spread footings	Pad foundations	Build	3	construction	system
+B07b01a04d-Stem walls	B07b01a04-Shallow	6	Stem walls	Foundation walls	Build	4	construction	system
+B07b01a05-Slab on grade	B07b01a-Foundation	5	Slab on grade	Ground-level slab	Build	5	construction	system
+B07b01b-Framing	B07b01-Structure	4	Framing	Wood/steel frame	Build	2	construction	system
+B07b01b03-Beams and posts	B07b01b-Framing	5	Beams and posts	Support members	Build	3	construction	system
+B07b01b01-Floor	B07b01b-Framing	5	Floor	Floor framing	Build	1	construction	system
+B07b01b01a-Joists	B07b01b01-Floor	6	Joists	Floor joists	Build	1	construction	system
+B07b01b01b-Subfloor	B07b01b01-Floor	6	Subfloor	Floor sheathing	Build	2	construction	system
+B07b01b06-Hardware	B07b01b-Framing	5	Hardware	Connectors and fasteners	Build	6	construction	system
+B07b01b04-Roof	B07b01b-Framing	5	Roof	Roof framing	Build	4	construction	system
+B07b01b04a-Fascia and soffit framing	B07b01b04-Roof	6	Fascia and soffit framing	Eave framing	Build	1	construction	system
+B07b01b04b-Rafters	B07b01b04-Roof	6	Rafters	Stick framing	Build	2	construction	system
+B07b01b04c-Trusses	B07b01b04-Roof	6	Trusses	Engineered trusses	Build	3	construction	system
+B07b01b05-Sheathing	B07b01b-Framing	5	Sheathing	Panel sheathing	Build	5	construction	system
+B07b01b05a-Roof	B07b01b05-Sheathing	6	Roof	Roof decking	Build	1	construction	system
+B07b01b05b-Wall	B07b01b05-Sheathing	6	Wall	Wall sheathing	Build	2	construction	system
+B07b01b07-Steel framing	B07b01b-Framing	5	Steel framing	Light gauge steel	Build	7	construction	system
+B07b01b02-Walls	B07b01b-Framing	5	Walls	Wall framing	Build	2	construction	system
+B07b01b02a-Exterior	B07b01b02-Walls	6	Exterior	Exterior walls	Build	1	construction	system
+B07b01b02b-Headers and beams	B07b01b02-Walls	6	Headers and beams	Load transfer	Build	2	construction	system
+B07b01b02c-Interior	B07b01b02-Walls	6	Interior	Interior partitions	Build	3	construction	system
+B08-TempIndirect		1	TempIndirect	Temporary, indirect, and jobsite costs	Build	8	construction	system
+B09-RiskIns		1	RiskIns	Construction insurance, bonding, and third-party risk	Build	9	crosscutting	overhead
+B10-Finance		1	Finance	Development financing & capital costs	Build	10	crosscutting	finance
+B11-Overhead		1	Overhead	Developer overhead, sales, and marketing	Build	11	crosscutting	overhead
+B12-Contingency		1	Contingency	Risk, uncertainty, and legal contingency	Build	12	crosscutting	overhead
+B13-Return		1	Return	Required developer return	Build	13	crosscutting	finance
+B03a-Building permits	B03-Permits	2	Building permits	Fees to obtain construction permits from the building department	Build	1	entitlement	regulatory
+B03a01-Residential building permit	B03a-Building permits	3	Residential building permit	Primary building permit fee based on project valuation or square footage	Build	1	entitlement	regulatory
+B03a02-Mechanical permit	B03a-Building permits	3	Mechanical permit	Permit for HVAC system installation	Build	2	entitlement	regulatory
+B03a03-Electrical permit	B03a-Building permits	3	Electrical permit	Permit for electrical system installation	Build	3	entitlement	regulatory
+B03a04-Plumbing permit	B03a-Building permits	3	Plumbing permit	Permit for plumbing system installation	Build	4	entitlement	regulatory
+B03b-Plan review fees	B03-Permits	2	Plan review fees	Fees charged by jurisdiction to review construction documents for code compliance	Build	2	entitlement	regulatory
+B03b01-Structural review	B03b-Plan review fees	3	Structural review	Review of structural engineering drawings and calculations	Build	1	entitlement	regulatory
+B03b02-Fire and life safety review	B03b-Plan review fees	3	Fire and life safety review	Review of fire protection and egress plans	Build	2	entitlement	regulatory
+B03b03-Energy code review	B03b-Plan review fees	3	Energy code review	Review of energy compliance documentation	Build	3	entitlement	regulatory
+B03b04-Expedited review surcharge	B03b-Plan review fees	3	Expedited review surcharge	Premium fee for accelerated plan review processing	Build	4	entitlement	regulatory
+B03c-Impact and development fees	B03-Permits	2	Impact and development fees	One-time fees assessed to offset project impacts on public infrastructure and services	Build	3	entitlement	regulatory
+B03c01-Transportation impact	B03c-Impact and development fees	3	Transportation impact	Fee for road and transit infrastructure impacts	Build	1	entitlement	regulatory
+B03c02-School impact	B03c-Impact and development fees	3	School impact	Fee for school capacity impacts	Build	2	entitlement	regulatory
+B03c03-Park and recreation	B03c-Impact and development fees	3	Park and recreation	Fee for park land and recreation facility impacts	Build	3	entitlement	regulatory
+B03c04-Fire and police	B03c-Impact and development fees	3	Fire and police	Fee for public safety facility impacts	Build	4	entitlement	regulatory
+B03c05-Stormwater	B03c-Impact and development fees	3	Stormwater	Fee for stormwater management system impacts	Build	5	entitlement	regulatory
+B03c06-General government	B03c-Impact and development fees	3	General government	General administrative and capital recovery fee	Build	6	entitlement	regulatory
+B03d-Special permits	B03-Permits	2	Special permits	Permits for specific activities beyond standard building	Build	4	entitlement	regulatory
+B03d01-Demolition permit	B03d-Special permits	3	Demolition permit	Permit for structure demolition or removal	Build	1	entitlement	regulatory
+B03d02-Grading permit	B03d-Special permits	3	Grading permit	Permit for earthwork and grading activities	Build	2	entitlement	regulatory
+B03d03-ROW permit	B03d-Special permits	3	ROW permit	Permit for work within public right-of-way	Build	3	entitlement	regulatory
+B03d04-Floodplain permit	B03d-Special permits	3	Floodplain permit	Permit for construction within mapped floodplain	Build	4	entitlement	regulatory
+B03e-Inspection fees	B03-Permits	2	Inspection fees	Fees for required code inspections during construction	Build	5	entitlement	regulatory
+B03e01-Foundation inspection	B03e-Inspection fees	3	Foundation inspection	Inspection of foundation before concrete placement	Build	1	entitlement	regulatory
+B03e02-Framing inspection	B03e-Inspection fees	3	Framing inspection	Inspection of structural framing before close-in	Build	2	entitlement	regulatory
+B03e03-Final inspection	B03e-Inspection fees	3	Final inspection	Final code compliance inspection for certificate of occupancy	Build	3	entitlement	regulatory
+B03e04-Re-inspection fee	B03e-Inspection fees	3	Re-inspection fee	Fee charged when a failed inspection requires re-inspection	Build	4	entitlement	regulatory
+B04a-Water connection	B04-Utilities	2	Water connection	Fees to connect to municipal or district water system	Build	1	entitlement	regulatory
+B04a01-Water tap fee	B04a-Water connection	3	Water tap fee	One-time fee for physical water main tap and meter installation	Build	1	entitlement	regulatory
+B04a02-Water plant investment fee	B04a-Water connection	3	Water plant investment fee	Capacity charge for water treatment and storage infrastructure	Build	2	entitlement	regulatory
+B04a03-Water meter	B04a-Water connection	3	Water meter	Cost of water meter and associated hardware	Build	3	entitlement	regulatory
+B04b-Sewer connection	B04-Utilities	2	Sewer connection	Fees to connect to municipal or district sanitary sewer system	Build	2	entitlement	regulatory
+B04b01-Sewer tap fee	B04b-Sewer connection	3	Sewer tap fee	One-time fee for physical sewer main tap	Build	1	entitlement	regulatory
+B04b02-Sewer plant investment fee	B04b-Sewer connection	3	Sewer plant investment fee	Capacity charge for wastewater treatment infrastructure	Build	2	entitlement	regulatory
+B04c-Electric connection	B04-Utilities	2	Electric connection	Fees to connect to electric utility service	Build	3	entitlement	regulatory
+B04c01-Electric service extension	B04c-Electric connection	3	Electric service extension	Cost for utility to extend service to property line	Build	1	entitlement	regulatory
+B04c02-Transformer and meter	B04c-Electric connection	3	Transformer and meter	Transformer installation and meter setup charges	Build	2	entitlement	regulatory
+B04d-Gas connection	B04-Utilities	2	Gas connection	Fees to connect to natural gas utility service	Build	4	entitlement	regulatory
+B04d01-Gas service extension	B04d-Gas connection	3	Gas service extension	Cost for utility to extend gas main to property	Build	1	entitlement	regulatory
+B04d02-Gas meter	B04d-Gas connection	3	Gas meter	Gas meter installation and setup fee	Build	2	entitlement	regulatory
+B04e-Storm drainage fees	B04-Utilities	2	Storm drainage fees	Fees for connection to public storm drainage system	Build	5	entitlement	regulatory
+B04e01-Storm sewer tap	B04e-Storm drainage fees	3	Storm sewer tap	Physical connection to storm sewer main	Build	1	entitlement	regulatory
+B04e02-Drainage basin fee	B04e-Storm drainage fees	3	Drainage basin fee	Proportional fee for regional drainage improvements	Build	2	entitlement	regulatory
+B04f-Telecom and fiber	B04-Utilities	2	Telecom and fiber	Fees to connect to telecommunications and broadband infrastructure	Build	6	entitlement	regulatory
+B04f01-Conduit and connection	B04f-Telecom and fiber	3	Conduit and connection	Conduit installation and service connection fee	Build	1	entitlement	regulatory
+B08a-Temporary utilities	B08-TempIndirect	2	Temporary utilities	Temporary power, water, and sanitation during construction	Build	1	construction	system
+B08a01-Temporary power	B08a-Temporary utilities	3	Temporary power	Temporary electrical service and distribution during construction	Build	1	construction	system
+B08a02-Temporary water	B08a-Temporary utilities	3	Temporary water	Temporary water service for construction use	Build	2	construction	system
+B08a03-Temporary heat	B08a-Temporary utilities	3	Temporary heat	Temporary heating during cold-weather construction	Build	3	construction	system
+B08b-Site security and fencing	B08-TempIndirect	2	Site security and fencing	Construction site perimeter control and security	Build	2	construction	system
+B08b01-Construction fencing	B08b-Site security and fencing	3	Construction fencing	Perimeter fencing around active construction site	Build	1	construction	system
+B08b02-Security service	B08b-Site security and fencing	3	Security service	Guard service or monitoring for site security	Build	2	construction	system
+B08b03-Signage and safety barriers	B08b-Site security and fencing	3	Signage and safety barriers	Required safety signage and traffic control barriers	Build	3	construction	system
+B08c-Waste and dumpsters	B08-TempIndirect	2	Waste and dumpsters	Construction waste management and removal	Build	3	construction	system
+B08c01-Dumpster and hauling	B08c-Waste and dumpsters	3	Dumpster and hauling	Roll-off dumpsters and waste hauling service	Build	1	construction	system
+B08c02-Recycling and diversion	B08c-Waste and dumpsters	3	Recycling and diversion	Construction waste sorting and recycling	Build	2	construction	system
+B08d-Portable facilities	B08-TempIndirect	2	Portable facilities	Temporary sanitation and worker facilities	Build	4	construction	system
+B08d01-Portable toilets	B08d-Portable facilities	3	Portable toilets	Temporary sanitation units for construction workers	Build	1	construction	system
+B08d02-Construction trailer	B08d-Portable facilities	3	Construction trailer	Temporary office or storage trailer on site	Build	2	construction	system
+B08e-Weather protection	B08-TempIndirect	2	Weather protection	Temporary protection of work and materials from weather	Build	5	construction	system
+B08e01-Tarps and enclosures	B08e-Weather protection	3	Tarps and enclosures	Temporary covers for open work areas and material storage	Build	1	construction	system
+B08e02-Winter conditions	B08e-Weather protection	3	Winter conditions	Cold-weather concrete protection and enclosure costs	Build	2	construction	system
+B08f-Jobsite supervision	B08-TempIndirect	2	Jobsite supervision	On-site construction management and superintendent costs	Build	6	construction	system
+B08f01-Superintendent	B08f-Jobsite supervision	3	Superintendent	Full-time on-site construction superintendent salary and burden	Build	1	construction	system
+B08f02-Assistant superintendent	B08f-Jobsite supervision	3	Assistant superintendent	Additional site supervision for larger projects	Build	2	construction	system
+B08g-Temporary roads and access	B08-TempIndirect	2	Temporary roads and access	Temporary access roads and staging areas during construction	Build	7	construction	system
+B08g01-Construction entrance	B08g-Temporary roads and access	3	Construction entrance	Stabilized construction entrance and tracking pad	Build	1	construction	system
+B08g02-Temporary roads	B08g-Temporary roads and access	3	Temporary roads	Gravel or stabilized temporary roads for equipment access	Build	2	construction	system
+B08h-Cleanup	B08-TempIndirect	2	Cleanup	Construction cleanup during and after construction	Build	8	construction	system
+B08h01-Progress cleaning	B08h-Cleanup	3	Progress cleaning	Periodic cleanup during active construction phases	Build	1	construction	system
+B08h02-Final cleaning	B08h-Cleanup	3	Final cleaning	Comprehensive cleaning before occupancy or handover	Build	2	construction	system
+B09a-Builders risk insurance	B09-RiskIns	2	Builders risk insurance	Property insurance covering the structure during construction	Build	1	crosscutting	overhead
+B09a01-Course of construction	B09a-Builders risk insurance	3	Course of construction	All-risk property coverage from groundbreaking to completion	Build	1	crosscutting	overhead
+B09a02-Flood and earthquake rider	B09a-Builders risk insurance	3	Flood and earthquake rider	Supplemental coverage for flood or seismic events during construction	Build	2	crosscutting	overhead
+B09b-General liability	B09-RiskIns	2	General liability	Commercial general liability insurance for the construction project	Build	2	crosscutting	overhead
+B09b01-CGL policy	B09b-General liability	3	CGL policy	Commercial general liability policy premium for the project	Build	1	crosscutting	overhead
+B09b02-Umbrella and excess	B09b-General liability	3	Umbrella and excess	Excess liability coverage above primary CGL limits	Build	2	crosscutting	overhead
+B09c-Workers compensation	B09-RiskIns	2	Workers compensation	Statutory workers compensation insurance for construction labor	Build	3	crosscutting	overhead
+B09c01-Workers comp premium	B09c-Workers compensation	3	Workers comp premium	Premium based on payroll and trade classification rates	Build	1	crosscutting	overhead
+B09d-Bonds	B09-RiskIns	2	Bonds	Performance and payment bonds guaranteeing completion and subcontractor payment	Build	4	crosscutting	overhead
+B09d01-Performance bond	B09d-Bonds	3	Performance bond	Surety bond guaranteeing project completion per contract terms	Build	1	crosscutting	overhead
+B09d02-Payment bond	B09d-Bonds	3	Payment bond	Surety bond guaranteeing payment to subcontractors and suppliers	Build	2	crosscutting	overhead
+B09d03-Subdivision bond	B09d-Bonds	3	Subdivision bond	Bond guaranteeing completion of public improvements	Build	3	crosscutting	overhead
+B09e-Warranty reserves	B09-RiskIns	2	Warranty reserves	Reserves set aside for post-completion warranty repairs	Build	5	crosscutting	overhead
+B09e01-Structural warranty	B09e-Warranty reserves	3	Structural warranty	Reserve for structural defect claims during warranty period	Build	1	crosscutting	overhead
+B09e02-Systems warranty	B09e-Warranty reserves	3	Systems warranty	Reserve for MEP and systems warranty claims	Build	2	crosscutting	overhead
+B09e03-Workmanship warranty	B09e-Warranty reserves	3	Workmanship warranty	Reserve for finish and workmanship warranty repairs	Build	3	crosscutting	overhead
+B09f-Professional liability	B09-RiskIns	2	Professional liability	Errors and omissions insurance for design professionals	Build	6	crosscutting	overhead
+B09f01-Design E&O	B09f-Professional liability	3	Design E&O	Errors and omissions policy covering architectural and engineering design liability	Build	1	crosscutting	overhead
+B10a-Construction loan origination	B10-Finance	2	Construction loan origination	Fees to establish the construction loan facility	Build	1	crosscutting	finance
+B10a01-Origination fee	B10a-Construction loan origination	3	Origination fee	Lender fee to originate the construction loan (typically 0.5-1.5% of loan amount)	Build	1	crosscutting	finance
+B10a02-Commitment fee	B10a-Construction loan origination	3	Commitment fee	Fee on undrawn loan balance during construction period	Build	2	crosscutting	finance
+B10a03-Lender legal	B10a-Construction loan origination	3	Lender legal	Lender attorney fees for loan document preparation	Build	3	crosscutting	finance
+B10b-Construction interest	B10-Finance	2	Construction interest	Interest accrued on construction loan draws during building period	Build	2	crosscutting	finance
+B10b01-Interest on draws	B10b-Construction interest	3	Interest on draws	Interest on progressive draws as construction costs are funded	Build	1	crosscutting	finance
+B10b02-Interest reserve	B10b-Construction interest	3	Interest reserve	Capitalized interest held in reserve to cover payments during construction	Build	2	crosscutting	finance
+B10c-Carry costs	B10-Finance	2	Carry costs	Ongoing holding costs during the development period	Build	3	crosscutting	finance
+B10c01-Property tax during construction	B10c-Carry costs	3	Property tax during construction	Property taxes accruing during the development period	Build	1	crosscutting	finance
+B10c02-Insurance during construction	B10c-Carry costs	3	Insurance during construction	Property insurance premiums during development period	Build	2	crosscutting	finance
+B10c03-Land carry cost	B10c-Carry costs	3	Land carry cost	Cost of holding land from acquisition through construction start	Build	3	crosscutting	finance
+B10d-Bridge and mezzanine financing	B10-Finance	2	Bridge and mezzanine financing	Subordinate or interim financing layers in the capital stack	Build	4	crosscutting	finance
+B10d01-Bridge loan	B10d-Bridge and mezzanine financing	3	Bridge loan	Short-term loan bridging construction to permanent financing	Build	1	crosscutting	finance
+B10d02-Mezzanine debt	B10d-Bridge and mezzanine financing	3	Mezzanine debt	Subordinate debt between senior construction loan and equity	Build	2	crosscutting	finance
+B10e-Equity placement	B10-Finance	2	Equity placement	Costs of raising and structuring project equity	Build	5	crosscutting	finance
+B10e01-Syndication fees	B10e-Equity placement	3	Syndication fees	Fees for arranging equity investors or syndication partners	Build	1	crosscutting	finance
+B10e02-Legal structuring	B10e-Equity placement	3	Legal structuring	Legal costs for entity formation and operating agreements	Build	2	crosscutting	finance
+B10f-Title and escrow	B10-Finance	2	Title and escrow	Title insurance and escrow services during development	Build	6	crosscutting	finance
+B10f01-Title insurance	B10f-Title and escrow	3	Title insurance	Lender and owner title insurance policies	Build	1	crosscutting	finance
+B10f02-Escrow and closing	B10f-Title and escrow	3	Escrow and closing	Escrow fees and closing costs for construction financing	Build	2	crosscutting	finance
+B11a-Developer personnel	B11-Overhead	2	Developer personnel	Developer staff salaries, benefits, and burden allocated to the project	Build	1	crosscutting	overhead
+B11a01-Developer salary allocation	B11a-Developer personnel	3	Developer salary allocation	Portion of developer principal salary allocated to this project	Build	1	crosscutting	overhead
+B11a02-Development staff	B11a-Developer personnel	3	Development staff	Project manager, analyst, and support staff time allocated to the project	Build	2	crosscutting	overhead
+B11b-Office and administration	B11-Overhead	2	Office and administration	Overhead costs for office operations supporting the project	Build	2	crosscutting	overhead
+B11b01-Office rent and utilities	B11b-Office and administration	3	Office rent and utilities	Pro-rata share of developer office space costs	Build	1	crosscutting	overhead
+B11b02-Technology and software	B11b-Office and administration	3	Technology and software	Project management software, estimating tools, and IT costs	Build	2	crosscutting	overhead
+B11b03-Insurance and licenses	B11b-Office and administration	3	Insurance and licenses	Developer business insurance and professional license fees	Build	3	crosscutting	overhead
+B11c-Marketing and advertising	B11-Overhead	2	Marketing and advertising	Pre-sale and sales-phase marketing costs	Build	3	crosscutting	overhead
+B11c01-Branding and collateral	B11c-Marketing and advertising	3	Branding and collateral	Project branding, brochures, signage, and print materials	Build	1	crosscutting	overhead
+B11c02-Digital marketing	B11c-Marketing and advertising	3	Digital marketing	Online advertising, website, social media, and SEO	Build	2	crosscutting	overhead
+B11c03-Model unit	B11c-Marketing and advertising	3	Model unit	Cost to furnish and maintain a model or show unit	Build	3	crosscutting	overhead
+B11d-Sales staff and commissions	B11-Overhead	2	Sales staff and commissions	Sales team costs and brokerage commissions	Build	4	crosscutting	overhead
+B11d01-In-house sales staff	B11d-Sales staff and commissions	3	In-house sales staff	Salary and benefits for dedicated sales staff	Build	1	crosscutting	overhead
+B11d02-Listing agent commission	B11d-Sales staff and commissions	3	Listing agent commission	Commission paid to listing broker or agent	Build	2	crosscutting	overhead
+B11d03-Buyer agent commission	B11d-Sales staff and commissions	3	Buyer agent commission	Commission offered to cooperating buyer agent	Build	3	crosscutting	overhead
+B11e-Legal and accounting	B11-Overhead	2	Legal and accounting	Ongoing legal and accounting services during development	Build	5	crosscutting	overhead
+B11e01-Corporate legal	B11e-Legal and accounting	3	Corporate legal	General corporate legal services for the developer entity	Build	1	crosscutting	overhead
+B11e02-Accounting and audit	B11e-Legal and accounting	3	Accounting and audit	Project accounting, tax preparation, and audit costs	Build	2	crosscutting	overhead
+B12a-Design contingency	B12-Contingency	2	Design contingency	Budget reserve for incomplete or evolving design scope	Build	1	crosscutting	overhead
+B12a01-Schematic design contingency	B12a-Design contingency	3	Schematic design contingency	Higher contingency for early-stage design (typically 10-15%)	Build	1	crosscutting	overhead
+B12a02-Construction document contingency	B12a-Design contingency	3	Construction document contingency	Lower contingency for advanced design (typically 3-5%)	Build	2	crosscutting	overhead
+B12b-Construction contingency	B12-Contingency	2	Construction contingency	Budget reserve for unforeseen conditions and changes during construction	Build	2	crosscutting	overhead
+B12b01-Unforeseen conditions	B12b-Construction contingency	3	Unforeseen conditions	Reserve for unknown subsurface or concealed conditions	Build	1	crosscutting	overhead
+B12b02-Change orders	B12b-Construction contingency	3	Change orders	Reserve for owner-directed and field-directed changes	Build	2	crosscutting	overhead
+B12b03-Material price escalation	B12b-Construction contingency	3	Material price escalation	Reserve for material cost increases between bidding and procurement	Build	3	crosscutting	overhead
+B12c-Regulatory contingency	B12-Contingency	2	Regulatory contingency	Reserve for unexpected code changes or regulatory requirements	Build	3	crosscutting	overhead
+B12c01-Code change reserve	B12c-Regulatory contingency	3	Code change reserve	Reserve for mid-project building code or zoning amendments	Build	1	crosscutting	overhead
+B12c02-Condition of approval	B12c-Regulatory contingency	3	Condition of approval	Reserve for unanticipated conditions imposed during approval process	Build	2	crosscutting	overhead
+B12d-Allowances	B12-Contingency	2	Allowances	Placeholder budgets for selections not yet made	Build	4	crosscutting	overhead
+B12d01-Finish allowances	B12d-Allowances	3	Finish allowances	Allowances for owner-selected finishes (countertops, fixtures, flooring)	Build	1	crosscutting	overhead
+B12d02-Fixture allowances	B12d-Allowances	3	Fixture allowances	Allowances for lighting, plumbing fixture, and appliance selections	Build	2	crosscutting	overhead
+B12e-Legal reserve	B12-Contingency	2	Legal reserve	Reserve for potential legal disputes or claims	Build	5	crosscutting	overhead
+B12e01-Construction dispute reserve	B12e-Legal reserve	3	Construction dispute reserve	Reserve for contractor or subcontractor dispute resolution	Build	1	crosscutting	overhead
+B12e02-Warranty claims reserve	B12e-Legal reserve	3	Warranty claims reserve	Reserve for post-completion warranty litigation or settlement	Build	2	crosscutting	overhead
+B13a-Equity return	B13-Return	2	Equity return	Required return on developer equity investment	Build	1	crosscutting	finance
+B13a01-Return on equity	B13a-Equity return	3	Return on equity	Target percentage return on cash equity invested in the project	Build	1	crosscutting	finance
+B13a02-Preferred return	B13a-Equity return	3	Preferred return	Priority return to equity investors before profit split	Build	2	crosscutting	finance
+B13b-Developer profit	B13-Return	2	Developer profit	Developer fee and profit margin on total development cost	Build	2	crosscutting	finance
+B13b01-Developer fee	B13b-Developer profit	3	Developer fee	Fixed or percentage fee for developer services (typically 3-5% of total cost)	Build	1	crosscutting	finance
+B13b02-Profit margin	B13b-Developer profit	3	Profit margin	Net profit above developer fee as percentage of total development cost	Build	2	crosscutting	finance
+B13c-Land value appreciation	B13-Return	2	Land value appreciation	Gain realized from land value increase during entitlement and development	Build	3	crosscutting	finance
+B13c01-Entitlement value uplift	B13c-Land value appreciation	3	Entitlement value uplift	Land value increase attributable to securing entitlements and approvals	Build	1	crosscutting	finance
+F01-Principal		1	Principal	Mortgage principal payment (monthly)	Finance	14	occupant_finance	finance
+F01a-Mortgage	F01-Principal	2	Mortgage	Loan payments	Finance	1	occupant_finance	finance
+F01a01-Monthly payment	F01a-Mortgage	3	Monthly payment	Principal and interest	Finance	1	occupant_finance	finance
+F02-Interest		1	Interest	Mortgage interest payment (monthly)	Finance	15	occupant_finance	finance
+F02a-Mortgage	F02-Interest	2	Mortgage	Interest portion	Finance	1	occupant_finance	finance
+F02a01-Monthly interest	F02a-Mortgage	3	Monthly interest	Interest payment	Finance	1	occupant_finance	finance
+F03-PMI		1	PMI	Private mortgage insurance (PMI) (monthly)	Finance	16	occupant_finance	finance
+F03a-Insurance	F03-PMI	2	Insurance	Mortgage insurance	Finance	1	occupant_finance	finance
+F03a01-Monthly premium	F03a-Insurance	3	Monthly premium	PMI payment	Finance	1	occupant_finance	finance
+F04-ClosingCosts		1	ClosingCosts	Buyer closing costs (one-time)	Finance	17	occupant_finance	finance
+F04a-Lender fees	F04-ClosingCosts	2	Lender fees	Loan origination	Finance	1	occupant_finance	finance
+F04a01-Origination and points	F04a-Lender fees	3	Origination and points	Lender charges	Finance	1	occupant_finance	finance
+F04b-Prepaid	F04-ClosingCosts	2	Prepaid	Closing escrows	Finance	2	occupant_finance	finance
+F04b01-Taxes and insurance escrow	F04b-Prepaid	3	Taxes and insurance escrow	Prepaid items	Finance	1	occupant_finance	finance
+F04c-Third party	F04-ClosingCosts	2	Third party	Settlement services	Finance	3	occupant_finance	finance
+F04c01-Appraisal and inspection	F04c-Third party	3	Appraisal and inspection	Due diligence fees	Finance	1	occupant_finance	finance
+O01-Utilities		1	Utilities	Operating utilities	Operate	18	operations	system
+O01a-Electric	O01-Utilities	2	Electric	Electric service	Operate	1	operations	system
+O01a01-Monthly	O01a-Electric	3	Monthly	Monthly electric	Operate	1	operations	system
+O01b-Gas	O01-Utilities	2	Gas	Gas service	Operate	2	operations	system
+O01b01-Monthly	O01b-Gas	3	Monthly	Monthly gas	Operate	1	operations	system
+O01c-Water	O01-Utilities	2	Water	Water service	Operate	3	operations	system
+O01c01-Monthly	O01c-Water	3	Monthly	Monthly water	Operate	1	operations	system
+O01d-Sewer	O01-Utilities	2	Sewer	Sewer service	Operate	4	operations	system
+O01d01-Monthly	O01d-Sewer	3	Monthly	Monthly sewer	Operate	1	operations	system
+O01e-Trash	O01-Utilities	2	Trash	Waste collection	Operate	5	operations	system
+O01e01-Monthly	O01e-Trash	3	Monthly	Monthly trash	Operate	1	operations	system
+O01f-Internet	O01-Utilities	2	Internet	Internet service	Operate	6	operations	system
+O01f01-Monthly	O01f-Internet	3	Monthly	Monthly internet	Operate	1	operations	system
+O02-Maint		1	Maint	Maintenance, repairs, and capital reserves	Operate	19	operations	system
+O02a-Envelope	O02-Maint	2	Envelope	Exterior maintenance	Operate	1	operations	system
+O02a01-Roof	O02a-Envelope	3	Roof	Roof maintenance	Operate	1	operations	system
+O02a02-Siding	O02a-Envelope	3	Siding	Siding maintenance	Operate	2	operations	system
+O02a03-Windows and doors	O02a-Envelope	3	Windows and doors	Opening maintenance	Operate	3	operations	system
+O02a04-Gutters	O02a-Envelope	3	Gutters	Gutter maintenance	Operate	4	operations	system
+O02b-MEP	O02-Maint	2	MEP	Systems maintenance	Operate	2	operations	system
+O02b01-HVAC	O02b-MEP	3	HVAC	HVAC maintenance	Operate	1	operations	system
+O02b02-Water heater	O02b-MEP	3	Water heater	Water heater service	Operate	2	operations	system
+O02b03-Plumbing	O02b-MEP	3	Plumbing	Plumbing repairs	Operate	3	operations	system
+O02b04-Electrical	O02b-MEP	3	Electrical	Electrical repairs	Operate	4	operations	system
+O02c-Interior	O02-Maint	2	Interior	Interior maintenance	Operate	3	operations	system
+O02c01-Flooring	O02c-Interior	3	Flooring	Floor maintenance	Operate	1	operations	system
+O02c02-Paint	O02c-Interior	3	Paint	Repainting	Operate	2	operations	system
+O02c03-Appliances	O02c-Interior	3	Appliances	Appliance repairs	Operate	3	operations	system
+O02d-Exterior	O02-Maint	2	Exterior	Yard maintenance	Operate	4	operations	system
+O02d01-Landscaping	O02d-Exterior	3	Landscaping	Landscape care	Operate	1	operations	system
+O02d02-Hardscape	O02d-Exterior	3	Hardscape	Hardscape repairs	Operate	2	operations	system
+O02e-Pest control	O02-Maint	2	Pest control	Pest management	Operate	5	operations	system
+O02e01-Service	O02e-Pest control	3	Service	Pest service	Operate	1	operations	system
+O02f-Home warranty	O02-Maint	2	Home warranty	Warranty coverage	Operate	6	operations	system
+O02f01-Premium	O02f-Home warranty	3	Premium	Warranty premium	Operate	1	operations	system
+O02g-Reserve contributions	O02-Maint	2	Reserve contributions	Savings reserve	Operate	7	operations	system
+O02g01-Monthly	O02g-Reserve contributions	3	Monthly	Monthly reserve	Operate	1	operations	system
+O03-PropIns		1	PropIns	Operating property insurance	Operate	20	operations	system
+O04-Taxes		1	Taxes	Property taxes & special assessments	Operate	21	operations	regulatory
+O04a-Property tax	O04-Taxes	2	Property tax	Annual property tax	Operate	1	operations	regulatory
+O04a01-Local	O04a-Property tax	3	Local	Local tax	Operate	1	operations	regulatory
+O04b-Special districts	O04-Taxes	2	Special districts	Special assessments	Operate	2	operations	regulatory
+O04b01-Assessments	O04b-Special districts	3	Assessments	District fees	Operate	1	operations	regulatory
+O05-HOA		1	HOA	HOA fees and assessments	Operate	22	operations	system
+O05a-Services	O05-HOA	2	Services	HOA services	Operate	1	operations	system
+O05a01-Landscaping	O05a-Services	3	Landscaping	Common landscaping	Operate	1	operations	system
+O05a02-Snow removal	O05a-Services	3	Snow removal	Winter maintenance	Operate	2	operations	system
+O05a03-Amenities	O05a-Services	3	Amenities	Amenity operations	Operate	3	operations	system
+O05b-Management	O05-HOA	2	Management	HOA management	Operate	2	operations	system
+O05b01-Fees	O05b-Management	3	Fees	Management fees	Operate	1	operations	system
+O05c-Insurance	O05-HOA	2	Insurance	HOA insurance	Operate	3	operations	system
+O05c01-Master policy	O05c-Insurance	3	Master policy	Common insurance	Operate	1	operations	system
+O05d-Reserve	O05-HOA	2	Reserve	HOA reserves	Operate	4	operations	system
+O05d01-Contributions	O05d-Reserve	3	Contributions	Reserve funding	Operate	1	operations	system
+B05f02-Fencing	B05f-Site improvements & amenities	3	Fencing	Perimeter and security fencing	Build	2	construction	system
+B05f01-Retaining walls	B05f-Site improvements & amenities	3	Retaining walls	Site retaining structures and walls	Build	1	construction	system
+B05g02a-Patios	B05g02-Hardscape	4	Patios	Concrete and paver patios	Build	1	construction	system
+B05g02b-Walkways	B05g02-Hardscape	4	Walkways	Pedestrian paths and walkways	Build	2	construction	system
+B05g02c-Walls and borders	B05g02-Hardscape	4	Walls and borders	Landscape walls, edging, and borders	Build	3	construction	system
+B07b01a06-Retaining	B07b01a-Foundation	5	Retaining	Structural retaining and foundation walls	Build	6	construction	system
+B07b01c-Masonry	B07b01-Structure	4	Masonry	Concrete masonry and block construction	Build	3	construction	system
+B07b01c01-CMU walls	B07b01c-Masonry	5	CMU walls	Concrete masonry unit walls	Build	1	construction	system
+B07b01c02-Structural block	B07b01c-Masonry	5	Structural block	Load-bearing block construction	Build	2	construction	system
+B07b01d-Structural steel	B07b01-Structure	4	Structural steel	Steel beams, columns, and connections	Build	4	construction	system
+B07b01d01-Beams and columns	B07b01d-Structural steel	5	Beams and columns	Primary steel framing members	Build	1	construction	system
+B07b01d02-Lintels	B07b01d-Structural steel	5	Lintels	Steel lintels and headers	Build	2	construction	system
+B07b01d03-Connections	B07b01d-Structural steel	5	Connections	Steel connections and hardware	Build	3	construction	system
+B07c02e-Specialties	B07c02-Plumbing	4	Specialties	Plumbing accessories and specialties	Build	5	construction	system
+B07c02e01-Floor drains	B07c02e-Specialties	5	Floor drains	Floor and area drains	Build	1	construction	system
+B07c02e02-Cleanouts	B07c02e-Specialties	5	Cleanouts	Access and cleanout fittings	Build	2	construction	system
+B07c02e03-Hose bibs	B07c02e-Specialties	5	Hose bibs	Exterior water connections	Build	3	construction	system
+B07c05c-Standpipes	B07c05-Fire protection	4	Standpipes	Fire standpipe systems	Build	3	construction	system
+B07d02-Ceilings	B07d-Interiors	3	Ceilings	Ceiling systems and finishes	Build	2	construction	system
+B07d02a-Acoustic tile	B07d02-Ceilings	4	Acoustic tile	Suspended acoustic ceiling systems	Build	1	construction	system
+B07d02b-Drywall ceiling	B07d02-Ceilings	4	Drywall ceiling	Finished drywall ceilings	Build	2	construction	system
+B07d02c-Specialty	B07d02-Ceilings	4	Specialty	Decorative and specialty ceilings	Build	3	construction	system
+B07d13-Window treatments	B07d-Interiors	3	Window treatments	Blinds, shades, and window coverings	Build	13	construction	system
+B07d13a-Blinds	B07d13-Window treatments	4	Blinds	Window blinds	Build	1	construction	system
+B07d13b-Shades	B07d13-Window treatments	4	Shades	Window shades and coverings	Build	2	construction	system
+B07d14-Specialties	B07d-Interiors	3	Specialties	Interior specialties and accessories	Build	14	construction	system
+B07d14a-Signage	B07d14-Specialties	4	Signage	Interior wayfinding and signage	Build	1	construction	system
+B07d14b-Toilet partitions	B07d14-Specialties	4	Toilet partitions	Restroom partitions and screens	Build	2	construction	system
+B07d14c-Lockers	B07d14-Specialties	4	Lockers	Storage lockers	Build	3	construction	system

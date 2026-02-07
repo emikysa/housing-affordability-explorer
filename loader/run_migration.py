@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Run the L1 CE Restructure + UniFormat II Alignment migration.
+Run the L1 CE Restructure migration.
 This script executes the migration in steps to handle FK constraints properly.
 """
 
@@ -32,7 +32,7 @@ def run_sql(supabase, sql, description):
 
 def main():
     print("="*60)
-    print("L1 CE Restructure + UniFormat II Migration")
+    print("L1 CE Restructure Migration")
     print("="*60)
 
     supabase = get_client()

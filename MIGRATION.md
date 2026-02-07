@@ -1,16 +1,15 @@
-# L1 Cost Element Restructure + UniFormat II Alignment
+# L1 Cost Element Restructure
 
 **Migration Date:** 2026-02-01
-**Migration File:** `supabase/migrations/20260201080000_l1_restructure_uniformat.sql`
+**Migration File:** `supabase/migrations/20260201080000_l1_restructure.sql`
 
 ---
 
 ## Overview
 
-This migration performs three major changes:
+This migration performs two major changes:
 1. **L1 CE Restructure** - Removes a/b suffixes, renumbers to B01-B13 clean sequence
 2. **LandCarry Removal** - Removes B03-LandCarry as L1 CE, migrates concept to B10-Finance
-3. **UniFormat II Alignment** - Adds systems-based categorization to B07-BuildCost drilldown
 
 ---
 
@@ -82,28 +81,6 @@ By consolidating LandCarry into Finance, the model prevents:
 
 ---
 
-## UniFormat II Grouping for B07-BuildCost
-
-The `ce_drilldown` table now includes a `uniformat_code` column for B07-BuildCost entries:
-
-| UniFormat Code | Category | Example Level 1 Names |
-|----------------|----------|----------------------|
-| **A** | Substructure | Foundations, Footings, Basement, Slab |
-| **B** | Shell | Framing, Exterior Walls, Roofing, Windows, Doors |
-| **C** | Interiors | Partitions, Finishes, Flooring, Ceilings, Millwork |
-| **D** | Services | Plumbing, HVAC, Electrical, Fire Protection |
-| **E** | Equipment & Furnishings | Appliances, Fixtures |
-| **F** | Special Construction | Demolition, Hazmat Abatement |
-| **Z** | Uncategorized | Items not matching above patterns |
-
-### Sort Order
-Drilldown entries are now sorted by:
-1. `uniformat_code` (A → Z)
-2. `level1_name` (alphabetical)
-3. `level2_name` → `level5_name` (alphabetical)
-
----
-
 ## New Database Schema Elements
 
 ### `ce_code_alias` Table
@@ -127,7 +104,6 @@ CREATE TABLE ce_code_alias (
 |--------|------|-------------|
 | `level5_name` | VARCHAR(200) | Fifth hierarchy level (optional) |
 | `cost_composition` | VARCHAR(20) | 'mixed', 'material', 'labor', or 'sub_op' |
-| `uniformat_code` | VARCHAR(20) | UniFormat II category code (A-F, Z) |
 | `sort_order` | INTEGER | Display order within CE |
 
 ---
@@ -149,13 +125,6 @@ SELECT * FROM cost_elements WHERE ce_id LIKE '%LandCarry%';
 
 -- Check alias table has all mappings
 SELECT * FROM ce_code_alias ORDER BY old_code;
-
--- Check UniFormat distribution for B07
-SELECT uniformat_code, COUNT(*)
-FROM ce_drilldown
-WHERE ce_code = 'B07-BuildCost'
-GROUP BY uniformat_code
-ORDER BY uniformat_code;
 
 -- Total CE count by stage prefix
 SELECT
