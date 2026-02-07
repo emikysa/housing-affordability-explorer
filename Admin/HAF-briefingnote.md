@@ -1,6 +1,6 @@
 # Housing Affordability Framework (HAF) — Briefing Note for External Review
 
-> **Date:** 2026-02-06
+> **Date:** 2026-02-06 (updated Session 17)
 > **Audience:** ChatGPT or other external reviewer analyzing `cost_elements_flattened.tsv`
 > **Companion files:** `cost_elements_flattened.tsv`, `CONTEXT.md`
 
@@ -26,24 +26,35 @@ Cost elements are organized into three chronological stages:
 
 | Stage | Prefix | Scope | When |
 |-------|--------|-------|------|
-| **Build / Development** | B01–B08 | All costs to acquire land, design, permit, build, and sell a unit | Pre-acquisition through sale |
+| **Build / Development** | B01–B13 | All costs to acquire land, design, permit, build, sell, and manage risk | Pre-acquisition through sale |
 | **Occupant Finance** | F00–F04 | Construction financing and buyer mortgage/closing costs | During construction and at purchase |
 | **Operations** | O01–O05 | Ongoing costs of occupying the unit | Monthly/annual post-occupancy |
 
-### Build Stage (B01–B08) — Chronological Order
+### Build Stage (B01–B13) — Chronological Order
 
 The B-series IDs are **intentionally sorted in chronological project order**, reflecting when money is spent during development:
 
 ```
 B01-Land           Land acquisition & assemblage (earliest spend)
-B02-PreDev         Pre-development, entitlement, approvals, permits
+B02-PreDev         Pre-development, entitlement, approvals
+B03-Permits        Building permits, plan review, impact fees
+B04-Utilities      Utility connections & tap fees
 B05-SiteInfra      Site work & infrastructure construction
 B06-SoftCosts      Architecture, engineering, consulting, developer management
 B07-BuildCost      Hard construction (materials, labor, subcontractor O&P)
-B08-SalesDisp      Sales, marketing, brokerage, seller closing costs (final spend)
+B08-TempIndirect   Temporary & indirect field costs (site security, waste, temp utilities)
+B09-RiskIns        Risk transfer & insurance (builder's risk, bonds, liability)
+B10-Finance        Construction-period financing costs (loan origination, interest draws)
+B11-Overhead       Developer overhead & general admin
+B12-Contingency    Contingency, allowances, reserves
+B13-Return         Developer return & profit
 ```
 
 > **Why this matters for finance calculations:** The chronological ordering directly drives construction financing costs. Money spent on land (B01) is carried at interest for the entire project duration. Money spent on interiors (late B07) is carried for only weeks. F00 (construction financing) is fundamentally a function of *how much* was spent × *how long ago* it was spent × *what interest rate* applies.
+
+> **Why B03/B04 were separated from B02:** Originally, permits and utility connections were folded into B02-PreDev. They were broken out because (a) permits and impact fees are a major policy lever — municipalities directly control these costs, and (b) utility tap fees vary enormously by jurisdiction and deserve separate visibility.
+
+> **Why B08–B13 exist:** These categories were added to achieve completeness at the graduate level. Early versions of the framework stopped at B07 (hard construction), which left significant real-world costs invisible — temporary field costs, insurance/bonding, construction financing, developer overhead, contingency, and profit. Making these explicit is essential for understanding why housing costs what it does.
 
 ### Occupant Finance (F00–F04)
 
@@ -107,7 +118,7 @@ This is why F00 descriptions include the note: *"Not every project incurs every 
 | CEL5 short_name | Display name |
 | CEL5 description | Scope description |
 
-**343 lines** (1 header + 342 leaf rows).
+**444 leaf rows** (445 lines including header).
 
 ### ID Convention
 
@@ -128,25 +139,41 @@ The TSV contains **only leaf nodes** — the most granular level for each branch
 
 ## Relationship to the Database
 
-The live web app has a more detailed database (`cost_elements_unified`, 455 records across 6 levels) that includes additional fields (stage, phase, node_class, sort_order) and goes one level deeper (L6). The flat TSV represents the **target structure** we're iterating on. The two are converging but not yet identical — the TSV is ahead on some structural decisions (e.g., B08 Sales/Disposition exists in the TSV but not yet in the database).
+The live web app has a more detailed database (`cost_elements_unified`, 606 records across 6 levels) that includes additional fields (stage, phase, node_class, sort_order) and goes one level deeper (L6). The flat TSV represents the **target structure** we're iterating on — the two are converging.
 
 The database also contains:
 - **22 Cost Reduction Opportunities (CROs)** — ways to reduce costs
 - **71 Barriers** — obstacles preventing cost reduction
-- **5 Levers** — policy interventions that address barriers
+- **20 Levers** — policy interventions that address barriers (5 original + 15 expanded)
+- **129 Barrier–Lever mappings** — linking levers to the barriers they address
 - **Actors** — who controls each cost element and lever
-- **Scenarios** — model different assumptions (finance terms, utility rates, occupancy, lifestyle)
+- **4 Risk model presets** — Low / Medium / High / Very High risk profiles
+- **Scenarios** — model different assumptions across 9 dimensions (see below)
 
 These are not in the flat file but inform how the framework is used.
 
 ---
 
-## Multi-Dimensional Cost Calculator
+## Multi-Dimensional Cost Calculator (9 Dimensions)
 
-The app includes a Monthly Housing Cost Calculator that combines 8 model dimensions:
+The app includes a Monthly Housing Cost Calculator that combines **9 model dimensions**:
+
+| # | Dimension | What it models | Presets |
+|---|-----------|---------------|---------|
+| 1 | Cost Model | Home price by type (condo, townhome, SFR) | 3 |
+| 2 | Occupancy | Household size, bedrooms, bathrooms | 4 |
+| 3 | Lifestyle | Consumption intensity (conservation → luxury) | 4 |
+| 4 | Water | Rate structure (municipal rates by tier) | 3 |
+| 5 | Sewer | Rate structure (flat vs. metered) | 3 |
+| 6 | Electric | Rate structure (TOU, flat, tiered) | 3 |
+| 7 | Gas | Rate structure (winter/summer, therm-based) | 3 |
+| 8 | Finance | Down payment, rate, term, PMI | 4 |
+| 9 | **Risk** | **Schedule, capital, scope, market uncertainty** | **4** |
+
+### Calculation chain:
 
 ```
-Build Cost Model × Finance Terms = Monthly Mortgage (F01–F03)
+Build Cost Model × Finance Terms × Risk Model = Monthly Mortgage (F01–F03) + Risk Costs
 Occupancy × Lifestyle = Monthly Consumption (gallons, kWh, therms)
 Consumption × Utility Rates = Monthly Utility Costs (O01)
 Sum All Monthly = Total Monthly Housing Cost
@@ -156,29 +183,11 @@ This is relevant because the cost elements in the TSV aren't just a taxonomy —
 
 ---
 
-## Recent Changes (this session)
-
-### Rows added (312 → 342 leaf rows):
-- **Round 1 (19 rows):** Developer overhead/fee/profit (B06e02–04), permits breakdown (B02h01–05), contingency/escalation (B07h01–04), construction financing (F00a01–03, F00b01–03), homeowner's insurance (O03a01)
-- **Round 2 (11 rows):** Sales/disposition category (B08a01–04, B08b01–02, B08c01–03, B08d01–02)
-
-### Wording improvements:
-- Monthly bill labels now specific (e.g., "Monthly electric bill" not just "Monthly")
-- Insurance labels disambiguated (PMI premium, HOA master policy, mortgage escrow)
-- Construction financing descriptions clarify "not every project incurs every sub-item"
-- Property tax timing clarified: "pre-occupancy" (F00b02) vs "ongoing post-occupancy" (O04a)
-- Impact fees: "varies widely by jurisdiction" (not "municipality")
-
-### Items we considered and deliberately skipped:
-- **Glossary as static file:** Better implemented as a derived page in the app. Deferred.
-
----
-
-## Risk, Determinism, and Cost of Capital
+## Risk as a Model Dimension (R1–R4)
 
 **Core principle:** Risk is not a cost itself. Risk is priced through time, capital, buffers, and transaction friction.
 
-We want risk to be explicit, teachable, and parameterized — but NOT baked redundantly into every cost element. The following four risk parameters are **conceptual multipliers** that flow through existing cost elements, not new line items.
+Risk is both a **teaching page** (conceptual explanation at `/risk`) and an **implemented model dimension** (9th selector on the Dashboard that changes calculated costs).
 
 ### R1 — Schedule Uncertainty (Duration Variance)
 
@@ -186,10 +195,12 @@ We want risk to be explicit, teachable, and parameterized — but NOT baked redu
 
 **Where it affects existing costs:**
 - Project duration assumptions (all carry costs scale with time)
-- Developer overhead (B06e02) — longer projects consume more overhead
-- Construction interest (F00a02) — interest accrues for each additional month
+- Developer overhead (B11) — longer projects consume more overhead
+- Construction interest (F00a02 / B10) — interest accrues for each additional month
 - Carry costs (F00b) — land carry, taxes, insurance all scale with duration
-- Sales holding time and concessions (B08a, B08d) — unsold units carry cost
+- Sales holding time and concessions (B13) — unsold units carry cost
+
+**Dashboard effect:** Schedule variance % → additional construction carry months → additional monthly cost amortized over loan term.
 
 **Teaching sentence:** "Two projects with the same average timeline but different uncertainty can have very different total costs."
 
@@ -198,9 +209,12 @@ We want risk to be explicit, teachable, and parameterized — but NOT baked redu
 **What it represents:** Market risk, political/regulatory risk, entitlement risk, liquidity risk.
 
 **Where it affects existing costs:**
-- Construction loan interest rates (F00a02) — riskier projects pay higher rates
-- Equity return targets / developer profit (B06e04) — capital demands higher returns for higher risk
-- Required contingency levels (B07h) — lenders and investors require larger buffers
+- Construction loan interest rates (F00a02 / B10) — riskier projects pay higher rates
+- Mortgage interest rate — premium flows through to buyer's monthly payment
+- Equity return targets / developer profit (B13) — capital demands higher returns for higher risk
+- Required contingency levels (B12) — lenders and investors require larger buffers
+
+**Dashboard effect:** Rate premium in basis points → added to mortgage rate → higher monthly mortgage payment.
 
 **Teaching sentence:** "Lower risk doesn't just reduce fees; it reduces the price of money."
 
@@ -209,9 +223,11 @@ We want risk to be explicit, teachable, and parameterized — but NOT baked redu
 **What it represents:** Incomplete design, ambiguous requirements, late-stage changes, interpretation variability.
 
 **Where it affects existing costs:**
-- Design contingency (B07h01) — priced uncertainty in design completeness
-- Construction contingency (B07h02) — priced uncertainty in field conditions
-- Allowances (B07h04) — placeholder budgets for unresolved selections
+- Design contingency (B12) — priced uncertainty in design completeness
+- Construction contingency (B12) — priced uncertainty in field conditions
+- Allowances (B12) — placeholder budgets for unresolved selections
+
+**Dashboard effect:** Design + construction contingency percentages → one-time cost amortized over loan term.
 
 **Teaching sentence:** "Contingency is not waste — it is priced uncertainty."
 
@@ -220,16 +236,27 @@ We want risk to be explicit, teachable, and parameterized — but NOT baked redu
 **What it represents:** Uncertainty about if, when, and at what price a unit will sell.
 
 **Where it affects existing costs:**
-- Marketing spend (B08a) — harder-to-sell units require more marketing
-- Seller concessions and incentives (B08d) — market softness drives concessions
-- Carry costs during sales period (F00b) — unsold inventory carries interest and taxes
-- Required return (B06e04) — exit risk is a major component of required return
+- Marketing spend (B11) — harder-to-sell units require more marketing
+- Seller concessions and incentives — market softness drives concessions
+- Carry costs during sales period — unsold inventory carries interest and taxes
+- Required return (B13) — exit risk is a major component of required return
+
+**Dashboard effect:** Marketing multiplier → increased marketing cost; sales period months → additional carry cost amortized over loan term.
 
 **Teaching sentence:** "A unit can be inexpensive to build and still expensive to buy if exit risk is high."
 
 ### Risk Compounding
 
 R1 and R2 interact multiplicatively. A project with high schedule uncertainty (R1) in a high-rate environment (R2) gets hit twice: longer duration × higher rate. This compounding is why process improvements (faster approvals, predictable inspections) can have outsized cost impacts relative to their direct fee savings.
+
+### Risk Presets
+
+| Name | R1 Schedule | R2 Rate | R3 Design | R3 Constr | R4 Mktg | R4 Sales |
+|------|------------|---------|-----------|-----------|---------|----------|
+| Low Risk | 0% | 0 bps | 3% | 5% | 1.0× | 0 mo |
+| Medium Risk | 10% | 50 bps | 5% | 8% | 1.2× | 2 mo |
+| High Risk | 25% | 150 bps | 8% | 12% | 1.5× | 4 mo |
+| Very High Risk | 40% | 300 bps | 12% | 18% | 2.0× | 8 mo |
 
 ### Municipal Leverage — The Key Insight
 
@@ -247,13 +274,42 @@ This is a core teaching objective of the framework.
 
 ---
 
+## Levers (20 Policy Interventions)
+
+The framework includes **20 levers** — concrete policy tools that municipalities and other actors can use to reduce housing costs. Each lever maps to specific barriers it addresses (129 barrier–lever mappings total).
+
+| Code | Name | Primary Target |
+|------|------|---------------|
+| LEV-ZONING | Zoning Reform | Land/density barriers |
+| LEV-PROCESS | Process Streamlining | Approval timeline barriers |
+| LEV-SUBSIDY | Direct Subsidy | Affordability gap barriers |
+| LEV-FINANCE | Finance Innovation | Capital access barriers |
+| LEV-TECH | Technology Adoption | Construction cost barriers |
+| LEV-FEE_WAIVER | Fee Waivers/Reductions | Permit/impact fee barriers |
+| LEV-EXPEDITED_PERMIT | Expedited Permitting | Schedule uncertainty barriers |
+| LEV-DENSITY_BONUS | Density Bonuses | Land cost barriers |
+| LEV-INCLUSIONARY | Inclusionary Zoning | Affordability requirements |
+| LEV-LAND_TRUST | Community Land Trusts | Land speculation barriers |
+| LEV-TIF | Tax Increment Financing | Infrastructure funding barriers |
+| LEV-WEATHERIZATION | Weatherization Programs | Operating cost barriers |
+| LEV-PREAPPROVED_PLANS | Pre-Approved Plans | Design/permit barriers |
+| LEV-MODULAR | Modular/Factory-Built | Construction speed/cost barriers |
+| LEV-WORKFORCE | Workforce Development | Labor shortage barriers |
+| LEV-ADU_REFORM | ADU/Missing Middle Reform | Zoning/density barriers |
+| LEV-INFRA_SHARING | Infrastructure Cost-Sharing | Infrastructure barriers |
+| LEV-PUBLIC_LAND | Public Land Disposition | Land cost barriers |
+| LEV-GREEN_INCENTIVE | Green Building Incentives | Sustainability cost barriers |
+| LEV-TOD | Transit-Oriented Development | Location/density barriers |
+
+---
+
 ## Guardrails — What NOT to Add
 
-1. **Do not add "risk" as a generic cost element.** Risk is not a line item — it's priced through the four R-parameters above, which flow through existing elements (F00, B06e04, B07h, B08d).
+1. **Do not add "risk" as a generic cost element.** Risk is not a line item — it's priced through the four R-parameters above, which flow through existing elements (B10, B12, B13, F00).
 
 2. **Do not add standalone cross-cutting theme nodes** (e.g., "Sustainability premium", "Affordable housing costs") that span multiple categories. These break MECE. They're better represented through scenario models or filtered views.
 
-3. **Do not double-count risk.** If contingency (B07h) already prices scope uncertainty (R3), adding a separate "uncertainty surcharge" elsewhere creates double-counting.
+3. **Do not double-count risk.** If contingency (B12) already prices scope uncertainty (R3), adding a separate "uncertainty surcharge" elsewhere creates double-counting.
 
 ---
 
@@ -270,16 +326,22 @@ When built, the glossary will include:
 
 ## What Would Be Most Helpful From Your Review
 
+Please number your feedback items for easy triage.
+
 1. **Completeness:** Are there real-world housing costs missing from the framework? Think about costs that surprise first-time buyers, hidden development costs, or regional-specific items.
 
 2. **MECE integrity:** Are any items duplicated or overlapping? Is anything categorized under the wrong parent?
 
 3. **Description clarity:** Can a general audience understand what each leaf node represents? Are any descriptions too jargon-heavy or too vague?
 
-4. **Finance logic:** Does the F00 construction financing structure make sense? Are there common financing structures we're missing?
+4. **B03–B13 structure:** Do the newly expanded Build categories (Permits, Utilities, TempIndirect, RiskIns, Finance, Overhead, Contingency, Return) have complete and appropriate L2/L3 breakdowns?
 
-5. **B08 Sales/Disposition:** Is this new section complete? Are there seller-side costs we missed?
+5. **Finance logic:** Does the F00 construction financing structure make sense? Are there common financing structures we're missing?
 
 6. **Operations (O01–O05):** Are there ongoing housing costs missing? (e.g., pest control, lawn service, security monitoring — some of these might be lifestyle choices vs. true housing costs)
 
-7. **Cross-framework opportunities:** Where should the HAF and BPF connect? For example, BPF's "Durability" outcomes (A5) directly affect HAF's maintenance costs (O02). What other links would be most valuable?
+7. **Risk model (R1–R4):** Do the four risk parameters cover the major uncertainty drivers? Are the preset values reasonable?
+
+8. **Levers:** Are there important policy tools missing from the 20 levers? Do the barrier–lever mappings make sense?
+
+9. **Cross-framework opportunities:** Where should the HAF and BPF connect? For example, BPF's "Durability" outcomes (A5) directly affect HAF's maintenance costs (O02). What other links would be most valuable?
