@@ -16,6 +16,11 @@ const FinanceContext = createContext<FinanceContextType | undefined>(undefined)
 // Default to Conventional 30-Year Fixed (20% down)
 const DEFAULT_FINANCE_MODEL_ID = '00000000-0000-0000-0004-000000000001'
 
+// Slug helper: "Conventional 30-Year Fixed" → "conventional-30-year-fixed"
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+}
+
 export function FinanceProvider({ children }: { children: ReactNode }) {
   const [financeModels, setFinanceModels] = useState<OccupantFinanceModel[]>([])
   const [selectedFinanceModelId, setSelectedFinanceModelId] = useState<string>(DEFAULT_FINANCE_MODEL_ID)
@@ -35,6 +40,17 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
 
         const models = (data || []) as OccupantFinanceModel[]
         setFinanceModels(models)
+
+        // Deep-link: check URL for ?finance=<slug>
+        const urlParams = new URLSearchParams(window.location.search)
+        const financeParam = urlParams.get('finance')
+        if (financeParam && models.length > 0) {
+          const match = models.find(m => toSlug(m.name) === financeParam.toLowerCase())
+          if (match) {
+            setSelectedFinanceModelId(match.id)
+            return
+          }
+        }
 
         // Validate that selected model exists
         if (models.length > 0 && !models.find(m => m.id === selectedFinanceModelId)) {

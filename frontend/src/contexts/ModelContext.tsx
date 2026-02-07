@@ -17,6 +17,11 @@ interface ModelContextType {
 
 const ModelContext = createContext<ModelContextType | undefined>(undefined)
 
+// Slug helper: "Townhome Baseline" → "townhome-baseline"
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+}
+
 export function ModelProvider({ children }: { children: ReactNode }) {
   const [models, setModels] = useState<Model[]>([])
   const [selectedModelId, setSelectedModelId] = useState<string>('')
@@ -36,6 +41,17 @@ export function ModelProvider({ children }: { children: ReactNode }) {
 
         const modelData = (data || []) as Model[]
         setModels(modelData)
+
+        // Deep-link: check URL for ?model=<slug>
+        const urlParams = new URLSearchParams(window.location.search)
+        const modelParam = urlParams.get('model')
+        if (modelParam && modelData.length > 0) {
+          const match = modelData.find(m => toSlug(m.name) === modelParam.toLowerCase())
+          if (match) {
+            setSelectedModelId(match.scenario_id)
+            return
+          }
+        }
 
         // Set default model (first one with is_default=true, or first model, or baseline)
         const defaultModel = modelData.find((m) => m.is_default)
