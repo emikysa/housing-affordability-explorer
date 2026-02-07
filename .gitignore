@@ -12,7 +12,9 @@ loader/.env
 # Python
 __pycache__/
 *.pyc
+.venv/
 loader/venv/
+loader/.venv/
 
 # OS
 .DS_Store
@@ -34,3 +36,9 @@ supabase/.temp/
 # Reports (development artifacts, not app code)
 migration_report.txt
 cost-elements-validation-report.md
+
+# Original source Excel files (data loaded into Supabase; TSV is working artifact)
+*.xlsx
+
+# Stale setup docs (superseded by Admin/ documentation)
+SETUP_GUIDE.md
