@@ -96,7 +96,7 @@ This is why F00 descriptions include the note: *"Not every project incurs every 
 
 ## About the Flat TSV File
 
-`cost_elements_flattened.tsv` is the **primary working file** for the HAF cost element hierarchy. Unlike the BPF (which has a CSV source and derives the TSV), this flat file IS the source of truth for the framework structure we're developing.
+`cost_elements_flattened.tsv` (in this `Admin/` folder) is the **primary working file** for the HAF cost element hierarchy. Unlike the BPF (which has a CSV source and derives the TSV), this flat file IS the source of truth for the framework structure we're developing.
 
 **15 tab-separated columns:**
 

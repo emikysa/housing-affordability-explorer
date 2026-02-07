@@ -22,12 +22,10 @@ Used in the Affordability Series of monthly [fcbsb.org](https://www.fcbsb.org) m
 
 ```
 HousingAffordabilityFramework/
-├── Admin/              # Documentation, briefing notes, flattened TSV for review
+├── Admin/              # Documentation, briefing notes, data files for review
 ├── frontend/           # React application (src/pages, src/components, src/contexts)
 ├── loader/             # Python data loaders and archived one-off scripts
 ├── supabase/           # Migration SQL files
-├── cost_elements_flattened.tsv   # Source-of-truth working file (444 leaf rows)
-├── cost_elements_unified.tsv     # Full hierarchy export (606 records)
 └── .gitignore
 ```
 
@@ -40,7 +38,8 @@ Detailed documentation lives in `Admin/`:
 | `Admin/CONTEXT.md` | Full architecture, data model, calculation chain, schema reference |
 | `Admin/CHANGELOG.md` | Session-by-session change log |
 | `Admin/HAF-briefingnote.md` | Briefing note for external reviewers (ChatGPT data quality passes) |
-| `Admin/cost_elements_flattened.tsv` | Copy of working TSV for easy drag-and-drop handoff |
+| `Admin/cost_elements_flattened.tsv` | Leaf-only working file (444 rows) — source of truth for framework structure |
+| `Admin/cost_elements_unified.tsv` | Full hierarchy export (606 records across all levels) |
 
 ## Sister Project
 
